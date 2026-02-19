@@ -144,7 +144,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   'MISSING_CREDENTIALS': 'Preencha usuário e senha.',
   'LOGIN_FAILED': 'Usuário ou senha incorretos.',
   'TOO_MANY_ATTEMPTS': 'Muitas tentativas. Aguarde alguns minutos.',
-  'LGPD_REQUIRED': 'Acesso bloqueado. Acesse clic.tltlab.org pelo navegador para aceitar os Termos de Uso.'
+  'LGPD_REQUIRED': 'Acesso bloqueado. Acesse clic.tltlab.org pelo navegador para aceitar os Termos de Uso.',
+  'ACCOUNT_BLOCKED': 'Acesso Bloqueado: Procure seu professor para regularizar sua conta.'
 }
 
 async function submitLogin() {
