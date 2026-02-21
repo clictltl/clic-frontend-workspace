@@ -84,9 +84,9 @@
     <OpenProjectModal v-if="showOpen" @close="showOpen = false" />
     <DeleteProjectModal v-if="showDelete" @close="showDelete = false" @deleted="handleDeleted"/>
     <ShareModal v-if="showShare" @close="showShare = false"/>
-    <ConfirmSaveBeforePublishModal v-if="showConfirmSaveBeforePublish" @close="showConfirmSaveBeforePublish = false" @confirm="confirmSaveAndPublish"/>
     <PublishModal v-if="showPublish" @close="showPublish = false"/>
     <UnsavedChangesModal v-if="showUnsavedChanges" @cancel="handleUnsavedCancel" @discard="handleUnsavedDiscard" @save="handleUnsavedSave"/>
+    <NeedSaveModal v-if="showNeedSave" @close="showNeedSave = false" @save="handleNeedSaveConfirm" />
 
   </div>
 </template>
@@ -105,9 +105,8 @@ import OpenProjectModal from '@/editor/components/modals/OpenProjectModal.vue';
 import DeleteProjectModal from '@/editor/components/modals/DeleteProjectModal.vue';
 import ShareModal from '@/editor/components/modals/ShareModal.vue';
 import PublishModal from '@/editor/components/modals/PublishModal.vue';
-import ConfirmSaveBeforePublishModal from '@/editor/components/modals/ConfirmSaveBeforePublishModal.vue';
 import UnsavedChangesModal from '@/editor/components/modals/UnsavedChangesModal.vue';
-
+import NeedSaveModal from '@/editor/components/modals/NeedSaveModal.vue';
 
 const projects = useProjects();
 const { currentProjectId, currentProjectName } = toRefs(projects);
@@ -121,8 +120,8 @@ const showOpen = ref(false);
 const showDelete = ref(false);
 const showShare = ref(false);
 const showPublish = ref(false);
-const showConfirmSaveBeforePublish = ref(false);
-const pendingPublish = ref(false);
+const showNeedSave = ref(false);
+const pendingNextModal = ref<'share' | 'publish' | null>(null);
 
 // Estados para Unsaved Changes
 const showUnsavedChanges = ref(false);
@@ -276,18 +275,15 @@ function handleSaveAsSuccess() {
     return;
   }
 
-  // Prioridade 2: Havia uma publicação pendente?
-  if (pendingPublish.value) {
-    pendingPublish.value = false;
-    showPublish.value = true;     
-  }
+  // Prioridade 2: Se veio do fluxo de Share/Publish
+  if (pendingNextModal.value === 'share') { showShare.value = true; }
+  if (pendingNextModal.value === 'publish') { showPublish.value = true; }
+  pendingNextModal.value = null;
 }
 
 function handleSaveAsClose() {
   showSaveAs.value = false;
-  
-  // Se o usuário cancelou o "Salvar Como", cancelamos qualquer fluxo que dependia disso
-  pendingPublish.value = false; 
+  pendingNextModal.value = null;
   pendingAction.value = null; 
 }
 
@@ -309,39 +305,29 @@ function handleDeleted() {
 
 // Compartilhar...
 function openShare() {
+  if (!projects.currentProjectId.value) {
+    pendingNextModal.value = 'share';
+    showNeedSave.value = true;
+    return;
+  }
   showShare.value = true;
 }
 
 // Publicar
 function openPublish() {
-  showConfirmSaveBeforePublish.value = true;
+  if (!projects.currentProjectId.value) {
+    pendingNextModal.value = 'publish';
+    showNeedSave.value = true;
+    return;
+  }
+  showPublish.value = true;
 }
 
-async function confirmSaveAndPublish() {
-  // Cenário A: Projeto Novo (Nunca salvo)
-  if (!projects.currentProjectId.value) {
-    showConfirmSaveBeforePublish.value = false; 
-    
-    // MARCA A INTENÇÃO: "O usuário quer publicar depois de salvar"
-    pendingPublish.value = true; 
-    
-    saveAsMode.value = 'create';
-    showSaveAs.value = true;
-    
-    toast.info("Dê um nome ao projeto para continuar a publicação.");
-    return;
-  }
-
-  // Cenário B: Projeto Existente
-  const saved = await projects.saveProject();
-  
-  if (!saved) {
-    toast.error("Erro ao salvar o projeto. A publicação foi cancelada.");
-    return;
-  }
-
-  showConfirmSaveBeforePublish.value = false;
-  showPublish.value = true;
+function handleNeedSaveConfirm() {
+  showNeedSave.value = false;
+  // Abre o modal de Salvar Como (Create)
+  saveAsMode.value = 'create';
+  showSaveAs.value = true;
 }
 
 // Ações locais (computador)

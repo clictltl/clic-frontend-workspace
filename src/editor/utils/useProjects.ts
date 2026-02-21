@@ -228,7 +228,6 @@ async function saveProjectAs(newName: string) {
   const previousId = currentProjectId.value;
 
   currentProjectId.value = null;
-  currentProjectName.value = newName;
 
   const result = await saveProject(newName);
 
@@ -358,11 +357,13 @@ async function shareProject() {
       return null;
     }
 
-    // link final
-    const shareUrl =
-      data.share_url ??
-      `${window.CLIC_CHATBOT?.app_url ?? "/"}?share=${data.token}`;
-    return shareUrl;
+    return {
+      token: data.token,
+      share_url: data.share_url ?? `${window.CLIC_CHATBOT?.app_url ?? "/"}?share=${data.token}`,
+      existing: data.existing,
+      reactivated: data.reactivated,
+      is_active: true
+    };
 
   } catch (err: any) {
     error.value = err.message;
@@ -398,7 +399,7 @@ async function loadSharedProject(token: string) {
 
     // 5. Configura como um projeto "Novo" (sem ID vinculado ao banco)
     currentProjectId.value = null;
-    currentProjectName.value = ''; // ou data.project.name se quiser sugerir o nome original
+    currentProjectName.value = '';
 
     return true;
 
@@ -413,20 +414,83 @@ async function loadSharedProject(token: string) {
 
 /**
  * ---------------------------------------------------
+ * DESCOMPARTILHAR
+ * ---------------------------------------------------
+ */
+async function unshareProject() {
+  error.value = null;
+
+  if (!currentProjectId.value) return null;
+
+  try {
+    const res = await fetch(pluginRestRoot + 'unshare', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': nonce
+      },
+      body: JSON.stringify({ project_id: currentProjectId.value })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      error.value = data.error || "UNKNOWN_ERROR";
+      return false;
+    }
+
+    return true;
+
+  } catch (err: any) {
+    error.value = err.message;
+    return false;
+  }
+}
+
+/**
+ * ---------------------------------------------------
+ * CHECAR STATUS SHARE (Sem criar)
+ * ---------------------------------------------------
+ */
+async function getShareStatus() {
+  error.value = null;
+  if (!currentProjectId.value) return null;
+
+  try {
+    const res = await fetch(`${pluginRestRoot}share-status?project_id=${currentProjectId.value}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'X-WP-Nonce': nonce }
+    });
+    
+    const data = await res.json();
+    if (!data.success) return { is_active: false, exists: false };
+
+    return data; 
+
+  } catch (err: any) {
+    console.error(err);
+    return { is_active: false, exists: false };
+  }
+}
+
+/**
+ * ---------------------------------------------------
  * PUBLICAR
  * ---------------------------------------------------
  */
-async function publishProject() {
+async function publishProject(options?: { only_reactivate?: boolean }) {
   error.value = null;
 
-  // não faz sentido publicar sem projeto salvo
   if (!currentProjectId.value) {
     error.value = 'PROJECT_NOT_SAVED';
     return null;
   }
 
   const body = {
-    project_id: currentProjectId.value
+    project_id: currentProjectId.value,
+    only_reactivate: options?.only_reactivate ?? false
   };
 
   try {
@@ -451,12 +515,80 @@ async function publishProject() {
       token: data.token,
       publish_url: data.publish_url,
       published_at: data.published_at,
-      existing: data.existing
+      existing: data.existing,
+      is_active: true
     };
 
   } catch (err: any) {
     error.value = err.message;
     return null;
+  }
+}
+
+/**
+ * ---------------------------------------------------
+ * DESPUBLICAR
+ * ---------------------------------------------------
+ */
+async function unpublishProject() {
+  error.value = null;
+  
+  if (!currentProjectId.value) return null;
+
+  try {
+    const res = await fetch(pluginRestRoot + 'unpublish', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': nonce
+      },
+      body: JSON.stringify({ project_id: currentProjectId.value })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      error.value = data.error || 'UNKNOWN_ERROR';
+      return false;
+    }
+    
+    return true;
+
+  } catch (err: any) {
+    error.value = err.message;
+    return false;
+  }
+}
+
+/**
+ * ---------------------------------------------------
+ * CHECAR STATUS (Sem publicar)
+ * ---------------------------------------------------
+ */
+async function getPublishStatus() {
+  error.value = null;
+  if (!currentProjectId.value) return null;
+
+  try {
+    const res = await fetch(`${pluginRestRoot}publish-status?project_id=${currentProjectId.value}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'X-WP-Nonce': nonce }
+    });
+    
+    const data = await res.json();
+    
+    if (!data.success) {
+      // Se der erro, assume inativo para não bloquear a UI
+      return { is_active: false, exists: false };
+    }
+
+    return data; // { is_active, exists, publish_url, ... }
+
+  } catch (err: any) {
+    console.error(err);
+    return { is_active: false, exists: false };
   }
 }
 
@@ -479,7 +611,11 @@ const projectsStore = {
   deleteProject,
   shareProject,
   loadSharedProject,
+  unshareProject,
+  getShareStatus,
   publishProject,
+  unpublishProject,
+  getPublishStatus,
 };
 
 export function useProjects() {

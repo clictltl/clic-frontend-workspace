@@ -11,7 +11,7 @@
 
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Block, BlockType } from '@/shared/types/chatbot';
-import { blocks, connections, variables, selectedBlockId, setProjectData, hasUnsavedChanges } from '@/editor/utils/projectData';
+import { blocks, connections, variables, selectedBlockId, setProjectData, hasUnsavedChanges, resetProjectData } from '@/editor/utils/projectData';
 import { useAssetStore } from '@/editor/utils/useAssetStore';
 import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
@@ -20,9 +20,16 @@ import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import AuthMenu from '@/editor/components/layout/AuthMenu.vue';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
 import ToastContainer from '@/editor/components/layout/ToastContainer.vue';
-import clicLogo from '@/assets/logo-clic.svg'
+import clicLogo from '@/assets/logo-clic.svg';
+import InvalidShareLinkModal from '@/editor/components/modals/InvalidShareLinkModal.vue';
+
+const props = defineProps<{
+  shareLoadError?: boolean
+}>();
 
 const assetStore = useAssetStore();
+
+const showInvalidShareModal = ref(false);
 
 const zoom = ref(100);
 const activeTab = ref<'properties' | 'variables' | 'preview'>('properties');
@@ -59,6 +66,11 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 };
 
 onMounted(async () => {
+  // Verifica se houve erro no carregamento do share (via prop)
+  if (props.shareLoadError) {
+    showInvalidShareModal.value = true;
+  }
+
   // Verifica se há backup de login (JSON)
   const saved = sessionStorage.getItem('clic-chatbot:login-backup');
 
@@ -112,7 +124,16 @@ onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 
-
+function handleCloseInvalidShareModal() {
+  showInvalidShareModal.value = false;
+  
+  // Reseta para um projeto novo limpo
+  resetProjectData();
+  
+  // Remove query params da URL (caso ainda tenha sobrado algo)
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
 
 // Cria um novo bloco no canvas
 function createBlock(type: BlockType, position?: { x: number; y: number }) {
@@ -154,10 +175,6 @@ function handleDocumentClick(event: MouseEvent) {
     showNewBlockMenu.value = false;
   }
 }
-
-
-
-
 
 // Retorna o conteúdo padrão baseado no tipo do bloco
 function getDefaultContent(type: BlockType): string {
@@ -353,8 +370,6 @@ function startResize(event: MouseEvent) {
   document.addEventListener('mouseup', handleMouseUp);
 }
 
-
-
 </script>
 
 <template>
@@ -527,6 +542,8 @@ function startResize(event: MouseEvent) {
     </div>
 
     <ToastContainer />
+
+    <InvalidShareLinkModal v-if="showInvalidShareModal" @close="handleCloseInvalidShareModal" />
 
   </div>
 </template>

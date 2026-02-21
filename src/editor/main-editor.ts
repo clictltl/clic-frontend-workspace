@@ -10,10 +10,16 @@ async function init() {
   const params = new URLSearchParams(window.location.search);
   const shareToken = params.get("share");
 
-  if (shareToken) {
-    await projects.loadSharedProject(shareToken);
+  let shareLoadError = false;
+
+if (shareToken) {
+    const success = await projects.loadSharedProject(shareToken);
     
-    // limpa a URL (remove ?share=), mantendo o path atual
+    if (!success) {
+      shareLoadError = true;
+      console.warn("Falha ao carregar projeto compartilhado. Token:", shareToken);
+    }
+    
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
   }
@@ -22,7 +28,11 @@ async function init() {
   await checkLogin();
 
   // 3. Monta app somente depois
-  createApp(App).mount('#app');
+  const app = createApp(App, { 
+    shareLoadError: shareLoadError 
+  });
+  
+  app.mount('#app');
 }
 
 init();
