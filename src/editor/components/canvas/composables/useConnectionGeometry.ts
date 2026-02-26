@@ -94,9 +94,31 @@ export function useConnectionGeometry(options: UseConnectionGeometryOptions) {
     return points;
   }
 
+  /**
+   * Obtém os pontos médios (midpoints) de cada segmento da conexão 
+   * (usado para facilitar arrastar conexões no mobile e mouse)
+   */
+  function getConnectionMidpoints(conn: Connection): { x: number; y: number; segmentIndex: number }[] {
+    const points = getConnectionPoints(conn);
+    const midpoints =[];
+    
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      midpoints.push({
+        x: (p1.x + p2.x) / 2,
+        y: (p1.y + p2.y) / 2,
+        segmentIndex: i
+      });
+    }
+    
+    return midpoints;
+  }
+
   return {
     getHandlePosition,
     getConnectionPathById,
-    getConnectionPoints
+    getConnectionPoints,
+    getConnectionMidpoints
   };
 }

@@ -18,7 +18,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [];
   inputClick: [];
-  dragStart: [event: MouseEvent];
+  dragStart: [event: MouseEvent | TouchEvent]; // Suporta Mouse e Touch
   connectStart: [outputId?: string];
   delete: [];
   contextMenu: [event: MouseEvent];
@@ -102,10 +102,10 @@ onBeforeUnmount(() => {
   }
 });
 
-function handleMouseDown(event: MouseEvent) {
+function handleMouseDown(event: MouseEvent | TouchEvent) {
   const target = event.target as HTMLElement;
-  // Não inicia drag se clicar no handle
-  if (target.classList.contains('handle')) {
+  // Não inicia drag se clicar no handle ou num botão
+  if (target.classList.contains('handle') || target.closest('button')) {
     return;
   }
   emit('dragStart', event);
@@ -129,21 +129,28 @@ function handleContextMenu(event: MouseEvent) {
   emit('contextMenu', event);
 }
 
-function handleOutputMouseDown(event: MouseEvent, outputId?: string) {
+function handleOutputMouseDown(event: MouseEvent | TouchEvent, outputId?: string) {
   event.stopPropagation();
-  event.preventDefault();
+  // Evitar clique duplo fantasma (mouse + touch) em dispositivos móveis
+  if (event.type === 'touchstart') {
+    event.preventDefault();
+  }
   emit('connectStart', outputId);
 }
 
-function handleInputMouseDown(event: MouseEvent) {
+function handleInputMouseDown(event: MouseEvent | TouchEvent) {
   event.stopPropagation();
-  event.preventDefault();
+  if (event.type === 'touchstart') {
+    event.preventDefault();
+  }
   emit('inputClick');
 }
 
-function handleDelete(event: MouseEvent) {
+function handleDelete(event: MouseEvent | TouchEvent) {
   event.stopPropagation();
-  event.preventDefault();
+  if (event.type === 'touchstart') {
+    event.preventDefault();
+  }
   emit('delete');
 }
 </script>
@@ -162,15 +169,16 @@ function handleDelete(event: MouseEvent) {
       borderColor: blockColor
     }"
     @mousedown="handleMouseDown"
+    @touchstart="handleMouseDown"
     @click="handleClick"
     @contextmenu="handleContextMenu"
   >
-    <!-- ✅ START (inteiro verde, sem área branca) -->
+    <!-- START (inteiro verde, sem área branca) -->
     <div v-if="block.type === 'start'" class="start-body" :style="{ backgroundColor: blockColor }">
       <span class="start-title">Início</span>
     </div>
 
-    <!-- ✅ RESTO (layout normal) -->
+    <!-- RESTO (layout normal) -->
     <template v-else>
       <div class="block-header" :style="{ backgroundColor: blockColor }">
         <span class="block-icon">{{ blockIcon }}</span>
@@ -180,6 +188,7 @@ function handleDelete(event: MouseEvent) {
           v-if="block.id !== 'start'"
           class="delete-button"
           @click="handleDelete"
+          @touchstart.stop="handleDelete"
           @mousedown.stop
           title="Deletar bloco"
         >
@@ -194,6 +203,7 @@ function handleDelete(event: MouseEvent) {
         :data-block-id="block.id"
         class="handle input-handle"
         @mousedown="handleInputMouseDown"
+        @touchstart="handleInputMouseDown"
         title="Handle de entrada"
       />
 
@@ -237,6 +247,7 @@ function handleDelete(event: MouseEvent) {
               :data-output-id="choice.id"
               class="handle output-handle choice-output"
               @mousedown="handleOutputMouseDown($event, choice.id)"
+              @touchstart="handleOutputMouseDown($event, choice.id)"
               :title="`Conectar '${choice.label}'`"
             />
           </div>
@@ -252,6 +263,7 @@ function handleDelete(event: MouseEvent) {
               :data-output-id="condition.id"
               class="handle output-handle condition-output"
               @mousedown="handleOutputMouseDown($event, condition.id)"
+              @touchstart="handleOutputMouseDown($event, condition.id)"
               title="Conectar condição"
             />
           </div>
@@ -259,15 +271,16 @@ function handleDelete(event: MouseEvent) {
       </div>
     </template>
 
-    <!-- ✅ Handle de saída principal (verde na direita)
+    <!-- Handle de saída principal (verde na direita)
          - para start: aparece (e é o único handle)
-         - não renderiza para end / choiceQuestion / condition (como já era) -->
+         - não renderiza para end / choiceQuestion / condition -->
     <div
       v-if="block.type === 'start' || (block.type !== 'end' && block.type !== 'choiceQuestion' && block.type !== 'condition')"
       :data-handle-id="`${block.id}-output`"
       :data-block-id="block.id"
       class="handle output-handle main-output"
       @mousedown="handleOutputMouseDown($event)"
+      @touchstart="handleOutputMouseDown($event)"
       title="Handle de saída"
     />
   </div>
@@ -297,21 +310,19 @@ function handleDelete(event: MouseEvent) {
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
 }
 
-/* ✅ START: remove branco e deixa tudo verde */
+/* START: remove branco e deixa tudo verde */
 .start-node {
   background: #10b981;
   border-color: #10b981 !important;
 }
 
 .start-body {
-  height: 72px; /* ajuste se quiser mais alto/baixo */
+  height: 72px; 
   width: 100%;
   border-radius: 8px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: white;
   font-weight: 800;
   font-size: 14px;

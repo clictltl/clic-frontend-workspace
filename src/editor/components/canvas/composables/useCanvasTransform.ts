@@ -2,7 +2,7 @@
  * COMPOSABLE: TRANSFORMAÇÕES DO CANVAS
  * 
  * Responsável por gerenciar pan (arraste) e zoom do canvas.
- * Inclui zoom ancorado no mouse e no centro.
+ * Inclui zoom ancorado no mouse, centro e toques (Pinch).
  */
 
 import { ref, type Ref } from 'vue';
@@ -24,6 +24,11 @@ export function useCanvasTransform(options: UseCanvasTransformOptions) {
   const zoom = ref(initialZoom);
   const lastZoom = ref(initialZoom);
   const wheelZoomAnchor = ref<{ x: number; y: number } | null>(null);
+
+  // Estado da pinça (Touch)
+  const initialPinchDistance = ref<number | null>(null);
+  const initialPinchZoom = ref(initialZoom);
+  const pinchCenter = ref<{ x: number; y: number } | null>(null);
 
   /**
    * Ajusta panOffset para que o ponto do "mundo" sob (anchorClientX/Y) fique fixo na tela,
@@ -166,6 +171,62 @@ export function useCanvasTransform(options: UseCanvasTransformOptions) {
     isPanning.value = false;
   }
 
+  // --- MÉTODOS DE PINÇA (TOUCH) ---
+  function getPinchDistance(touches: TouchList) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function getPinchCenter(touches: TouchList) {
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+  }
+
+  function startPinch(touches: TouchList) {
+    if (touches.length !== 2) return;
+    initialPinchDistance.value = getPinchDistance(touches);
+    initialPinchZoom.value = zoom.value;
+    pinchCenter.value = getPinchCenter(touches);
+    isPanning.value = false; // Cancela pan normal durante pinça
+  }
+
+  function updatePinch(touches: TouchList) {
+    if (touches.length !== 2 || !initialPinchDistance.value || !pinchCenter.value) return;
+
+    const currentDistance = getPinchDistance(touches);
+    const currentCenter = getPinchCenter(touches);
+
+    const scale = currentDistance / initialPinchDistance.value;
+    const newZoom = Math.max(25, Math.min(150, initialPinchZoom.value * scale));
+
+    // Aplica Zoom ancorado no centro da pinça
+    keepPointUnderAnchor(zoom.value, newZoom, currentCenter.x, currentCenter.y);
+    zoom.value = newZoom;
+    lastZoom.value = newZoom;
+
+    // Aplica Arrastar (Pan) junto com a pinça
+    const dx = currentCenter.x - pinchCenter.value.x;
+    const dy = currentCenter.y - pinchCenter.value.y;
+    
+    panOffset.value = {
+      x: panOffset.value.x + dx,
+      y: panOffset.value.y + dy
+    };
+
+    // Atualiza estado para o próximo frame de touchmove
+    initialPinchDistance.value = currentDistance;
+    initialPinchZoom.value = newZoom;
+    pinchCenter.value = currentCenter;
+  }
+
+  function endPinch() {
+    initialPinchDistance.value = null;
+    pinchCenter.value = null;
+  }
+
   /**
    * Obtém a posição do centro do canvas em coordenadas do mundo
    */
@@ -174,7 +235,7 @@ export function useCanvasTransform(options: UseCanvasTransformOptions) {
     if (!rect) return { x: 120, y: 120 };
 
     const zoomScale = zoom.value / 100;
-
+    
     // Centro da área visível (tela -> mundo)
     const x = (rect.width / 2 - panOffset.value.x) / zoomScale;
     const y = (rect.height / 2 - panOffset.value.y) / zoomScale;
@@ -198,6 +259,11 @@ export function useCanvasTransform(options: UseCanvasTransformOptions) {
     startPan,
     updatePan,
     endPan,
+
+    // Métodos de pinça
+    startPinch,
+    updatePinch,
+    endPinch,
     
     // Utilidades
     getCanvasCenterWorldPosition

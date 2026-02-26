@@ -1,8 +1,8 @@
 /**
  * COMPOSABLE: INTERAÇÕES DO CANVAS
  * 
- * Coordena todas as interações de mouse e teclado no canvas.
- * Gerencia arraste de blocos, mouse tracking, e eventos de teclado.
+ * Coordena todas as interações de mouse/touch e teclado no canvas.
+ * Gerencia arraste de blocos, cursor tracking, e eventos.
  */
 
 import { ref, type Ref } from 'vue';
@@ -19,7 +19,7 @@ export interface UseCanvasInteractionsOptions {
 export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
   const { canvasRef, panOffset, zoom, blocks, onUpdateBlocks } = options;
 
-  // Estado do mouse
+  // Estado do cursor
   const mousePosition = ref({ x: 0, y: 0 });
 
   // Estado do arraste de blocos
@@ -42,22 +42,22 @@ export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
   }
 
   /**
-   * Atualiza a posição do mouse em coordenadas do mundo
+   * Atualiza a posição do cursor (mouse/touch) em coordenadas do mundo
    */
-  function updateMousePosition(event: MouseEvent) {
-    mousePosition.value = screenToWorld(event.clientX, event.clientY);
+  function updateMousePosition(clientX: number, clientY: number) {
+    mousePosition.value = screenToWorld(clientX, clientY);
   }
 
   /**
    * Inicia o arraste de um bloco
    */
-  function startBlockDrag(blockId: string, event: MouseEvent) {
+  function startBlockDrag(blockId: string, clientX: number, clientY: number) {
     draggedBlock.value = blockId;
     const block = blocks.value.find(b => b.id === blockId);
     if (block) {
       dragStart.value = {
-        x: event.clientX,
-        y: event.clientY,
+        x: clientX,
+        y: clientY,
         blockX: block.position.x,
         blockY: block.position.y
       };
@@ -67,12 +67,12 @@ export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
   /**
    * Atualiza a posição do bloco durante o arraste
    */
-  function updateBlockDrag(event: MouseEvent) {
+  function updateBlockDrag(clientX: number, clientY: number) {
     if (!draggedBlock.value) return;
 
     const zoomScale = zoom.value / 100;
-    const dx = (event.clientX - dragStart.value.x) / zoomScale;
-    const dy = (event.clientY - dragStart.value.y) / zoomScale;
+    const dx = (clientX - dragStart.value.x) / zoomScale;
+    const dy = (clientY - dragStart.value.y) / zoomScale;
 
     const updatedBlocks = blocks.value.map(b =>
       b.id === draggedBlock.value

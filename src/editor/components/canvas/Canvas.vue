@@ -1,9 +1,6 @@
 <script setup lang="ts">
 /**
  * CANVAS - Área de trabalho onde os blocos são desenhados e conectados
- *
- * Este componente foi refatorado e agora usa composables para organizar
- * as responsabilidades em módulos menores e reutilizáveis.
  */
 
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, toRef } from 'vue';
@@ -38,6 +35,9 @@ const emit = defineEmits<{
 // Refs
 const canvasRef = ref<HTMLDivElement | null>(null);
 const renderKey = ref(0);
+
+// DETECÇÃO DE TOUCH
+const isTouchDevice = ref(false);
 
 // Callbacks para composables
 const updateBlocks = (blocks: Block[]) => emit('update:blocks', blocks);
@@ -115,7 +115,7 @@ function handleCanvasMouseDown(event: MouseEvent) {
 
 // Mouse move no canvas
 function handleCanvasMouseMove(event: MouseEvent) {
-  interactions.updateMousePosition(event);
+  interactions.updateMousePosition(event.clientX, event.clientY);
 
   // Atualiza conexão temporária
   if (connectionMgr.connectingFrom.value) {
@@ -133,12 +133,12 @@ function handleCanvasMouseMove(event: MouseEvent) {
 
   // Arrastar bloco
   if (interactions.isDraggingBlock()) {
-    interactions.updateBlockDrag(event);
+    interactions.updateBlockDrag(event.clientX, event.clientY);
   }
 
   // Arrastar waypoint/segmento
   if (waypointEditor.isDragging()) {
-    waypointEditor.updateDrag(event);
+    waypointEditor.updateDrag(event.clientX, event.clientY);
   }
 }
 
@@ -147,6 +147,75 @@ function handleCanvasMouseUp() {
   transform.endPan();
   interactions.endBlockDrag();
   waypointEditor.endDrag();
+}
+
+// --- HANDLERS DE TOUCH ---
+function handleCanvasTouchStart(event: TouchEvent) {
+  isTouchDevice.value = true;
+
+  if (event.touches.length === 2) {
+    event.preventDefault();
+    transform.startPinch(event.touches);
+  } else if (event.touches.length === 1) {
+    if (connectionMgr.connectingFrom.value && event.target === canvasRef.value) {
+      connectionMgr.cancelConnection();
+      return;
+    }
+
+    if (event.target === canvasRef.value) {
+      event.preventDefault();
+      emit('update:selectedBlockId', null);
+      connectionMgr.deselectConnection();
+      transform.startPan(event.touches[0].clientX, event.touches[0].clientY);
+    }
+  }
+}
+
+function handleCanvasTouchMove(event: TouchEvent) {
+  if (event.touches.length === 2) {
+    event.preventDefault();
+    transform.updatePinch(event.touches);
+  } else if (event.touches.length === 1) {
+    const touch = event.touches[0];
+    interactions.updateMousePosition(touch.clientX, touch.clientY);
+
+    if (connectionMgr.connectingFrom.value) {
+      event.preventDefault();
+      connectionMgr.updateTempConnection(
+        interactions.mousePosition.value.x,
+        interactions.mousePosition.value.y,
+        geometry.getHandlePosition
+      );
+    }
+
+    if (transform.isPanning.value) {
+      event.preventDefault();
+      transform.updatePan(touch.clientX, touch.clientY);
+    }
+
+    if (interactions.isDraggingBlock()) {
+      event.preventDefault();
+      interactions.updateBlockDrag(touch.clientX, touch.clientY);
+    }
+    
+    if (waypointEditor.isDragging()) {
+      event.preventDefault();
+      waypointEditor.updateDrag(touch.clientX, touch.clientY);
+    }
+  }
+}
+
+function handleCanvasTouchEnd(event: TouchEvent) {
+  if (event.touches.length < 2) {
+    transform.endPinch();
+  }
+  if (event.touches.length === 0) {
+    transform.endPan();
+    interactions.endBlockDrag();
+    waypointEditor.endDrag(); // Termina arraste do waypoint no touch
+  } else if (event.touches.length === 1 && !interactions.isDraggingBlock() && !waypointEditor.isDragging()) {
+    transform.startPan(event.touches[0].clientX, event.touches[0].clientY);
+  }
 }
 
 // Context menu no canvas
@@ -168,8 +237,10 @@ function handleCanvasContextMenu(event: MouseEvent) {
 }
 
 // Handlers de blocos
-function handleBlockDragStart(blockId: string, event: MouseEvent) {
-  interactions.startBlockDrag(blockId, event);
+function handleBlockDragStart(blockId: string, event: MouseEvent | TouchEvent) {
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+  interactions.startBlockDrag(blockId, clientX, clientY);
 }
 
 function handleBlockSelect(blockId: string) {
@@ -224,12 +295,14 @@ function handleConnectionClick(connectionId: string) {
 }
 
 // Handlers de waypoints
-function handleSegmentMouseDown(connectionId: string, segmentIndex: number, event: MouseEvent) {
-  waypointEditor.startDragSegment(connectionId, segmentIndex, event);
+function handleSegmentMouseDown(connectionId: string, segmentIndex: number, event: MouseEvent | TouchEvent) {
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+  waypointEditor.startDragSegment(connectionId, segmentIndex, clientX, clientY);
 }
 
-function handleWaypointMouseDown(connectionId: string, waypointIndex: number, event: MouseEvent) {
-  waypointEditor.startDragWaypoint(connectionId, waypointIndex, event);
+function handleWaypointMouseDown(connectionId: string, waypointIndex: number) {
+  waypointEditor.startDragWaypoint(connectionId, waypointIndex);
 }
 
 // Toolbar handlers
@@ -277,6 +350,11 @@ watch(() => props.zoom, (newZoom) => {
 
 // Lifecycle
 onMounted(() => {
+  // Tenta checar logo na montagem se o CSS aponta ser um dispotivo móvel (dedo)
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+    isTouchDevice.value = true;
+  }
+
   forceUpdate();
   window.addEventListener('keydown', handleKeyDown);
 
@@ -306,6 +384,10 @@ onBeforeUnmount(() => {
     @mouseup="handleCanvasMouseUp"
     @mouseleave="handleCanvasMouseUp"
     @contextmenu="handleCanvasContextMenu"
+    @touchstart="handleCanvasTouchStart"
+    @touchmove="handleCanvasTouchMove"
+    @touchend="handleCanvasTouchEnd"
+    @touchcancel="handleCanvasTouchEnd"
   >
     <!-- Toolbar com menu e controles de zoom -->
     <CanvasToolbar
@@ -323,6 +405,7 @@ onBeforeUnmount(() => {
       :canvasStyle="canvasStyle"
       :getConnectionPathById="geometry.getConnectionPathById"
       :getConnectionPoints="geometry.getConnectionPoints"
+      :getConnectionMidpoints="geometry.getConnectionMidpoints"
       @connection-click="handleConnectionClick"
       @segment-mousedown="handleSegmentMouseDown"
       @waypoint-mousedown="handleWaypointMouseDown"
@@ -348,13 +431,27 @@ onBeforeUnmount(() => {
     <!-- Dica quando está conectando -->
     <div v-if="connectionMgr.connectingFrom.value" class="connection-hint">
       <strong>🔗 Conectando...</strong><br />
-      Clique no handle vermelho (entrada) do bloco de destino
+      Clique/Toque no handle vermelho (entrada) do bloco de destino
     </div>
 
-    <!-- Dica quando uma conexão está selecionada -->
-    <div v-if="connectionMgr.selectedConnectionId.value" class="delete-hint">
-      Pressione <kbd>Delete</kbd> ou <kbd>Backspace</kbd> para remover esta conexão
+    <!-- Container de Ação da Conexão Selecionada (Dica ou Botão Touch) -->
+    <div v-if="connectionMgr.selectedConnectionId.value" class="delete-hint-wrapper">
+      <button 
+        v-if="isTouchDevice" 
+        class="touch-delete-btn" 
+        @click.stop="connectionMgr.deleteSelectedConnection()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        Apagar Conexão
+      </button>
+      <div v-else class="delete-hint">
+        Pressione <kbd>Delete</kbd> ou <kbd>Backspace</kbd> para remover esta conexão
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -366,6 +463,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background-color: #ffffff;
   cursor: default;
+  touch-action: none; 
 }
 
 .canvas::before {
@@ -428,11 +526,19 @@ onBeforeUnmount(() => {
   }
 }
 
-.delete-hint {
+.delete-hint-wrapper {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  justify-content: center;
+}
+
+
+.delete-hint {
   background: #ef4444;
   color: white;
   padding: 12px 20px;
@@ -440,9 +546,7 @@ onBeforeUnmount(() => {
   font-size: 13px;
   font-weight: 500;
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-  z-index: 1000;
   text-align: center;
-  animation: slideUp 0.3s ease-out;
 }
 
 .delete-hint kbd {
@@ -452,6 +556,28 @@ onBeforeUnmount(() => {
   font-family: monospace;
   font-size: 12px;
   font-weight: 600;
+}
+
+.touch-delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.touch-delete-btn:active {
+  transform: scale(0.95);
+  background: #dc2626;
 }
 
 @keyframes slideUp {

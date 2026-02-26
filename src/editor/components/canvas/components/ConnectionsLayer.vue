@@ -15,25 +15,30 @@ defineProps<{
   canvasStyle: Record<string, any>;
   getConnectionPathById: (conn: Connection) => string;
   getConnectionPoints: (conn: Connection) => { x: number; y: number }[];
+  getConnectionMidpoints: (conn: Connection) => { x: number; y: number; segmentIndex: number }[];
 }>();
 
 const emit = defineEmits<{
-  'connection-click': [connectionId: string, event: MouseEvent];
-  'segment-mousedown': [connectionId: string, segmentIndex: number, event: MouseEvent];
-  'waypoint-mousedown': [connectionId: string, waypointIndex: number, event: MouseEvent];
+  'connection-click': [connectionId: string, event: MouseEvent | TouchEvent];
+  'segment-mousedown': [connectionId: string, segmentIndex: number, event: MouseEvent | TouchEvent];
+  'waypoint-mousedown': [connectionId: string, waypointIndex: number, event: MouseEvent | TouchEvent];
 }>();
 
-function handleConnectionClick(connectionId: string, event: MouseEvent) {
+function handleConnectionClick(connectionId: string, event: MouseEvent | TouchEvent) {
   event.stopPropagation();
-  event.preventDefault();
+  if (event.type === 'touchstart') event.preventDefault();
   emit('connection-click', connectionId, event);
 }
 
-function handleSegmentMouseDown(connectionId: string, segmentIndex: number, event: MouseEvent) {
+function handleSegmentMouseDown(connectionId: string, segmentIndex: number, event: MouseEvent | TouchEvent) {
+  event.stopPropagation();
+  if (event.type === 'touchstart') event.preventDefault();
   emit('segment-mousedown', connectionId, segmentIndex, event);
 }
 
-function handleWaypointMouseDown(connectionId: string, waypointIndex: number, event: MouseEvent) {
+function handleWaypointMouseDown(connectionId: string, waypointIndex: number, event: MouseEvent | TouchEvent) {
+  event.stopPropagation();
+  if (event.type === 'touchstart') event.preventDefault();
   emit('waypoint-mousedown', connectionId, waypointIndex, event);
 }
 </script>
@@ -50,15 +55,16 @@ function handleWaypointMouseDown(connectionId: string, waypointIndex: number, ev
     </defs>
 
     <!-- Conexões existentes -->
-    <g v-for="conn in connections" :key="`${conn.id}-${renderKey}`">
+    <g v-for="conn in connections" :key="conn.id">
       <!-- Hitbox invisível para facilitar clique -->
       <path
         :d="getConnectionPathById(conn)"
         stroke="transparent"
-        stroke-width="12"
+        stroke-width="15"
         fill="none"
         class="connection-hitbox"
         @click="handleConnectionClick(conn.id, $event)"
+        @touchstart="handleConnectionClick(conn.id, $event)"
       />
 
       <!-- Path visível -->
@@ -70,9 +76,10 @@ function handleWaypointMouseDown(connectionId: string, waypointIndex: number, ev
         marker-end="url(#arrowhead)"
         class="connection-path"
         @click="handleConnectionClick(conn.id, $event)"
+        @touchstart="handleConnectionClick(conn.id, $event)"
       />
 
-      <!-- Segmentos arrastáveis (apenas quando selecionado) -->
+      <!-- Linhas transparentes grossas nos segmentos para arrasto "cru" (Fallback pro mouse) -->
       <template v-if="selectedConnectionId === conn.id">
         <line
           v-for="(point, index) in getConnectionPoints(conn).slice(0, -1)"
@@ -85,7 +92,26 @@ function handleWaypointMouseDown(connectionId: string, waypointIndex: number, ev
           stroke-width="12"
           class="connection-segment"
           @mousedown="handleSegmentMouseDown(conn.id, index, $event)"
+          @touchstart="handleSegmentMouseDown(conn.id, index, $event)"
         />
+      </template>
+
+      <!-- BOLINHAS DO PONTO MÉDIO (Midpoints) para auxiliar no Touch -->
+      <template v-if="selectedConnectionId === conn.id">
+        <g
+          v-for="midpoint in getConnectionMidpoints(conn)"
+          :key="`midpoint-${midpoint.segmentIndex}`"
+          class="connection-midpoint-group"
+          @mousedown="handleSegmentMouseDown(conn.id, midpoint.segmentIndex, $event)"
+          @touchstart="handleSegmentMouseDown(conn.id, midpoint.segmentIndex, $event)"
+        >
+          <!-- Hitbox grande e invisível para o dedo não errar -->
+          <circle :cx="midpoint.x" :cy="midpoint.y" r="24" fill="transparent" class="midpoint-hitbox" />
+          <!-- Bolinha branca com borda azul -->
+          <circle :cx="midpoint.x" :cy="midpoint.y" r="6" fill="#ffffff" stroke="#3b82f6" stroke-width="2" class="midpoint-visible" />
+          <!-- Símbolo '+' na bolinha -->
+          <path :d="`M ${midpoint.x - 3} ${midpoint.y} L ${midpoint.x + 3} ${midpoint.y} M ${midpoint.x} ${midpoint.y - 3} L ${midpoint.x} ${midpoint.y + 3}`" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" />
+        </g>
       </template>
 
       <!-- Waypoints editáveis (apenas quando selecionado) -->
@@ -101,6 +127,7 @@ function handleWaypointMouseDown(connectionId: string, waypointIndex: number, ev
           stroke-width="2"
           class="connection-waypoint"
           @mousedown="handleWaypointMouseDown(conn.id, index, $event)"
+          @touchstart="handleWaypointMouseDown(conn.id, index, $event)"
           @click.stop
         />
       </template>
@@ -169,6 +196,20 @@ g:hover .connection-path {
 
 .connection-segment:active {
   cursor: grabbing;
+}
+
+.connection-midpoint-group {
+  cursor: grab;
+}
+
+.connection-midpoint-group:active {
+  cursor: grabbing;
+}
+
+.connection-midpoint-group:hover .midpoint-visible {
+  r: 8;
+  background: #eff6ff;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5));
 }
 
 .connection-waypoint {

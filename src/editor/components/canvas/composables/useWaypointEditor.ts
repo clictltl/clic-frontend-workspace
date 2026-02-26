@@ -42,11 +42,8 @@ export function useWaypointEditor(options: UseWaypointEditorOptions) {
   /**
    * Inicia o arraste de um segmento para criar um waypoint
    */
-  function startDragSegment(connectionId: string, segmentIndex: number, event: MouseEvent) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    const startPos = screenToWorld(event.clientX, event.clientY);
+  function startDragSegment(connectionId: string, segmentIndex: number, clientX: number, clientY: number) {
+    const startPos = screenToWorld(clientX, clientY);
     draggingSegment.value = { connectionId, segmentIndex, startPos };
     onSelectConnection(connectionId);
   }
@@ -54,19 +51,17 @@ export function useWaypointEditor(options: UseWaypointEditorOptions) {
   /**
    * Inicia o arraste de um waypoint existente
    */
-  function startDragWaypoint(connectionId: string, waypointIndex: number, event: MouseEvent) {
-    event.stopPropagation();
-    event.preventDefault();
+  function startDragWaypoint(connectionId: string, waypointIndex: number) {
     draggingWaypoint.value = { connectionId, waypointIndex };
   }
 
   /**
    * Atualiza a posição durante o arraste
    */
-  function updateDrag(event: MouseEvent) {
+  function updateDrag(clientX: number, clientY: number) {
     if (!draggingSegment.value && !draggingWaypoint.value) return;
 
-    const currentPos = screenToWorld(event.clientX, event.clientY);
+    const currentPos = screenToWorld(clientX, clientY);
 
     if (draggingSegment.value) {
       // Criando um novo waypoint arrastando o segmento
