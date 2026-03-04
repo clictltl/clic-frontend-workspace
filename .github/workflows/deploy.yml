@@ -45,7 +45,7 @@ jobs:
           # Passa por cada pasta de aplicativo gerada
           for app_dir in apps/*; do
             # Se a pasta dist existir (significa que fez o build com sucesso)
-            if[ -d "$app_dir/dist" ]; then
+            if [ -d "$app_dir/dist" ]; then
               app_name=$(basename "$app_dir")
               
               # Copia a pasta para o _site
