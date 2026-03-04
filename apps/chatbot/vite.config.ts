@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   // Define o base path baseado no target
   const getBasePath = () => {
     if (isGithub) {
-      return '/chatbot/'
+      return '/clic-frontend-workspace/chatbot/'
     }
     // WordPress - usa path vazio em produção
     return mode === 'production' ? '' : './'
