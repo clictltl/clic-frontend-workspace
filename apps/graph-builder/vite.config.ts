@@ -4,32 +4,35 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Detecta se estamos buildando para o GitHub Pages
+  // Detecta o target pelo argumento --mode
   const isGithub = mode === 'github'
+  
+  // Define o base path baseado no target
+  const getBasePath = () => {
+    if (isGithub) {
+      return '/chatbot/'
+    }
+    // WordPress - usa path vazio em produção
+    return mode === 'production' ? '' : './'
+  }
 
   return {
     plugins: [vue()],
-    
-    // Define o caminho base. 
-    // Se for Github -> '/nome-do-repo/'
-    // Se for Local/WP -> './' (relativo)
-    base: isGithub ? '/graph-builder/' : './',
-
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       }
     },
-
+    base: getBasePath(),
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: false, // Menor tamanho final
+      sourcemap: false,
+      manifest: true,
       rollupOptions: {
         input: {
-          // O Index é o Editor (padrão ao abrir o site)
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
-          // O Runtime é um script separado para ser embedado depois
+          editor: fileURLToPath(new URL('./src/editor/main-editor.ts', import.meta.url)),
           runtime: fileURLToPath(new URL('./src/runtime/main-runtime.ts', import.meta.url)),
         },
       },

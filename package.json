@@ -1,0 +1,14 @@
+{
+  "name": "clic-frontend-workspace",
+  "private": true,
+  "workspaces":[
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:chatbot": "npm run dev -w apps/chatbot",
+    "dev:graph": "npm run dev -w apps/graph-builder",
+    "build:all": "npm run build -w apps/chatbot && npm run build -w apps/graph-builder"
+  }
+}

@@ -1,0 +1,36 @@
+# ==========================================
+# Dependências e Logs (NPM)
+# ==========================================
+node_modules
+logs
+*.log
+npm-debug.log*
+
+# ==========================================
+# Pastas de Build (Vite / Monorepo)
+# ==========================================
+dist
+dist-ssr
+_site         # Pasta temporária que criamos no GitHub Actions
+
+# ==========================================
+# TypeScript Cache
+# ==========================================
+# Como usamos "vue-tsc -b" no package.json, ele gera esses arquivos de cache
+*.tsbuildinfo
+
+# ==========================================
+# Arquivos de Ambiente e Segurança
+# ==========================================
+.env
+.env.*
+*.local
+!.env.example # (Permite commitar um arquivo de exemplo se você criar um)
+
+# ==========================================
+# Editores e Sistema Operacional
+# ==========================================
+.DS_Store     # (Lixo gerado pelo macOS)
+.idea         # (Configurações do WebStorm/IntelliJ, se alguém usar)
+.vscode/*     # (Ignora configs pessoais do VSCode...)
+!.vscode/extensions.json # (...mas permite commitar as extensões recomendadas da equipe)
