@@ -11,13 +11,13 @@
 
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Block, BlockType } from '@/shared/types/chatbot';
-import { blocks, connections, variables, selectedBlockId, setProjectData, hasUnsavedChanges, resetProjectData } from '@/editor/utils/projectData';
+import { blocks, connections, variables, selectedBlockId, getProjectData, setProjectData, hasUnsavedChanges, resetProjectData } from '@/editor/utils/projectData';
 import { useAssetStore } from '@/editor/utils/useAssetStore';
 import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import AuthMenu from '@/editor/components/layout/AuthMenu.vue';
+import { AuthMenu } from '@clic/shared';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
 import ToastContainer from '@/editor/components/layout/ToastContainer.vue';
 import clicLogo from '@/assets/logo-clic.svg';
@@ -81,7 +81,7 @@ onMounted(async () => {
       await assetStore.restoreFromDisk();
 
       // Restaura o projeto
-      setProjectData(JSON.parse(saved));
+      setProjectData(JSON.parse(saved), true);
 
       // Remove do SessionStorage (texto)
       sessionStorage.removeItem('clic-chatbot:login-backup');
@@ -370,6 +370,17 @@ function startResize(event: MouseEvent) {
   document.addEventListener('mouseup', handleMouseUp);
 }
 
+async function handleLoginSuccess() {
+  await assetStore.persistToDisk(); 
+  const project = getProjectData();
+  sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(project));
+
+  // Evita o aviso que vai perder tudo se atualizar
+  hasUnsavedChanges.value = false;
+  
+  window.location.reload();
+}
+
 </script>
 
 <template>
@@ -385,7 +396,7 @@ function startResize(event: MouseEvent) {
 
       <div class="toolbar-right">
         <FileMenu />
-        <AuthMenu />
+        <AuthMenu @login-success="handleLoginSuccess" />
       </div>
     </header>
 

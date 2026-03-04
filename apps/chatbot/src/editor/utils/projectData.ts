@@ -79,7 +79,7 @@ export function getProjectData(): ProjectData {
  * Aplica um projeto ao editor
  * (login+reload, import JSON, banco de dados)
  */
-export function setProjectData(data: ProjectData) {
+export function setProjectData(data: ProjectData, markAsUnsaved: boolean = false) {
   isLoadingData.value = true;
 
   if (Array.isArray(data.blocks) && data.blocks.length > 0) {
@@ -102,10 +102,10 @@ export function setProjectData(data: ProjectData) {
 
   selectedBlockId.value = null;
 
-  // Define como salvo e libera o watcher após um breve delay (next tick)
-  hasUnsavedChanges.value = false;
+  // Respeita o parâmetro enviado (se for login backup, será true, senão false)
+  hasUnsavedChanges.value = markAsUnsaved;
   setTimeout(() => {
-    hasUnsavedChanges.value = false; // Garante limpeza final (double check)
+    hasUnsavedChanges.value = markAsUnsaved;
     isLoadingData.value = false;
   }, 500);
 }

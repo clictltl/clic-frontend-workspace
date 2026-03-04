@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { checkLogin } from './auth';
+import { checkLogin } from '@clic/shared';
 import { useProjects } from './utils/useProjects';
 
 async function init() {

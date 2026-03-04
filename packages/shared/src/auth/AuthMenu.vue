@@ -77,15 +77,12 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { useAuth } from '@/editor/auth';
-import { getProjectData } from '@/editor/utils/projectData';
-import { useAssetStore } from '@/editor/utils/useAssetStore';
-import { decodeHtml } from '@/shared/utils/decodeHtml';
+import { useAuth } from './auth';
+import { decodeHtml } from '../utils/decodeHtml';
 
 
 // Estado auth (singleton)
 const auth = useAuth();
-const assetStore = useAssetStore();
 
 // Estados
 const showLogin = ref(false);
@@ -100,6 +97,8 @@ const usernameInput = ref<HTMLInputElement | null>(null);
 
 // Detecta WP
 const isWordPress = typeof window !== 'undefined' && !!window.CLIC_AUTH;
+
+const emit = defineEmits(['login-success']);
 
 // --- Lógica de Interação ---
 
@@ -166,10 +165,7 @@ async function submitLogin() {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      await assetStore.persistToDisk(); 
-      const project = getProjectData();
-      sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(project));
-      window.location.reload();
+      emit('login-success');
       return;
     }
 
