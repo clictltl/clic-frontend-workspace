@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
           // O Index é o Editor (padrão ao abrir o site)
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
           // O Runtime é um script separado para ser embedado depois
-          runtime: fileURLToPath(new URL('./src/runtime/main.ts', import.meta.url)),
+          runtime: fileURLToPath(new URL('./src/runtime/main-runtime.ts', import.meta.url)),
         },
       },
     }

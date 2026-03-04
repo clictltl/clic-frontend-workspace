@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import BoardView from '@/editor/views/BoardView.vue';
+import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
 import ToastContainer from '@/shared/components/layout/ToastContainer.vue';
@@ -30,7 +30,7 @@ const isPreview = ref(false);
 
     <!-- ÁREA PRINCIPAL -->
     <main class="main-viewport">
-      <BoardView v-if="!isPreview" /> 
+      <Board v-if="!isPreview" /> 
       <ReaderLayout v-else />
     </main>
 
