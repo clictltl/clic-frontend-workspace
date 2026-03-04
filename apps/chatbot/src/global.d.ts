@@ -1,0 +1,24 @@
+export {};
+
+declare global {
+  interface Window {
+    CLIC_AUTH?: {
+      rest_root: string;
+      nonce: string;
+      logged_in: boolean;
+      logout_url: string;
+      version?: string;
+      // campos extras podem existir via filtros
+      [key: string]: any;
+    };
+
+    CLIC_CORE?: {
+      app_type: string;
+      app_slug: string;
+      rest_root: string;
+      app_url: string;
+      wp_rest_root: string;
+      [key: string]: any; 
+    };
+  }
+}
