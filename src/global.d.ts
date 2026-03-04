@@ -12,11 +12,13 @@ declare global {
       [key: string]: any;
     };
 
-    CLIC_CHATBOT?: {
+    CLIC_CORE?: {
+      app_type: string;
+      app_slug: string;
       rest_root: string;
       app_url: string;
       wp_rest_root: string;
-      [key: string]: any; // se no futuro quiser incluir mais campos
+      [key: string]: any; 
     };
   }
 }

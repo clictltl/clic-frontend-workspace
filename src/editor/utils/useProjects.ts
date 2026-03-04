@@ -18,9 +18,9 @@ const projectsList = ref<any[]>([]);
 
 // Rotas da API
 // 1. Rota do Plugin (para salvar/carregar projetos)
-const pluginRestRoot = window.CLIC_CHATBOT?.rest_root ?? '/wp-json/clic-chatbot/v1/';
+const pluginRestRoot = window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
 // 2. Rota do Core WP (para upload de mídia nativo)
-const wpRestRoot = window.CLIC_CHATBOT?.wp_rest_root ?? '/wp-json/';
+const wpRestRoot = window.CLIC_CORE?.wp_rest_root ?? '/wp-json/';
 const nonce = window.CLIC_AUTH?.nonce ?? '';
 
 const assetStore = useAssetStore();
@@ -76,15 +76,7 @@ async function uploadPendingAssets() {
         // Opcional: Adicionar legenda ou texto alternativo
         // formData.append('alt_text', 'Imagem do Chatbot CLIC');
         
-        // TRUQUE DO METADADO:
-        // Como registramos '_clic_chatbot_image_hash' com 'show_in_rest' no PHP,
-        // podemos passar 'meta' como array serializado se a API aceitar, 
-        // ou usar o endpoint de update logo após o upload.
-        // A API /wp/v2/media POST nem sempre aceita o campo 'meta' no FormData de multipart/form-data facilmente.
-        // Estratégia Robusta: Upload Primeiro -> Update Meta Segundo
-
         // Envia para API Nativa (/wp/v2/media)
-        // O WordPress gerencia segurança, autor, pasta e thumbnails aqui.
         const res = await fetch(`${wpRestRoot}wp/v2/media`, {
           method: 'POST',
           headers: { 'X-WP-Nonce': nonce },
@@ -104,7 +96,7 @@ async function uploadPendingAssets() {
               },
               body: JSON.stringify({
                 meta: {
-                  _clic_chatbot_image_hash: asset.hash
+                  _clic_image_hash: asset.hash
                 }
               })
            });
@@ -359,7 +351,7 @@ async function shareProject() {
 
     return {
       token: data.token,
-      share_url: data.share_url ?? `${window.CLIC_CHATBOT?.app_url ?? "/"}?share=${data.token}`,
+      share_url: data.share_url ?? `${window.CLIC_CORE?.app_url ?? "/"}?share=${data.token}`,
       existing: data.existing,
       reactivated: data.reactivated,
       is_active: true
@@ -376,7 +368,7 @@ async function loadSharedProject(token: string) {
   error.value = null;
 
   try {
-    const restRoot = window.CLIC_CHATBOT?.rest_root ?? '/wp-json/clic-chatbot/v1/';
+    const restRoot = window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
     
     // 1. Busca na API
     const res = await fetch(restRoot + 'share/' + token);

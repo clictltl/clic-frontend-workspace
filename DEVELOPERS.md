@@ -508,8 +508,8 @@ window.CLIC_AUTH = {
   nonce: 'wordpress-nonce-token'
 };
 
-window.CLIC_CHATBOT = {
-  rest_root: '/wp-json/clic-chatbot/v1/',
+window.CLIC_CORE = {
+  rest_root: '/wp-json/clic/v1/chatbot/',
   app_url: 'http://wordpress-site/chatbot/'
 };
 ```

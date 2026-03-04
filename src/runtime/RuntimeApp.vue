@@ -49,7 +49,7 @@ async function loadProject() {
 
   try {
     const restRoot =
-      window.CLIC_CHATBOT?.rest_root ?? '/wp-json/clic-chatbot/v1/';
+      window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
 
     const res = await fetch(restRoot + 'publish/' + token);
 
@@ -59,7 +59,7 @@ async function loadProject() {
     }
 
     const json = await res.json();
-    const data: ProjectData = json.chatbot.data;
+    const data: ProjectData = json.project.data;
 
     runtime.value = useChatRuntime({
       blocks: data.blocks,

@@ -133,7 +133,7 @@ const fileMenuContainer = ref<HTMLElement | null>(null);
 // Detecta WordPress
 const isWordPress =
   typeof window !== 'undefined' &&
-  !!window.CLIC_AUTH && !!window.CLIC_CHATBOT;
+  !!window.CLIC_AUTH && !!window.CLIC_CORE;
 
 // Detecta usuário logado
 const showWordPressItems = computed(() => {
