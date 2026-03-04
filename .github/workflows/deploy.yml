@@ -27,27 +27,67 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      # Instala as dependências de todo o workspace de uma vez
       - name: Install dependencies
         run: npm install
 
-      # Constrói o Chatbot
-      - name: Build Chatbot
-        run: npm run deploy -w apps/chatbot
+      # Roda o script "deploy" de todas as pastas dentro de apps/ automaticamente
+      - name: Build all apps dynamically
+        run: npm run deploy --workspaces --if-present
 
-      # Constrói o Graph Builder (assumindo que ele tem os mesmos scripts)
-      - name: Build Graph Builder
-        run: npm run deploy -w apps/graph-builder
-
-      # Prepara a pasta final unificada para o GitHub Pages
+      # Prepara a pasta unificada e gera o HTML dinamicamente
       - name: Prepare unified dist
         run: |
-          mkdir _site
+          mkdir -p _site
           touch _site/.nojekyll
-          # Copia o dist do chatbot para a subpasta /chatbot
-          cp -r apps/chatbot/dist _site/chatbot
-          # Copia o dist do graph-builder para a subpasta /graph-builder
-          cp -r apps/graph-builder/dist _site/graph-builder
+          
+          LINKS_HTML=""
+          
+          # Passa por cada pasta de aplicativo gerada
+          for app_dir in apps/*; do
+            # Se a pasta dist existir (significa que fez o build com sucesso)
+            if[ -d "$app_dir/dist" ]; then
+              app_name=$(basename "$app_dir")
+              
+              # Copia a pasta para o _site
+              cp -r "$app_dir/dist" "_site/$app_name"
+              
+              # Deixa o nome bonito para o botão (ex: "graph-builder" vira "Graph Builder")
+              display_name=$(echo "$app_name" | sed -e 's/-/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
+              
+              # Adiciona o botão HTML à nossa lista
+              LINKS_HTML="$LINKS_HTML<a href=\"./$app_name/\">$display_name</a>"
+            fi
+          done
+          
+          # Cria o arquivo index.html injetando os botões ($LINKS_HTML)
+          cat <<EOF > _site/index.html
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>CLIC Frontend Workspace</title>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f3f4f6; }
+                  .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
+                  h1 { color: #111827; margin-top: 0; font-size: 1.5rem; }
+                  p { color: #4b5563; margin-bottom: 2rem; }
+                  .links { display: flex; flex-direction: column; gap: 1rem; }
+                  a { display: block; padding: 0.75rem 1.5rem; background-color: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background-color 0.2s; }
+                  a:hover { background-color: #1d4ed8; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>CLIC Ferramentas</h1>
+                  <p>Ambiente de validação (Staging). Selecione a aplicação:</p>
+                  <div class="links">
+                      $LINKS_HTML
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
