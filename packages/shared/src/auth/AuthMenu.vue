@@ -9,7 +9,7 @@
 
     <!-- Estado: Usuário NÃO logado -->
     <button v-else-if="!auth.state.loggedIn" class="btn-login" @click="showLogin = true">
-      <span class="icon">👤</span> Entrar
+      <User :size="16" class="icon" /> Entrar
     </button>
 
     <!-- Estado: Usuário LOGADO -->
@@ -20,16 +20,14 @@
           {{ getUserInitials(auth.state.name) }}
         </div>
         <span class="user-name">{{ auth.state.name || 'Usuário' }}</span>
-        <svg class="chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
+        <ChevronDown :size="16" class="chevron" />
       </button>
 
       <!-- Dropdown Menu (Logout) -->
       <transition name="fade-slide">
         <div v-if="showUserMenu" class="user-dropdown">
           <div class="menu-item danger" @click="logout">
-            <span class="icon">🚪</span> Sair
+            <LogOut :size="16" class="icon" /> Sair
           </div>
         </div>
       </transition>
@@ -57,7 +55,7 @@
             </div>
 
             <p v-if="error" class="error-msg">
-              <span class="icon">⚠️</span> {{ error }}
+              <AlertTriangle :size="16" class="icon" /> {{ error }}
             </p>
 
             <div class="form-actions">
@@ -79,14 +77,17 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
+import { User, LogOut, ChevronDown, AlertTriangle } from 'lucide-vue-next';
 
+// Dispara evento para o App pai (ex: Chatbot, Graph Builder) lidar com reload/backup
+const emit = defineEmits(['login-success']);
 
 // Estado auth (singleton)
 const auth = useAuth();
 
 // Estados
 const showLogin = ref(false);
-const showUserMenu = ref(false); // Controle manual do menu de usuário
+const showUserMenu = ref(false); 
 const userMenuContainer = ref<HTMLElement | null>(null);
 
 const username = ref('');
@@ -98,18 +99,13 @@ const usernameInput = ref<HTMLInputElement | null>(null);
 // Detecta WP
 const isWordPress = typeof window !== 'undefined' && !!window.CLIC_AUTH;
 
-const emit = defineEmits(['login-success']);
-
 // --- Lógica de Interação ---
-
-// Foco no input ao abrir modal
 watch(showLogin, (open) => {
   if (open) {
     requestAnimationFrame(() => usernameInput.value?.focus());
   }
 });
 
-// Fechar menu ao clicar fora
 const handleClickOutside = (event: MouseEvent) => {
   if (showUserMenu.value && userMenuContainer.value && !userMenuContainer.value.contains(event.target as Node)) {
     showUserMenu.value = false;
@@ -130,7 +126,6 @@ function closeModal() {
   error.value = '';
 }
 
-// Utilitário para iniciais (ex: "Lucas Coletti" -> "LC")
 function getUserInitials(name: string = '') {
   const parts = name.trim().split(' ');
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
@@ -138,7 +133,6 @@ function getUserInitials(name: string = '') {
 }
 
 // --- Lógica de Auth ---
-
 const ERROR_MESSAGES: Record<string, string> = {
   'MISSING_CREDENTIALS': 'Preencha usuário e senha.',
   'LOGIN_FAILED': 'Usuário ou senha incorretos.',
@@ -165,7 +159,7 @@ async function submitLogin() {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      emit('login-success');
+      emit('login-success'); // Delega o sucesso para o App
       return;
     }
 
@@ -245,7 +239,7 @@ function logout() {
 /* Avatar Circle */
 .avatar-circle {
   width: 28px; height: 28px;
-  background: #2563eb; /* Azul Brand */
+  background: #2563eb;
   color: white;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -333,6 +327,7 @@ function logout() {
   padding: 0.6rem; border-radius: 6px; display: flex; align-items: center; gap: 6px;
   margin-bottom: 1rem;
 }
+.error-msg .icon { flex-shrink: 0; }
 
 .form-actions {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;
