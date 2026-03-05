@@ -8,9 +8,9 @@
         :class="item.type"
         @click="remove(item.id)"
       >
-        <span v-if="item.type === 'success'" class="icon">✅</span>
-        <span v-if="item.type === 'error'" class="icon">❌</span>
-        <span v-if="item.type === 'info'" class="icon">ℹ️</span>
+        <CheckCircle v-if="item.type === 'success'" :size="18" class="icon" />
+        <XCircle v-if="item.type === 'error'" :size="18" class="icon" />
+        <Info v-if="item.type === 'info'" :size="18" class="icon" />
         <span class="message">{{ item.message }}</span>
       </div>
     </transition-group>
@@ -18,7 +18,8 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from '@/shared/composables/useToast';
+import { useToast } from './useToast';
+import { CheckCircle, XCircle, Info } from 'lucide-vue-next';
 
 const { toasts, remove } = useToast();
 </script>
@@ -51,6 +52,7 @@ const { toasts, remove } = useToast();
   color: #374151;
   cursor: pointer;
   border-left: 4px solid #ccc;
+  overflow: hidden;
 }
 
 .toast-item.success { border-left-color: #10b981; }

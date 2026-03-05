@@ -1,35 +1,38 @@
 import { ref } from 'vue';
 
-export interface ToastMessage {
+type ToastType = 'success' | 'error' | 'info';
+
+interface Toast {
   id: number;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: ToastType;
 }
 
-const toasts = ref<ToastMessage[]>([]);
+const toasts = ref<Toast[]>([]);
 let nextId = 1;
 
 export function useToast() {
-  
-  function add(message: string, type: 'success' | 'error' | 'info' = 'info') {
+  const add = (message: string, type: ToastType = 'info', duration = 3000) => {
     const id = nextId++;
     toasts.value.push({ id, message, type });
 
-    // Remove automaticamente após 3 segundos
-    setTimeout(() => {
-      remove(id);
-    }, 3000);
-  }
+    if (duration > 0) {
+      setTimeout(() => {
+        remove(id);
+      }, duration);
+    }
+  };
 
-  function remove(id: number) {
+  const remove = (id: number) => {
     toasts.value = toasts.value.filter(t => t.id !== id);
-  }
+  };
 
   return {
     toasts,
+    add,
+    remove,
     success: (msg: string) => add(msg, 'success'),
     error: (msg: string) => add(msg, 'error'),
     info: (msg: string) => add(msg, 'info'),
-    remove
   };
 }

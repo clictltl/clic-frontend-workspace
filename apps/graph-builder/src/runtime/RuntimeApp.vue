@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ReaderLayout from './layouts/ReaderLayout.vue';
-import ToastContainer from '@/shared/components/layout/ToastContainer.vue';
+import { ToastContainer } from '@clic/shared';
 </script>
 
 <template>

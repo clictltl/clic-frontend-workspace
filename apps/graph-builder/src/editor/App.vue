@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import ToastContainer from '@/shared/components/layout/ToastContainer.vue';
+import { ToastContainer } from '@clic/shared';
 import clicLogo from '@/assets/logo-clic.svg';
 import { Pencil, Eye } from 'lucide-vue-next';
 

@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { useToast } from '@/shared/composables/useToast';
+import { useToast } from '@clic/shared';
 import { exportToZIP, importProjectFile } from '@/editor/utils/localProjectIO';
 import { 
   ChevronDown, 

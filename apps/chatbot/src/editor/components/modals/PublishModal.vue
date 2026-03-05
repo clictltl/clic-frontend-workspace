@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ref, toRefs, onMounted } from 'vue';
 import { useProjects } from '@/editor/utils/useProjects';
-import { useToast } from '@/editor/utils/useToast';
+import { useToast } from '@clic/shared';
 
 const emit = defineEmits(['close']);
 const projects = useProjects();

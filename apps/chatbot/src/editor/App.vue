@@ -19,7 +19,7 @@ import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AuthMenu } from '@clic/shared';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import ToastContainer from '@/editor/components/layout/ToastContainer.vue';
+import { ToastContainer } from '@clic/shared';
 import clicLogo from '@/assets/logo-clic.svg';
 import InvalidShareLinkModal from '@/editor/components/modals/InvalidShareLinkModal.vue';
 
