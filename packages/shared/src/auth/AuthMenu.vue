@@ -127,9 +127,21 @@ function closeModal() {
 }
 
 function getUserInitials(name: string = '') {
-  const parts = name.trim().split(' ');
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const parts = name.trim().split(' ').filter(Boolean); 
+  
+  if (parts.length === 0) return 'US'; // Fallback (US de Usuário)
+
+  const first = parts[0];
+  if (parts.length === 1 && first) {
+    return first.substring(0, 2).toUpperCase();
+  }
+
+  const last = parts[parts.length - 1];
+  if (first && last) {
+    return (first.charAt(0) + last.charAt(0)).toUpperCase();
+  }
+
+  return 'US';
 }
 
 // --- Lógica de Auth ---

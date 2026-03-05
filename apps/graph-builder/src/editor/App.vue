@@ -3,30 +3,24 @@ import { ref } from 'vue';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import { ToastContainer } from '@clic/shared';
-import clicLogo from '@/assets/logo-clic.svg';
+import { AppHeader, AuthMenu, ToastContainer } from '@clic/shared';
 import { Pencil, Eye } from 'lucide-vue-next';
 
 const isPreview = ref(false);
+
+function handleLoginSuccess() {
+  // Mais tarde vamos colocar a lógica de recarregar a página aqui!
+}
 </script>
 
 <template>
   <div class="app-root">
     
     <!-- HEADER -->
-    <header class="toolbar">
-      <div class="toolbar-left">
-        <a href="https://clic.tltlab.org" class="toolbar-logo-link">
-          <img v-if="clicLogo" :src="clicLogo" alt="CLIC" class="toolbar-logo" />
-          <span v-else>🔷</span>
-        </a>
-        <h1 class="toolbar-title">Graph Builder</h1>
-      </div>
-
-      <div class="toolbar-right">
-        <FileMenu />
-      </div>
-    </header>
+    <AppHeader title="Graph Builder">
+      <FileMenu />
+      <AuthMenu @login-success="handleLoginSuccess" />
+    </AppHeader>
 
     <!-- ÁREA PRINCIPAL -->
     <main class="main-viewport">
@@ -58,49 +52,6 @@ html, body, #app {
 }
 
 .app-root { display: flex; flex-direction: column; height: 100vh; position: relative; }
-
-/* HEADER */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 20px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  gap: 24px;
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-
-.toolbar-logo-link {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-.toolbar-logo {
-  height: 42px;
-  width: auto;
-}
-
-.toolbar-title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 .main-viewport {
   flex: 1; overflow: hidden; display: flex; flex-direction: column;

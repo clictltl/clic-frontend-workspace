@@ -17,10 +17,8 @@ import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AuthMenu } from '@clic/shared';
+import { AppHeader, AuthMenu, ToastContainer } from '@clic/shared';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import { ToastContainer } from '@clic/shared';
-import clicLogo from '@/assets/logo-clic.svg';
 import InvalidShareLinkModal from '@/editor/components/modals/InvalidShareLinkModal.vue';
 
 const props = defineProps<{
@@ -386,19 +384,10 @@ async function handleLoginSuccess() {
 <template>
   <div class="app">
     <!-- Toolbar superior com controles principais -->
-    <header class="toolbar">
-      <div class="toolbar-left">
-          <a href="https://clic.tltlab.org" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
-            <img :src="clicLogo" alt="CLIC" class="toolbar-logo" />
-          </a>
-          <h1 class="toolbar-title">Chatbot</h1>
-      </div>
-
-      <div class="toolbar-right">
-        <FileMenu />
-        <AuthMenu @login-success="handleLoginSuccess" />
-      </div>
-    </header>
+    <AppHeader title="Chatbot">
+    <FileMenu />
+    <AuthMenu @login-success="handleLoginSuccess" />
+  </AppHeader>
 
     <!-- Área principal com canvas e painel lateral -->
     <div class="main-content">
@@ -575,77 +564,6 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* Toolbar no topo */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 20px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  gap: 24px;
-}
-
-/* Lado esquerdo */
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-
-/* Logo */
-.toolbar-logo-link {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-.toolbar-logo {
-  height: 42px;
-  width: auto;
-}
-
-/* Título */
-.toolbar-title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* Centro */
-.toolbar-center {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.toolbar-center label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.toolbar-center input[type="range"] {
-  width: 120px;
-}
-
-.toolbar-center span {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  min-width: 45px;
-}
-
-/* Direita */
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .new-block-wrapper {

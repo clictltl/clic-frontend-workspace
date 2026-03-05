@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import type { ProjectData } from '@/shared/types/project';
-import clicLogo from '@/assets/logo-clic.svg';
+import { logoClic as clicLogo } from '@clic/shared';
 
 // ===== Estado de carregamento =====
 const isLoading = ref(true);

@@ -95,9 +95,8 @@
 import { ref, toRefs, computed, onMounted, onUnmounted } from 'vue';
 import { useProjects } from '@/editor/utils/useProjects';
 import { resetProjectData, hasUnsavedChanges } from '@/editor/utils/projectData';
-import { useAuth } from '@clic/shared';
+import { useAuth, useToast } from '@clic/shared';
 import { importFromComputer, exportToComputer } from '@/editor/utils/localProjectIO';
-import { useToast } from '@clic/shared';
 
 // Imports dos Modais
 import SaveAsModal from '@/editor/components/modals/SaveAsModal.vue';
