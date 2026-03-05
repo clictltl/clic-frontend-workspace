@@ -1,12 +1,12 @@
 import { ref } from 'vue';
 import type { Block, Variable, ChatMessage } from '@/shared/types/chatbot';
-import type { ProjectAsset } from '@/shared/types/project';
+import type { ClicAsset } from '@clic/shared';
 import { interpolateText, evaluateCondition } from '@/shared/utils/interpolation';
 
 type UseChatRuntimeOptions = {
   blocks: Block[];
   variables: Record<string, Variable>;
-  assets?: Record<string, ProjectAsset>; // Metadados (importante para Remote)
+  assets?: Record<string, ClicAsset>; // Metadados (importante para Remote)
   resolveAsset?: (id: string) => string | undefined;
   onVariablesChange?: (vars: Record<string, Variable>) => void;
 };

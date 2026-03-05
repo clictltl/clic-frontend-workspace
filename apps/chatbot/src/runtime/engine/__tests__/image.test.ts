@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Block } from '@/shared/types/chatbot';
-import type { ProjectAsset } from '@/shared/types/project';
+import type { ClicAsset } from '@clic/shared';
 import { useChatRuntime } from '../useChatRuntime'; // Import direto para cenários complexos
 import { createRuntime } from './helpers';
 
@@ -57,7 +57,7 @@ describe('useChatRuntime – image block', () => {
     ];
 
     // Simula o objeto 'assets' que vem do JSON do banco de dados
-    const mockAssets: Record<string, ProjectAsset> = {
+    const mockAssets: Record<string, ClicAsset> = {
       'asset_wp_123': {
         id: 'asset_wp_123',
         type: 'image/png',

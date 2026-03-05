@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import type { Block, Connection, Variable } from '@/shared/types/chatbot';
-import type { ProjectData, ProjectAsset } from '@/shared/types/project';
+import type { ProjectData } from '@/shared/types/project';
+import type { ClicAsset } from '@clic/shared';
 
 /**
  * Estado reativo do editor
@@ -56,7 +57,7 @@ export const connections = ref<Connection[]>([
 ]);
 
 export const variables = ref<Record<string, Variable>>({});
-export const assets = ref<Record<string, ProjectAsset>>({});
+export const assets = ref<Record<string, ClicAsset>>({});
 export const selectedBlockId = ref<string | null>(null);
 
 // --- CONTROLE DE MUDANÇAS ---
