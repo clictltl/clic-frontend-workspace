@@ -282,6 +282,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     persistToDisk,
     restoreFromDisk,
     clearDisk,
-    privatizeRemoteAssets
+    privatizeRemoteAssets,
+    getAssets: config.getAssets
   };
 }

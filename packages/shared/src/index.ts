@@ -13,6 +13,7 @@ export { default as AuthMenu } from './auth/AuthMenu.vue';
 export { decodeHtml } from './utils/decodeHtml';
 export { exportClicFile, importClicFile } from './utils/projectIO';
 export { useSharedAssetStore } from './utils/useSharedAssetStore';
+export { createSharedProjects } from './utils/useSharedProjects';
 
 // ui
 export { default as AppHeader } from './ui/AppHeader.vue';
