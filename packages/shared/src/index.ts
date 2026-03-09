@@ -11,6 +11,7 @@ export { default as AuthMenu } from './auth/AuthMenu.vue';
 
 // utils
 export { decodeHtml } from './utils/decodeHtml';
+export { exportClicFile, importClicFile } from './utils/projectIO';
 export { useSharedAssetStore } from './utils/useSharedAssetStore';
 
 // ui

@@ -46,7 +46,7 @@
           <input 
             type="file" 
             ref="fileInput" 
-            accept=".zip,.json"
+            accept=".clic-graph,.zip,.json"
             style="display: none" 
             @change="handleImport"
           />
@@ -64,8 +64,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { useToast } from '@clic/shared';
-import { exportToZIP, importProjectFile } from '@/editor/utils/localProjectIO';
+import { useToast, exportClicFile, importClicFile } from '@clic/shared';
+import { assetStore } from '@/shared/stores/assetStore';
 import { 
   ChevronDown, 
   FileText, 
@@ -106,10 +106,13 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 
 // --- Ações de Projeto ---
 
-function handleExport() {
+async function handleExport() {
   try {
     const name = store.project.meta.name || 'projeto';
-    exportToZIP(store.project, name);
+    await exportClicFile(store.project, assetStore, {
+      filename: name,
+      extension: '.clic-graph'
+    });
     toast.success('Projeto exportado com sucesso!');
   } catch (error) {
     console.error(error);
@@ -128,7 +131,7 @@ async function handleImport(event: Event) {
   if (!file) return;
 
   try {
-    const loadedProject = await importProjectFile(file);
+    const loadedProject = await importClicFile(file, assetStore);
     store.loadProject(loadedProject);
     toast.success('Projeto carregado com sucesso!');
   } catch (err: any) {

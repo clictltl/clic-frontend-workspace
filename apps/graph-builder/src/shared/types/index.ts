@@ -1,23 +1,4 @@
-/**
- * ASSETS: Gerenciamento de arquivos (Imagens, PDF)
- * Referência por ID.
- */
-export type AssetSource = 'local' | 'remote';
-
-export interface Asset {
-  id: string;
-  type: string;         // Ex: 'image/png' ou 'text/markdown'
-  originalName: string;
-  source: AssetSource;
-  
-  url?: string;         // WP URL
-  wpId?: number;
-  
-  blobUrl?: string;     // Preview de imagens locais
-  file?: File;          // Arquivo binário (para exportação)
-  
-  textContent?: string; // Cache de conteúdo de texto (para não precisar ler Blob toda hora) 
-}
+import type { ClicAsset } from '@clic/shared';
 
 /**
  * CATEGORIA: O agrupador visual (ex: "Introdução", "Conceitos Básicos")
@@ -40,7 +21,7 @@ export interface Node {
   id: string;
   categoryId: string;
   title: string;
-  contentAssetId?: string; 
+  content: string; 
   order: number;
 }
 
@@ -54,7 +35,7 @@ export interface Edge {
 }
 
 /**
- * PROJETO: O arquivo salvo (.json)
+ * PROJETO: O arquivo salvo
  */
 export interface GraphProject {
   meta: {
@@ -67,5 +48,5 @@ export interface GraphProject {
   categories: Category[];
   nodes: Node[];
   edges: Edge[];
-  assets: Record<string, Asset>;
+  assets: Record<string, ClicAsset>;
 }

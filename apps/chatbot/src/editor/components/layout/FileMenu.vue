@@ -71,6 +71,13 @@
           <div class="menu-item" @click="handleMenuClick(() => withGuard(openFromComputer))">
             <span class="icon">📥</span> Importar Projeto
           </div>
+          <input 
+            type="file" 
+            ref="fileInput" 
+            accept=".clic-chat,.clic,.zip,.json"
+            style="display: none" 
+            @change="handleImport"
+          />
           <div class="menu-item" @click="handleMenuClick(saveToComputer)">
             <span class="icon">📤</span> Exportar Projeto
           </div>
@@ -94,9 +101,9 @@
 <script setup lang="ts">
 import { ref, toRefs, computed, onMounted, onUnmounted } from 'vue';
 import { useProjects } from '@/editor/utils/useProjects';
-import { resetProjectData, hasUnsavedChanges } from '@/editor/utils/projectData';
-import { useAuth, useToast } from '@clic/shared';
-import { importFromComputer, exportToComputer } from '@/editor/utils/localProjectIO';
+import { getProjectData, setProjectData, resetProjectData, hasUnsavedChanges } from '@/editor/utils/projectData';
+import { useAuth, useToast, exportClicFile, importClicFile } from '@clic/shared';
+import { useAssetStore } from '@/editor/utils/useAssetStore';
 
 // Imports dos Modais
 import SaveAsModal from '@/editor/components/modals/SaveAsModal.vue';
@@ -111,6 +118,8 @@ const projects = useProjects();
 const { currentProjectId, currentProjectName } = toRefs(projects);
 const auth = useAuth();
 const toast = useToast();
+const assetStore = useAssetStore();
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const open = ref(false);
 const showSaveAs = ref(false);
@@ -331,22 +340,40 @@ function handleNeedSaveConfirm() {
 
 // Ações locais (computador)
 function openFromComputer() {
-  importFromComputer(
-    () => {
-      // Rompe vínculo com projeto salvo (se houver)
-      projects.currentProjectId.value = null;
-      projects.currentProjectName.value = '';
-      toast.success('Projeto carregado com sucesso!');
-    },
-    () => {
-      alert('Erro ao carregar o projeto.');
-    }
-  );
+  if (fileInput.value) fileInput.value.value = ''; // Reseta input
+  fileInput.value?.click();
 }
 
+async function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
 
-function saveToComputer() {
-  exportToComputer();
+  try {
+    const project = await importClicFile(file, assetStore);
+    setProjectData(project);
+    
+    // Rompe vínculo com projeto salvo na nuvem
+    projects.currentProjectId.value = null;
+    projects.currentProjectName.value = '';
+    toast.success('Projeto carregado com sucesso!');
+  } catch (err: any) {
+    console.error(err);
+    toast.error('Erro ao carregar o projeto.');
+  }
+}
+
+async function saveToComputer() {
+  try {
+    await exportClicFile(getProjectData(), assetStore, {
+      filename: projects.currentProjectName.value || 'meu-chatbot',
+      extension: '.clic-chat'
+    });
+    toast.success('Projeto exportado com sucesso!');
+  } catch (err) {
+    console.error(err);
+    toast.error('Erro ao exportar projeto.');
+  }
 }
 </script>
 

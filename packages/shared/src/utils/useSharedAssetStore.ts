@@ -124,7 +124,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     
     for (const existingId in assets) {
       const asset = assets[existingId];
-      if (asset.hash === fileHash) {
+      if (asset && asset.hash === fileHash) {
         if (blobRegistry[existingId] || asset.source === 'remote') {
           return existingId; // Já existe, reaproveita!
         }

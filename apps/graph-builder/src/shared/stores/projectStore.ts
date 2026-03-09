@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import type { GraphProject, Category, Node, Edge, Asset } from '../types';
+import type { GraphProject, Category, Node, Edge } from '../types';
 
 export const CATEGORY_COLORS = [
   '#ef4444', // Red
@@ -139,6 +139,7 @@ export const useProjectStore = defineStore('project', {
         id: uuidv4(),
         categoryId,
         title: 'Novo Item',
+        content: '',
         order: currentCount,
       };
       this.project.nodes.push(newNode);
@@ -174,34 +175,15 @@ export const useProjectStore = defineStore('project', {
 
     saveNodeContent(nodeId: string, content: string) {
       const node = this.project.nodes.find(n => n.id === nodeId);
-      if (!node) return;
-
-      let assetId = node.contentAssetId;
-      
-      if (!assetId) {
-        assetId = uuidv4();
-        node.contentAssetId = assetId;
+      if (node) {
+        node.content = content;
+        this.project.meta.updatedAt = now();
       }
-
-      const textAsset: Asset = {
-        id: assetId,
-        type: 'text/markdown',
-        originalName: `content-${nodeId}.md`,
-        source: 'local',
-        textContent: content,
-        file: new File([content], `content-${nodeId}.md`, { type: 'text/markdown' })
-      };
-
-      this.project.assets[assetId] = textAsset;
-      this.project.meta.updatedAt = now();
     },
 
     getNodeContent(nodeId: string): string {
       const node = this.project.nodes.find(n => n.id === nodeId);
-      if (!node || !node.contentAssetId) return '';
-
-      const asset = this.project.assets[node.contentAssetId];
-      return asset?.textContent || '';
+      return node?.content || '';
     },
 
     addEdge(sourceId: string, targetId: string) {
