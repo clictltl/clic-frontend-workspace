@@ -2,19 +2,19 @@
   <div class="modal-backdrop">
     <div class="modal-card">
       <div class="icon-container">
-        <span class="icon">🔗</span>
+        <Unlink :size="32" color="#dc2626" />
       </div>
       
       <h3>Link Inválido ou Expirado</h3>
       
       <p>
-        Não foi possível carregar o projeto compartilhado. <br>
-        O link pode estar incorreto, ter sido revogado pelo proprietário ou o projeto foi excluído.
+        Não foi possível carregar o {{ itemName.toLowerCase() }} compartilhado. <br>
+        O link pode estar incorreto, ter sido revogado pelo proprietário ou o {{ itemName.toLowerCase() }} foi excluído.
       </p>
 
       <div class="modal-actions">
         <button class="btn-primary" @click="$emit('close')">
-          Entendi, criar novo projeto
+          Entendi, criar novo {{ itemName.toLowerCase() }}
         </button>
       </div>
     </div>
@@ -22,6 +22,14 @@
 </template>
 
 <script setup lang="ts">
+import { Unlink } from 'lucide-vue-next';
+
+withDefaults(defineProps<{
+  itemName?: string;
+}>(), {
+  itemName: 'projeto'
+});
+
 defineEmits(['close']);
 </script>
 

@@ -19,3 +19,13 @@ export { createSharedProjects } from './utils/useSharedProjects';
 export { default as AppHeader } from './ui/AppHeader.vue';
 export { useToast } from './ui/useToast';
 export { default as ToastContainer } from './ui/ToastContainer.vue';
+
+// ui/modals
+export { default as SaveAsModal } from './ui/modals/SaveAsModal.vue';
+export { default as OpenProjectModal } from './ui/modals/OpenProjectModal.vue';
+export { default as DeleteProjectModal } from './ui/modals/DeleteProjectModal.vue';
+export { default as ShareModal } from './ui/modals/ShareModal.vue';
+export { default as PublishModal } from './ui/modals/PublishModal.vue';
+export { default as UnsavedChangesModal } from './ui/modals/UnsavedChangesModal.vue';
+export { default as NeedSaveModal } from './ui/modals/NeedSaveModal.vue';
+export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkModal.vue';

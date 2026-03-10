@@ -5,13 +5,14 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="icon-container" :class="{ 'inactive': !isActive }">
-          <span class="icon">{{ isActive ? '🚀' : '💤' }}</span>
+          <Rocket v-if="isActive" :size="28" class="icon" />
+          <Moon v-else :size="28" class="icon" />
         </div>
         
         <h3>
-          <span v-if="isActive">Chatbot Publicado</span>
+          <span v-if="isActive">{{ itemName }} Publicado</span>
           <span v-else-if="exists">Publicação Pausada</span>
-          <span v-else>Publicar Chatbot</span>
+          <span v-else>Publicar {{ itemName }}</span>
         </h3>
       </div>
 
@@ -21,25 +22,25 @@
           <span class="spinner"></span><span>{{ loadingText }}</span>
         </div>
         <div v-else-if="error" class="error-msg">
-          <span class="icon">⚠️</span> {{ error }}
+          <AlertTriangle :size="16" class="icon" /> {{ error }}
         </div>
 
         <!-- MODO GERENCIAMENTO -->
         <div v-else-if="exists || isActive" class="success-content">
           
           <div class="success-banner" v-if="isActive">
-            <p class="success-title">Chatbot Online</p>
+            <p class="success-title">{{ itemName }} Online</p>
             <p class="success-date">Versão de {{ formatDate(result.published_at) }}</p>
           </div>
           <div class="success-banner warning" v-else>
-            <p class="success-title">Chatbot Offline</p>
+            <p class="success-title">{{ itemName }} Offline</p>
             <p class="success-date">Última versão: {{ formatDate(result.published_at) }}</p>
           </div>
 
           <label class="input-label">Link Público</label>
           <div class="input-group" :class="{ 'disabled': !isActive }">
             <input ref="inputRef" readonly class="input-copy" :value="result.publish_url" @click="handleInputClick" :disabled="!isActive"/>
-            <button class="btn-copy" @click="copyToClipboard" title="Copiar" :disabled="!isActive"><span class="icon">📋</span></button>
+            <button class="btn-copy" @click="copyToClipboard" title="Copiar" :disabled="!isActive"><Copy :size="18" class="icon" /></button>
           </div>
 
           <p class="helper-text" v-if="isActive">
@@ -55,7 +56,7 @@
               v-if="isActive" 
               class="btn-danger-outline" 
               @click="handleUnpublish" 
-              title="Desativar chatbot"
+              title="Desativar {{ itemName.toLowerCase() }}"
             >
               Despublicar
             </button>
@@ -87,7 +88,7 @@
         <!-- MODO CRIAÇÃO -->
         <div v-else class="empty-state">
           <p class="description-text">
-            Este chatbot nunca foi publicado.
+            Este {{ itemName.toLowerCase() }} nunca foi publicado.
             Publique para gerar um link único de acesso.
           </p>
           <div class="actions-center">
@@ -103,13 +104,19 @@
 
 <script setup lang="ts">
 import { ref, toRefs, onMounted } from 'vue';
-import { useProjects } from '@/editor/utils/useProjects';
+import { Rocket, Moon, AlertTriangle, Copy } from 'lucide-vue-next';
 import { useToast } from '@clic/shared';
 
+const props = withDefaults(defineProps<{
+  projectsStore: any;
+  itemName?: string;
+}>(), {
+  itemName: 'Projeto'
+});
+
 const emit = defineEmits(['close']);
-const projects = useProjects();
 const toast = useToast();
-const { error } = toRefs(projects);
+const { error } = toRefs(props.projectsStore);
 
 const result = ref<any>(null);
 const loading = ref(true);
@@ -122,7 +129,7 @@ onMounted(async () => {
   loadingText.value = 'Verificando status...';
   loading.value = true;
   try {
-    const status = await projects.getPublishStatus();
+    const status = await props.projectsStore.getPublishStatus();
     exists.value = status?.exists || false;
     if (status && status.exists) {
       result.value = status;
@@ -140,13 +147,13 @@ async function handlePublishOrUpdate() {
   loadingText.value = 'Salvando e publicando...';
   loading.value = true;
   try {
-    const saved = await projects.saveProject();
+    const saved = await props.projectsStore.saveProject();
     if (!saved) {
       toast.error("Erro ao salvar.");
       loading.value = false;
       return;
     }
-    const res = await projects.publishProject(); // Default: only_reactivate = false
+    const res = await props.projectsStore.publishProject(); // Default: only_reactivate = false
     if (res) {
       result.value = res;
       isActive.value = true;
@@ -161,7 +168,7 @@ async function handleReactivateOnly() {
   loadingText.value = 'Restaurando versão...';
   loading.value = true;
   try {
-    const res = await projects.publishProject({ only_reactivate: true });
+    const res = await props.projectsStore.publishProject({ only_reactivate: true });
     if (res) {
       result.value = res;
       isActive.value = true;
@@ -176,7 +183,7 @@ async function handleUnpublish() {
   loadingText.value = 'Desativando...';
   loading.value = true;
   try {
-    const success = await projects.unpublishProject();
+    const success = await props.projectsStore.unpublishProject();
     if (success) { 
       isActive.value = false; 
       toast.success("Despublicado.");

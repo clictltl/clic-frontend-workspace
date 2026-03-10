@@ -17,9 +17,8 @@ import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, ToastContainer } from '@clic/shared';
+import { AppHeader, AuthMenu, ToastContainer, InvalidShareLinkModal } from '@clic/shared';
 import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import InvalidShareLinkModal from '@/editor/components/modals/InvalidShareLinkModal.vue';
 
 const props = defineProps<{
   shareLoadError?: boolean
@@ -543,7 +542,7 @@ async function handleLoginSuccess() {
 
     <ToastContainer />
 
-    <InvalidShareLinkModal v-if="showInvalidShareModal" @close="handleCloseInvalidShareModal" />
+    <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Chatbot" @close="handleCloseInvalidShareModal" />
 
   </div>
 </template>

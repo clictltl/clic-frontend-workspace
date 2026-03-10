@@ -6,15 +6,15 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="icon-container">
-          <span class="icon-danger">🗑️</span>
+          <Trash2 :size="24" color="#dc2626" />
         </div>
-        <h3>Excluir Projeto</h3>
+        <h3>Excluir {{ itemName }}</h3>
         
         <p v-if="currentProjectName">
-          Tem certeza de que deseja excluir o projeto <strong>"{{ currentProjectName }}"</strong>?
+          Tem certeza de que deseja excluir o {{ itemName.toLowerCase() }} <strong>"{{ currentProjectName }}"</strong>?
         </p>
         <p v-else>
-          Tem certeza de que deseja excluir este projeto?
+          Tem certeza de que deseja excluir este {{ itemName.toLowerCase() }}?
         </p>
         
         <p class="warning-text">Esta ação é irreversível e os dados não poderão ser recuperados.</p>
@@ -22,7 +22,7 @@
 
       <div class="modal-body">
         <p v-if="error" class="error-msg">
-          <span class="icon">⚠️</span> {{ error }}
+          <AlertTriangle :size="16" class="icon" /> {{ error }}
         </p>
       </div>
 
@@ -42,14 +42,20 @@
 
 <script setup lang="ts">
 import { ref, toRefs } from 'vue';
-import { useProjects } from '@/editor/utils/useProjects';
+import { Trash2, AlertTriangle } from 'lucide-vue-next';
 import { useToast } from '@clic/shared';
+
+const props = withDefaults(defineProps<{
+  projectsStore: any;
+  itemName?: string;
+}>(), {
+  itemName: 'Projeto'
+});
 
 const emit = defineEmits(["close", "deleted"]);
 
-const projects = useProjects();
 const toast = useToast();
-const { currentProjectId, currentProjectName, error } = toRefs(projects);
+const { currentProjectId, currentProjectName, error } = toRefs(props.projectsStore);
 
 const loading = ref(false);
 
@@ -67,7 +73,7 @@ async function confirmDelete() {
   error.value = null; // Limpa erros anteriores
 
   try {
-    const success = await projects.deleteProject(currentProjectId.value);
+    const success = await props.projectsStore.deleteProject(currentProjectId.value);
 
     if (success) {
       toast.success("Projeto excluído com sucesso.");

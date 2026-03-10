@@ -3,13 +3,13 @@
     <div class="modal-overlay" @click="$emit('close')"></div>
     <div class="modal-card">
       <div class="icon-container">
-        <span class="icon">💾</span>
+        <Save :size="24" color="#2563eb" />
       </div>
       
-      <h3>Salve o projeto primeiro</h3>
+      <h3>Salve o {{ itemName.toLowerCase() }} primeiro</h3>
       
       <p>
-        Para compartilhar ou publicar, seu projeto precisa estar salvo na nuvem.
+        Para compartilhar ou publicar, seu {{ itemName.toLowerCase() }} precisa estar salvo na nuvem.
       </p>
 
       <div class="modal-actions">
@@ -21,6 +21,14 @@
 </template>
 
 <script setup lang="ts">
+import { Save } from 'lucide-vue-next';
+
+withDefaults(defineProps<{
+  itemName?: string;
+}>(), {
+  itemName: 'projeto'
+});
+
 defineEmits(['close', 'save']);
 </script>
 

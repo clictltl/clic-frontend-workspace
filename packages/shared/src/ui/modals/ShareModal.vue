@@ -6,14 +6,14 @@
       <div class="modal-header">
         <!-- Ícone muda de cor conforme status -->
         <div class="icon-container" :class="{ 'inactive': !isActive }">
-          <span class="icon">🔗</span>
+          <Link :size="24" class="icon" />
         </div>
         
         <!-- Título Dinâmico -->
         <h3>
           <span v-if="isActive">Compartilhamento Ativo</span>
           <span v-else-if="exists">Compartilhamento Desativado</span>
-          <span v-else>Compartilhar Projeto</span>
+          <span v-else>Compartilhar {{ itemName }}</span>
         </h3>
       </div>
 
@@ -25,14 +25,14 @@
         </div>
 
         <div v-else-if="error" class="error-msg">
-          <span class="icon">⚠️</span> {{ error }}
+          <AlertTriangle :size="16" class="icon" /> {{ error }}
         </div>
 
         <!-- MODO GERENCIAMENTO (Se já existe ou está ativo) -->
         <div v-else-if="exists || isActive" class="share-content">
           
           <p class="description-text" v-if="isActive">
-            O link está ativo. Qualquer pessoa com a URL abaixo pode acessar o projeto.
+            O link está ativo. Qualquer pessoa com a URL abaixo pode acessar o {{ itemName.toLowerCase() }}.
           </p>
           <p class="description-text warning" v-else>
             O link está desativado. Reative para permitir o acesso novamente.
@@ -54,7 +54,7 @@
               title="Copiar"
               :disabled="!isActive"
             >
-              <span class="icon">📋</span>
+              <Copy :size="18" class="icon" />
             </button>
           </div>
           
@@ -87,7 +87,7 @@
         <div v-else class="empty-state">
           <p class="description-text">
             Nenhum link gerado anteriormente.
-            Gere um link para permitir que outros visualizem este projeto.
+            Gere um link para permitir que outros visualizem este {{ itemName.toLowerCase() }}.
           </p>
 
           <div class="actions-center">
@@ -107,13 +107,19 @@
 
 <script setup lang="ts">
 import { ref, toRefs, onMounted } from 'vue';
-import { useProjects } from '@/editor/utils/useProjects';
+import { Link, AlertTriangle, Copy } from 'lucide-vue-next';
 import { useToast } from '@clic/shared';
 
+const props = withDefaults(defineProps<{
+  projectsStore: any;
+  itemName?: string;
+}>(), {
+  itemName: 'Projeto'
+});
+
 const emit = defineEmits(['close']);
-const projects = useProjects();
 const toast = useToast();
-const { error } = toRefs(projects);
+const { error } = toRefs(props.projectsStore);
 
 const shareUrl = ref<string | null>(null);
 const isActive = ref(false);
@@ -125,7 +131,7 @@ const inputRef = ref<HTMLInputElement | null>(null);
 onMounted(async () => {
   loading.value = true;
   try {
-    const status = await projects.getShareStatus();
+    const status = await props.projectsStore.getShareStatus();
     
     exists.value = status?.exists || false;
     
@@ -156,7 +162,7 @@ async function executeShare(successMsg: string) {
   loadingText.value = 'Processando...';
   loading.value = true;
   try {
-    const res = await projects.shareProject();
+    const res = await props.projectsStore.shareProject();
     if (res && res.share_url) {
       shareUrl.value = res.share_url;
       isActive.value = true;
@@ -174,7 +180,7 @@ async function handleUnshare() {
   loadingText.value = 'Desativando...';
   loading.value = true;
   try {
-    const success = await projects.unshareProject();
+    const success = await props.projectsStore.unshareProject();
     if (success) {
       isActive.value = false;
       toast.success("Link desativado.");

@@ -87,13 +87,13 @@
     </transition>
 
     <!-- Modais -->
-    <SaveAsModal v-if="showSaveAs" :mode="saveAsMode" @close="handleSaveAsClose"  @success="handleSaveAsSuccess"/>
-    <OpenProjectModal v-if="showOpen" @close="showOpen = false" />
-    <DeleteProjectModal v-if="showDelete" @close="showDelete = false" @deleted="handleDeleted"/>
-    <ShareModal v-if="showShare" @close="showShare = false"/>
-    <PublishModal v-if="showPublish" @close="showPublish = false"/>
+    <SaveAsModal v-if="showSaveAs" :mode="saveAsMode" :projectsStore="projects" item-name="Chatbot" @close="handleSaveAsClose"  @success="handleSaveAsSuccess"/>
+    <OpenProjectModal v-if="showOpen" :projectsStore="projects" item-name="Chatbot" @close="showOpen = false" />
+    <DeleteProjectModal v-if="showDelete" :projectsStore="projects" item-name="Chatbot" @close="showDelete = false" @deleted="handleDeleted"/>
+    <ShareModal v-if="showShare" :projectsStore="projects" item-name="Chatbot" @close="showShare = false"/>
+    <PublishModal v-if="showPublish" :projectsStore="projects" item-name="Chatbot" @close="showPublish = false"/>
     <UnsavedChangesModal v-if="showUnsavedChanges" @cancel="handleUnsavedCancel" @discard="handleUnsavedDiscard" @save="handleUnsavedSave"/>
-    <NeedSaveModal v-if="showNeedSave" @close="showNeedSave = false" @save="handleNeedSaveConfirm" />
+    <NeedSaveModal v-if="showNeedSave" item-name="Chatbot" @close="showNeedSave = false" @save="handleNeedSaveConfirm" />
 
   </div>
 </template>
@@ -102,17 +102,19 @@
 import { ref, toRefs, computed, onMounted, onUnmounted } from 'vue';
 import { useProjects } from '@/editor/utils/useProjects';
 import { getProjectData, setProjectData, resetProjectData, hasUnsavedChanges } from '@/editor/utils/projectData';
-import { useAuth, useToast, exportClicFile, importClicFile } from '@clic/shared';
 import { useAssetStore } from '@/editor/utils/useAssetStore';
-
-// Imports dos Modais
-import SaveAsModal from '@/editor/components/modals/SaveAsModal.vue';
-import OpenProjectModal from '@/editor/components/modals/OpenProjectModal.vue';
-import DeleteProjectModal from '@/editor/components/modals/DeleteProjectModal.vue';
-import ShareModal from '@/editor/components/modals/ShareModal.vue';
-import PublishModal from '@/editor/components/modals/PublishModal.vue';
-import UnsavedChangesModal from '@/editor/components/modals/UnsavedChangesModal.vue';
-import NeedSaveModal from '@/editor/components/modals/NeedSaveModal.vue';
+import {
+  useAuth,
+  useToast,
+  exportClicFile, importClicFile,
+  SaveAsModal,
+  OpenProjectModal,
+  DeleteProjectModal,
+  ShareModal,
+  PublishModal,
+  UnsavedChangesModal,
+  NeedSaveModal
+} from '@clic/shared';
 
 const projects = useProjects();
 const { currentProjectId, currentProjectName } = toRefs(projects);

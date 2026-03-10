@@ -4,7 +4,7 @@
     
     <div class="modal-card wide">
       <div class="modal-header">
-        <h3>Abrir projeto</h3>
+        <h3>Abrir {{ itemName.toLowerCase() }}</h3>
         <p>Selecione um projeto da lista para continuar editando.</p>
       </div>
 
@@ -17,7 +17,7 @@
 
         <!-- Lista Vazia -->
         <div v-else-if="projectsList.length === 0" class="state-msg empty">
-          <span class="icon">📂</span>
+          <FolderOpen :size="32" class="icon" />
           Você ainda não tem projetos salvos.
         </div>
 
@@ -31,7 +31,7 @@
             @click="selectProject(p.id)"
             @dblclick="openSelected"
           >
-            <div class="item-icon">📄</div>
+            <FileText :size="18" class="item-icon text-gray" />
             <div class="item-info">
               <span class="item-name">{{ p.name }}</span>
               <span class="item-date">Editado em: {{ formatDate(p.updated_at) }}</span>
@@ -41,7 +41,7 @@
 
         <!-- Erro -->
         <p v-if="error" class="error-msg">
-          <span class="icon">⚠️</span> {{ error }}
+          <AlertTriangle :size="16" class="icon" /> {{ error }}
         </p>
       </div>
 
@@ -61,13 +61,19 @@
 
 <script setup lang="ts">
 import { ref, toRefs, onMounted } from 'vue';
-import { useProjects } from '@/editor/utils/useProjects';
+import { FolderOpen, FileText, AlertTriangle } from 'lucide-vue-next';
+
+const props = withDefaults(defineProps<{
+  projectsStore: any;
+  itemName?: string;
+}>(), {
+  itemName: 'Projeto'
+});
 
 const emit = defineEmits(['close']);
 
 // Store
-const projects = useProjects();
-const { projectsList, error } = toRefs(projects);
+const { projectsList, error } = toRefs(props.projectsStore);
 
 // Estado local
 const selectedId = ref<number | null>(null);
@@ -78,7 +84,7 @@ const isOpening = ref(false);
 onMounted(async () => {
   loadingList.value = true;
   try {
-    await projects.listProjects();
+    await props.projectsStore.listProjects();
   } catch (e) {
     // Erro já é tratado no store/error
   } finally {
@@ -100,7 +106,7 @@ async function openSelected() {
   isOpening.value = true;
   
   // O store.loadProject retorna boolean ou o objeto
-  const result = await projects.loadProject(selectedId.value);
+  const result = await props.projectsStore.loadProject(selectedId.value);
 
   isOpening.value = false;
   if (result) {

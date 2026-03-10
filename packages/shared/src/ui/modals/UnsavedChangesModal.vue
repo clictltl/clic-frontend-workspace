@@ -5,7 +5,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="icon-container">
-          <span class="icon">💾</span>
+          <Save :size="28" color="#4b5563" />
         </div>
         <h3>Deseja salvar as alterações?</h3>
         <p>Se você descartar, todas as alterações recentes serão perdidas permanentemente.</p>
@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { Save } from 'lucide-vue-next';
 defineEmits(['cancel', 'discard', 'save']);
 </script>
 

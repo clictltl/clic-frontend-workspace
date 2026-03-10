@@ -4,13 +4,12 @@
     
     <div class="modal-card">
       <div class="modal-header">
-        <!-- Textos Dinâmicos -->
         <h3>{{ titleText }}</h3>
         <p>{{ descriptionText }}</p>
       </div>
 
       <div class="modal-body">
-        <label>Nome do Projeto</label>
+        <label>Nome do {{ itemLabel }}</label>
         <input 
           ref="inputRef"
           v-model="projectName" 
@@ -20,7 +19,7 @@
         />
 
         <p v-if="error" class="error-msg">
-          <span class="icon">⚠️</span> {{ error }}
+          <AlertTriangle :size="16" class="icon" /> {{ error }}
         </p>
       </div>
 
@@ -36,43 +35,46 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useProjects } from '@/editor/utils/useProjects';
+import { AlertTriangle } from 'lucide-vue-next';
 
-// Define Props e Emits
-const props = defineProps<{
-  mode?: 'create' | 'copy'; // 'create' = Primeiro salvamento, 'copy' = Salvar como
-}>();
+const props = withDefaults(defineProps<{
+  mode?: 'create' | 'copy';
+  itemName?: string; // Ex: 'Chatbot' ou 'Grafo' (Padrão: 'Projeto')
+  projectsStore: any; // Instância do useSharedProjects enviada pelo FileMenu
+}>(), {
+  mode: 'create',
+  itemName: 'Projeto'
+});
 
 const emit = defineEmits(['close', 'success']);
 
-const projects = useProjects();
 const projectName = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 
-// Lógica de Texto Dinâmico
+// Lógica de Texto Dinâmico Genérica
+const itemLabel = computed(() => props.itemName);
 const isCreateMode = computed(() => props.mode === 'create');
 
 const titleText = computed(() => 
-  isCreateMode.value ? 'Salvar Projeto' : 'Salvar como...'
+  isCreateMode.value ? `Salvar ${itemLabel.value}` : 'Salvar como...'
 );
 
 const descriptionText = computed(() => 
   isCreateMode.value 
-    ? 'Dê um nome para o seu novo chatbot para salvá-lo.' 
-    : 'Crie uma cópia deste projeto com um novo nome.'
+    ? `Dê um nome para o seu novo ${itemLabel.value.toLowerCase()} para salvá-lo.` 
+    : `Crie uma cópia deste ${itemLabel.value.toLowerCase()} com um novo nome.`
 );
 
 const placeholderText = computed(() => 
-  isCreateMode.value ? 'Ex: Chatbot' : 'Ex: Chatbot v2'
+  isCreateMode.value ? `Ex: Meu ${itemLabel.value}` : `Ex: ${itemLabel.value} v2`
 );
 
 const confirmText = computed(() => 
   isCreateMode.value ? 'Salvar' : 'Criar Cópia'
 );
 
-// Foco automático
 onMounted(() => {
   inputRef.value?.focus();
 });
@@ -87,15 +89,14 @@ async function handleConfirm() {
   error.value = null;
 
   try {
-    // A lógica de salvar fica encapsulada aqui
-    const result = await projects.saveProjectAs(projectName.value);
+    // O modal chama o método pela prop injetada
+    const result = await props.projectsStore.saveProjectAs(projectName.value);
     
     if (result) {
-      emit('success'); // Avisa o pai que deu certo
-      emit('close');   // Fecha o modal
+      emit('success');
+      emit('close');
     } else {
-      // Se saveProjectAs retornou false, pegamos o erro do store
-      error.value = projects.error.value || "Erro ao salvar.";
+      error.value = props.projectsStore.error?.value || "Erro ao salvar.";
     }
   } catch (e: any) {
     error.value = e.message || "Erro inesperado.";
@@ -141,6 +142,7 @@ async function handleConfirm() {
   padding: 0.6rem; border-radius: 6px; margin-top: 1rem;
   display: flex; align-items: center; gap: 6px;
 }
+.error-msg .icon { flex-shrink: 0; }
 
 .modal-actions {
   display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem;
