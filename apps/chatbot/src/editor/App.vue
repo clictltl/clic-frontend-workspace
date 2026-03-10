@@ -12,18 +12,19 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Block, BlockType } from '@/shared/types/chatbot';
 import { blocks, connections, variables, selectedBlockId, getProjectData, setProjectData, hasUnsavedChanges, resetProjectData } from '@/editor/utils/projectData';
+import { useProjects } from '@/editor/utils/useProjects';
 import { useAssetStore } from '@/editor/utils/useAssetStore';
 import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, ToastContainer, InvalidShareLinkModal } from '@clic/shared';
-import FileMenu from '@/editor/components/layout/FileMenu.vue';
+import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal } from '@clic/shared';
 
 const props = defineProps<{
   shareLoadError?: boolean
 }>();
 
+const projects = useProjects();
 const assetStore = useAssetStore();
 
 const showInvalidShareModal = ref(false);
@@ -384,7 +385,17 @@ async function handleLoginSuccess() {
   <div class="app">
     <!-- Toolbar superior com controles principais -->
     <AppHeader title="Chatbot">
-    <FileMenu />
+    <FileMenu 
+      item-name="Chatbot"
+      file-extension=".clic-chat"
+      file-accept=".clic-chat,.clic,.zip,.json"
+      :projectsStore="projects"
+      :assetStore="assetStore"
+      :hasUnsavedChanges="hasUnsavedChanges"
+      :getProjectData="getProjectData"
+      @new-project="resetProjectData"
+      @import-project="setProjectData"
+    />
     <AuthMenu @login-success="handleLoginSuccess" />
   </AppHeader>
 

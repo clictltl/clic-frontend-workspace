@@ -17,6 +17,7 @@ export { createSharedProjects } from './utils/useSharedProjects';
 
 // ui
 export { default as AppHeader } from './ui/AppHeader.vue';
+export { default as FileMenu } from './ui/FileMenu.vue';
 export { useToast } from './ui/useToast';
 export { default as ToastContainer } from './ui/ToastContainer.vue';
 
