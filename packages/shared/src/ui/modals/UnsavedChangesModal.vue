@@ -5,24 +5,37 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="icon-container">
-          <Save :size="28" color="#4b5563" />
+          <Download v-if="isOffline" :size="28" color="#4b5563" />
+          <Save v-else :size="28" color="#4b5563" />
         </div>
-        <h3>Deseja salvar as alterações?</h3>
-        <p>Se você descartar, todas as alterações recentes serão perdidas permanentemente.</p>
+        <h3>{{ isOffline ? 'Deseja exportar as alterações?' : 'Deseja salvar as alterações?' }}</h3>
+        <p>
+          {{ isOffline 
+            ? 'Se você criar um novo projeto sem exportar, todas as alterações recentes serão perdidas permanentemente.' 
+            : 'Se você descartar, todas as alterações recentes serão perdidas permanentemente.' 
+          }}
+        </p>
       </div>
 
       <div class="modal-actions">
         <!-- A ordem dos botões importa para a UX -->
         <button class="btn-cancel" @click="$emit('cancel')">Cancelar</button>
         <button class="btn-danger" @click="$emit('discard')">Descartar</button>
-        <button class="btn-primary" @click="$emit('save')">Salvar</button>
+        <button class="btn-primary" @click="$emit('save')">
+          {{ isOffline ? 'Exportar' : 'Salvar' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Save } from 'lucide-vue-next';
+import { Save, Download } from 'lucide-vue-next';
+
+defineProps<{
+  isOffline?: boolean;
+}>();
+
 defineEmits(['cancel', 'discard', 'save']);
 </script>
 

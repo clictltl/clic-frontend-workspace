@@ -90,7 +90,7 @@
     <DeleteProjectModal v-if="showDelete" :projectsStore="projectsStore" :item-name="itemName" @close="showDelete = false" @deleted="handleDeleted"/>
     <ShareModal v-if="showShare" :projectsStore="projectsStore" :item-name="itemName" @close="showShare = false"/>
     <PublishModal v-if="showPublish" :projectsStore="projectsStore" :item-name="itemName" @close="showPublish = false"/>
-    <UnsavedChangesModal v-if="showUnsavedChanges" @cancel="handleUnsavedCancel" @discard="handleUnsavedDiscard" @save="handleUnsavedSave"/>
+    <UnsavedChangesModal v-if="showUnsavedChanges" :is-offline="!showWordPressItems" @cancel="handleUnsavedCancel" @discard="handleUnsavedDiscard" @save="handleUnsavedSave"/>
     <NeedSaveModal v-if="showNeedSave" :item-name="itemName" @close="showNeedSave = false" @save="handleNeedSaveConfirm" />
 
   </div>
@@ -226,7 +226,18 @@ function handleUnsavedDiscard() {
 async function handleUnsavedSave() {
   showUnsavedChanges.value = false;
   
-  // Cenário 1: Projeto nunca salvo
+  // --- 1. FLUXO OFFLINE: "Salvar" significa "Exportar" ---
+  if (!showWordPressItems.value) {
+    await saveToComputer(); 
+    if (pendingAction.value) {
+      pendingAction.value();
+      pendingAction.value = null;
+    }
+    return;
+  }
+
+  // --- 2. FLUXO ONLINE: Salvar na Nuvem ---
+  // Cenário A: Projeto nunca salvo
   if (!props.projectsStore.currentProjectId.value) {
     // Configura o modal de Salvar Como
     saveAsMode.value = 'create';
@@ -237,7 +248,7 @@ async function handleUnsavedSave() {
     return; 
   } 
 
-  // Cenário 2: Projeto já existe (Salvamento direto)
+  // Cenário B: Projeto já existe (Salvamento direto)
   const saved = await props.projectsStore.saveProject();
 
  if (saved) {
@@ -392,6 +403,11 @@ async function saveToComputer() {
       extension: props.fileExtension
     });
     toast.success(`${props.itemName} exportado com sucesso!`);
+    if (!showWordPressItems.value) {
+      if (typeof props.projectsStore.markAsSaved === 'function') {
+        props.projectsStore.markAsSaved();
+      }
+    }
   } catch (err) {
     console.error(err);
     toast.error(`Erro ao exportar ${props.itemName.toLowerCase()}.`);

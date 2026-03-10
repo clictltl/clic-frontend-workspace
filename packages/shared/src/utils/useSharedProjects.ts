@@ -613,5 +613,6 @@ export function createSharedProjects(config: UseProjectsConfig) {
     publishProject,
     unpublishProject,
     getPublishStatus,
+    markAsSaved: config.markAsSaved,
   };
 }
