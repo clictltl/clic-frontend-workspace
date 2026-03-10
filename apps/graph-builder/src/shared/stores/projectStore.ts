@@ -53,6 +53,9 @@ export const useProjectStore = defineStore('project', {
   state: () => ({
     project: createEmptyProject() as GraphProject,
     selectedNodeId: null as string | null, 
+    // --- CONTROLE DE ALTERAÇÕES ---
+    hasUnsavedChanges: false,
+    _isLoading: false, // Trava para evitar marcar 'dirty' ao carregar projetos
   }),
 
   getters: {
@@ -69,14 +72,40 @@ export const useProjectStore = defineStore('project', {
   },
 
   actions: {
+    // --- FUNÇÕES DE CONTROLE DE SALVAMENTO ---
+    markAsSaved() {
+      this._isLoading = true;
+      this.hasUnsavedChanges = false;
+      
+      // Mantém bloqueado por 500ms para garantir que "ecos" de reatividade sejam ignorados
+      setTimeout(() => {
+        this.hasUnsavedChanges = false;
+        this._isLoading = false;
+      }, 500);
+    },
+
+    touch() {
+      this.project.meta.updatedAt = now();
+      if (!this._isLoading) {
+        this.hasUnsavedChanges = true;
+      }
+    },
+
+    // --- AÇÕES DO PROJETO ---
     createNew() {
+      this._isLoading = true;
       this.project = createEmptyProject();
       this.selectedNodeId = null;
+      this.hasUnsavedChanges = false;
+      setTimeout(() => { this._isLoading = false; }, 500);
     },
 
     loadProject(json: GraphProject) {
+      this._isLoading = true;
       this.project = json;
       this.selectedNodeId = null;
+      this.hasUnsavedChanges = false;
+      setTimeout(() => { this._isLoading = false; }, 500);
     },
 
     addCategory(name: string, color?: string) {
@@ -94,10 +123,8 @@ export const useProjectStore = defineStore('project', {
         order: 0,
       };
       this.project.categories.unshift(newCategory);
-      this.project.categories.forEach((cat, index) => {
-        cat.order = index;
-      });
-      this.project.meta.updatedAt = now();
+      this.project.categories.forEach((cat, index) => { cat.order = index; });
+      this.touch();
     },
 
     updateCategory(id: string, name: string, color?: string) {
@@ -106,7 +133,7 @@ export const useProjectStore = defineStore('project', {
       if (category) {
         category.name = name;
         if (color) category.color = color;
-        this.project.meta.updatedAt = now();
+        this.touch();
       }
     },
 
@@ -118,19 +145,14 @@ export const useProjectStore = defineStore('project', {
       this.project.edges = this.project.edges.filter(e => 
         !nodeIds.includes(e.source) && !nodeIds.includes(e.target)
       );
-      this.project.categories.forEach((cat, index) => {
-        cat.order = index;
-      });
-      this.project.meta.updatedAt = now();
+      this.project.categories.forEach((cat, index) => { cat.order = index; });
+      this.touch();
     },
 
     reorderCategories(newCategories: Category[]) {
       this.project.categories = newCategories;
-      this.project.categories.forEach((cat, index) => {
-        cat.order = index;
-      });
-
-      this.project.meta.updatedAt = now();
+      this.project.categories.forEach((cat, index) => { cat.order = index; });
+      this.touch();
     },
 
     addNode(categoryId: string) {
@@ -144,14 +166,14 @@ export const useProjectStore = defineStore('project', {
       };
       this.project.nodes.push(newNode);
       this.selectedNodeId = newNode.id;
-      this.project.meta.updatedAt = now();
+      this.touch();
     },
 
     updateNode(id: string, updates: Partial<Node>) {
       const node = this.project.nodes.find(n => n.id === id);
       if (node) {
         Object.assign(node, updates);
-        this.project.meta.updatedAt = now();
+        this.touch();
       }
     },
 
@@ -159,7 +181,7 @@ export const useProjectStore = defineStore('project', {
       this.project.nodes = this.project.nodes.filter(n => n.id !== id);
       this.project.edges = this.project.edges.filter(e => e.source !== id && e.target !== id);
       if (this.selectedNodeId === id) this.selectedNodeId = null;
-      this.project.meta.updatedAt = now();
+      this.touch();
     },
 
     reorderNodesInCategory(categoryId: string, newOrderedNodes: Node[]) {
@@ -170,14 +192,14 @@ export const useProjectStore = defineStore('project', {
         order: index
       }));
       this.project.nodes = [...otherNodes, ...updatedNodes];
-      this.project.meta.updatedAt = now();
+      this.touch();
     },
 
     saveNodeContent(nodeId: string, content: string) {
       const node = this.project.nodes.find(n => n.id === nodeId);
       if (node) {
         node.content = content;
-        this.project.meta.updatedAt = now();
+        this.touch();
       }
     },
 
@@ -199,9 +221,8 @@ export const useProjectStore = defineStore('project', {
           source: sourceId,
           target: targetId
         };
-        
         this.project.edges.push(newEdge);
-        this.project.meta.updatedAt = now();
+        this.touch();
       }
     }
   }

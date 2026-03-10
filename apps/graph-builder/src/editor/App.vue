@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
@@ -23,6 +23,28 @@ async function handleLoginSuccess() {
   sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(store.project));
   window.location.reload();
 }
+
+// --- PROTEÇÃO CONTRA FECHAMENTO DE ABA (F5 / Fechar Aba) ---
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if (store.hasUnsavedChanges) {
+    // Cancela o evento (Padrão moderno)
+    e.preventDefault();
+    
+    // Define o valor de retorno (Exigido pelo Chrome/Chromium para mostrar o alerta)
+    // @ts-ignore: Propriedade depreciada, mas necessária para compatibilidade
+    e.returnValue = ''; 
+    
+    return '';
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+});
 </script>
 
 <template>
@@ -36,6 +58,7 @@ async function handleLoginSuccess() {
         file-accept=".clic-graph,.zip,.json"
         :projectsStore="projects"
         :assetStore="assetStore"
+        :has-unsaved-changes="store.hasUnsavedChanges"
         :getProjectData="() => store.project"
         @new-project="store.createNew"
         @import-project="store.loadProject"
