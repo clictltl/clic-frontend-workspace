@@ -103,9 +103,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Rocket, Moon, AlertTriangle, Copy } from 'lucide-vue-next';
-import { useToast } from '@clic/shared';
+import { useToast } from '../../ui/useToast';
 
 const props = withDefaults(defineProps<{
   projectsStore: any;
@@ -116,7 +116,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['close']);
 const toast = useToast();
-const { error } = toRefs(props.projectsStore);
+const error = props.projectsStore.error;
 
 const result = ref<any>(null);
 const loading = ref(true);

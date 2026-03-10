@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { FolderOpen, FileText, AlertTriangle } from 'lucide-vue-next';
 
 const props = withDefaults(defineProps<{
@@ -73,7 +73,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits(['close']);
 
 // Store
-const { projectsList, error } = toRefs(props.projectsStore);
+const projectsList = props.projectsStore.projectsList
+const error = props.projectsStore.error;
 
 // Estado local
 const selectedId = ref<number | null>(null);

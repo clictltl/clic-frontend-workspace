@@ -2,14 +2,26 @@
 import { ref } from 'vue';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
-import FileMenu from '@/editor/components/layout/FileMenu.vue';
-import { AppHeader, AuthMenu, ToastContainer } from '@clic/shared';
+import { useProjectStore } from '@/shared/stores/projectStore';
+import { useProjects } from '@/editor/utils/useProjects';
+import { assetStore } from '@/shared/stores/assetStore';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
 import { Pencil, Eye } from 'lucide-vue-next';
 
+const props = defineProps<{
+  shareLoadError?: boolean;
+}>();
+
+const store = useProjectStore();
+const projects = useProjects();
+
+const showInvalidShareModal = ref(props.shareLoadError || false);
 const isPreview = ref(false);
 
-function handleLoginSuccess() {
-  // Mais tarde vamos colocar a lógica de recarregar a página aqui!
+async function handleLoginSuccess() {
+  await assetStore.persistToDisk(); 
+  sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(store.project));
+  window.location.reload();
 }
 </script>
 
@@ -18,7 +30,16 @@ function handleLoginSuccess() {
     
     <!-- HEADER -->
     <AppHeader title="Graph Builder">
-      <FileMenu />
+      <FileMenu 
+        item-name="Grafo"
+        file-extension=".clic-graph"
+        file-accept=".clic-graph,.zip,.json"
+        :projectsStore="projects"
+        :assetStore="assetStore"
+        :getProjectData="() => store.project"
+        @new-project="store.createNew"
+        @import-project="store.loadProject"
+      />
       <AuthMenu @login-success="handleLoginSuccess" />
     </AppHeader>
 
@@ -39,6 +60,7 @@ function handleLoginSuccess() {
     </button>
 
     <ToastContainer />
+    <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Grafo" @close="showInvalidShareModal = false" />
   </div>
 </template>
 

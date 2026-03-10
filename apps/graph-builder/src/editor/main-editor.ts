@@ -1,17 +1,61 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import '@/styles/index.css'
-import App from './App.vue'
+import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
+import '@/styles/index.css';
+import App from './App.vue';
 import { checkLogin } from '@clic/shared';
+import { useProjects } from '@/editor/utils/useProjects';
+import { useProjectStore } from '@/shared/stores/projectStore';
+import { assetStore } from '@/shared/stores/assetStore';
 
 async function init() {
+  // 1. Inicializa o Pinia globalmente ANTES do App
+  // Isso permite que qualquer função use os stores livremente aqui no init
+  const pinia = createPinia();
+  setActivePinia(pinia);
+
+  // 2. Verificar Login no WordPress
   await checkLogin();
 
-  const app = createApp(App)
-  const pinia = createPinia()
+  // 3. Restaurar Backup Pós-Login
+  const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
+  if (loginBackup) {
+    try {
+      const project = JSON.parse(loginBackup);
+      useProjectStore().loadProject(project);
+      await assetStore.restoreFromDisk();
+      sessionStorage.removeItem('clic-graph-builder:login-backup');
+    } catch (e) {
+      console.error("Erro ao restaurar backup local:", e);
+    }
+  }
 
-  app.use(pinia)
-  app.mount('#app')
+  // 4. Detectar link compartilhado (?share=TOKEN)
+  const params = new URLSearchParams(window.location.search);
+  const shareToken = params.get("share");
+  let shareLoadError = false;
+
+  if (shareToken) {
+    const projects = useProjects();
+    const success = await projects.loadSharedProject(shareToken);
+    
+    if (!success) {
+      shareLoadError = true;
+      console.warn("Falha ao carregar projeto compartilhado. Token:", shareToken);
+    }
+    
+    // Limpa a URL
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  // 5. Criamos o App passando a prop calculada
+  const app = createApp(App, { 
+    shareLoadError 
+  });
+  
+  // E avisamos o app para usar o Pinia que já estava rodando
+  app.use(pinia);
+  app.mount('#app');
 }
 
 init();

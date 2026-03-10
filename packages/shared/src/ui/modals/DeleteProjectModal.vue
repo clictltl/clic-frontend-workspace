@@ -41,9 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs } from 'vue';
+import { ref } from 'vue';
 import { Trash2, AlertTriangle } from 'lucide-vue-next';
-import { useToast } from '@clic/shared';
+import { useToast } from '../../ui/useToast';
 
 const props = withDefaults(defineProps<{
   projectsStore: any;
@@ -55,7 +55,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits(["close", "deleted"]);
 
 const toast = useToast();
-const { currentProjectId, currentProjectName, error } = toRefs(props.projectsStore);
+const currentProjectId = props.projectsStore.currentProjectId;
+const currentProjectName = props.projectsStore.currentProjectName;
+const error = props.projectsStore.error;
 
 const loading = ref(false);
 

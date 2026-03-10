@@ -388,13 +388,13 @@ async function handleImport(event: Event) {
 async function saveToComputer() {
   try {
     await exportClicFile(props.getProjectData(), props.assetStore, {
-      filename: props.projectsStore.currentProjectName.value || 'meu-chatbot',
-      extension: '.clic-chat'
+      filename: props.projectsStore.currentProjectName.value || `meu-${props.itemName.toLowerCase()}`,
+      extension: props.fileExtension
     });
-    toast.success('Projeto exportado com sucesso!');
+    toast.success(`${props.itemName} exportado com sucesso!`);
   } catch (err) {
     console.error(err);
-    toast.error('Erro ao exportar projeto.');
+    toast.error(`Erro ao exportar ${props.itemName.toLowerCase()}.`);
   }
 }
 </script>
