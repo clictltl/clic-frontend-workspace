@@ -18,6 +18,7 @@ declare global {
       rest_root: string;
       app_url: string;
       wp_rest_root: string;
+      site_url: string;
       [key: string]: any; 
     };
   }

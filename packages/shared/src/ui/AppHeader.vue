@@ -1,7 +1,7 @@
 <template>
   <header class="toolbar">
     <div class="toolbar-left">
-      <a href="https://clic.tltlab.org" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
+      <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
         <img :src="logoClic" alt="CLIC" class="toolbar-logo" />
       </a>
       <h1 class="toolbar-title">{{ title }}</h1>
@@ -15,12 +15,19 @@
 </template>
 
 <script setup lang="ts">
-
+import { computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg'
 
 defineProps<{
   title: string;
 }>();
+
+const logoUrl = computed(() => {
+  if (typeof window !== 'undefined' && window.CLIC_CORE) {
+    return window.CLIC_CORE.site_url ?? window.CLIC_CORE.app_url ?? '/';
+  }
+  return 'https://clic.tltlab.org';
+});
 </script>
 
 <style scoped>
