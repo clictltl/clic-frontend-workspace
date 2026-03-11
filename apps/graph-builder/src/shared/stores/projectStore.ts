@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import type { GraphProject, Category, Node, Edge } from '../types';
+import type { GraphProject, Category, Node, Edge, CategoryFormConfig } from '../types';
 
 export const CATEGORY_COLORS = [
   '#ef4444', // Red
@@ -224,6 +224,59 @@ export const useProjectStore = defineStore('project', {
         this.project.edges.push(newEdge);
         this.touch();
       }
+    },
+
+    // --- AÇÕES DE FORMULÁRIO ---
+    updateCategoryFormConfig(categoryId: string, config: CategoryFormConfig | undefined) {
+      const category = this.project.categories.find(c => c.id === categoryId);
+      if (category) {
+        if (config === undefined) {
+          delete category.formConfig;
+        } else {
+          category.formConfig = { ...config };
+        }
+        this.touch();
+      }
+    },
+
+    processFormAnswers(categoryId: string, answers: any[]) {
+      if (answers.length === 0) return [];
+
+      const syncedIds: number[] = [];
+      const currentNodesCount = this.project.nodes.filter(n => n.categoryId === categoryId).length;
+
+      answers.forEach((answer, index) => {
+        // 1. Extrai os dados (vêm da tabela genérica data: { name, connections })
+        const { name, connections } = answer.data;
+        const newNodeId = uuidv4();
+
+        // 2. Cria o novo Nó na categoria alvo
+        const newNode: Node = {
+          id: newNodeId,
+          categoryId,
+          title: name || 'Sem Nome',
+          content: '', // Conteúdo inicial vazio
+          order: currentNodesCount + index,
+        };
+        this.project.nodes.push(newNode);
+
+        // 3. Cria as Arestas (Connections)
+        if (Array.isArray(connections)) {
+          connections.forEach((targetId: string) => {
+            // Validação: Só cria a aresta se o nó de destino ainda existir no projeto
+            const targetExists = this.project.nodes.some(n => n.id === targetId);
+            if (targetExists) {
+              this.addEdge(newNodeId, targetId);
+            }
+          });
+        }
+
+        // 4. Guarda o ID do banco para avisar o backend que já processamos
+        syncedIds.push(answer.id);
+      });
+
+      this.touch();
+      return syncedIds;
     }
   }
 });

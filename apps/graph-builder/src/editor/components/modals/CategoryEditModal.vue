@@ -1,72 +1,143 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { Category } from '@/shared/types';
+import type { Category, CategoryFormConfig } from '@/shared/types';
 import { useProjectStore, CATEGORY_COLORS } from '@/shared/stores/projectStore';
-import { Palette, Hash } from 'lucide-vue-next';
+import { useProjects } from '@/editor/utils/useProjects';
+import { Palette, Hash, Copy, ExternalLink, Settings2, Link, Unlink, Loader2 } from 'lucide-vue-next'; // Loader2 adicionado
 
-// Prop agora é opcional. Se undefined = Modo Criação
-const props = defineProps<{
-  category?: Category;
-}>();
-
+const props = defineProps<{ category?: Category; }>();
 const emit = defineEmits(['close']);
+
 const store = useProjectStore();
+const projects = useProjects();
 const isEditing = computed(() => !!props.category);
 
-// Lógica de Cor Inteligente (Sugere uma não usada)
 const getSuggestedColor = () => {
   if (isEditing.value && props.category) return props.category.color;
-
   const used = store.usedColors;
   const freeColor = CATEGORY_COLORS.find(c => !used.has(c));
   return freeColor || CATEGORY_COLORS[0];
 };
 
-// Estado do Formulário
-const formName = ref(props.category?.name || '');
-const formColor = ref(getSuggestedColor());
+// --- ESTADO DA CATEGORIA ---
+const categoryName = ref(props.category?.name || '');
+const categoryColor = ref(getSuggestedColor());
 
-// Foco automático no input ao abrir
 const nameInput = ref<HTMLInputElement | null>(null);
 const colorInputRef = ref<HTMLInputElement | null>(null);
 
-onMounted(() => setTimeout(() => nameInput.value?.focus(), 100));
+// --- ESTADO DO FORMULÁRIO (Configuração Local do JSON) ---
+const formEnabled = ref(props.category?.formConfig?.enabled || false);
+const formNameFieldLabel = ref(props.category?.formConfig?.nameFieldLabel || 'Qual o seu nome?');
+const formTargetCategories = ref<string[]>(props.category?.formConfig?.targetCategories ||[]);
+
+// --- ESTADO DO SERVIDOR (Efêmero, não vai pro JSON) ---
+const formIsActive = ref(false);
+const formUrl = ref('');
+const isLoadingStatus = ref(false);
+const isTogglingLink = ref(false);
+
+const eligibleCategories = computed(() => store.project.categories.filter(c => c.id !== props.category?.id));
+const canActivateLink = computed(() => !!projects.currentProjectId.value && isEditing.value);
+
+onMounted(async () => {
+  setTimeout(() => nameInput.value?.focus(), 100);
+
+  // LAZY LOADING: Busca o status do link no banco de dados ao abrir o modal
+  if (canActivateLink.value && props.category?.id) {
+    isLoadingStatus.value = true;
+    try {
+      const status = await projects.getFormStatus(props.category.id);
+      if (status && status.exists) {
+        formIsActive.value = status.is_active;
+        formUrl.value = status.form_url;
+      }
+    } finally {
+      isLoadingStatus.value = false;
+    }
+  }
+});
 
 const handleHexInput = (e: Event) => {
   const target = e.target as HTMLInputElement;
   let val = target.value;
-  
-  if (val.length > 0 && !val.startsWith('#')) {
-    val = '#' + val;
-  }
-  
-  if (/^#[0-9A-F]{6}$/i.test(val)) {
-    formColor.value = val;
-  }
+  if (val.length > 0 && !val.startsWith('#')) val = '#' + val;
+  if (/^#[0-9A-F]{6}$/i.test(val)) categoryColor.value = val;
 };
 
-const openNativePicker = () => {
-  colorInputRef.value?.click();
+const openNativePicker = () => colorInputRef.value?.click();
+
+const copyLink = () => {
+  navigator.clipboard.writeText(formUrl.value);
+  alert('Link copiado!');
 };
 
+// 1. AÇÃO LOCAL: Apenas salva a intenção e a configuração no arquivo (Pinia)
 const handleSave = () => {
-  if (!formName.value.trim()) return;
+  if (!categoryName.value.trim()) return;
   
   try {
+    let categoryId = props.category?.id;
+
     if (isEditing.value && props.category) {
-      store.updateCategory(props.category.id, formName.value, formColor.value);
+      store.updateCategory(props.category.id, categoryName.value, categoryColor.value);
     } else {
-      store.addCategory(formName.value, formColor.value);
+      store.addCategory(categoryName.value, categoryColor.value);
+      const newCategory = store.project.categories[0];
+      if (!newCategory) throw new Error("Falha ao criar categoria.");
+      categoryId = newCategory.id;
     }
+
+    if (categoryId) {
+      if (formEnabled.value) {
+        const config: CategoryFormConfig = {
+          enabled: true,
+          nameFieldLabel: formNameFieldLabel.value,
+          targetCategories: formTargetCategories.value
+        };
+        store.updateCategoryFormConfig(categoryId, config);
+      } else {
+        store.updateCategoryFormConfig(categoryId, undefined);
+      }
+    }
+
     emit('close');
   } catch (error: any) {
     alert(error.message);
   }
 };
 
-const handleDelete = () => {
+// 2. AÇÃO NA NUVEM: Liga ou desliga o formulário no servidor
+const handleToggleLink = async (activate: boolean) => {
+  if (!props.category?.id || !projects.currentProjectId.value) return;
+
+  isTogglingLink.value = true;
+  try {
+    const config = {
+      enabled: true,
+      nameFieldLabel: formNameFieldLabel.value,
+      targetCategories: formTargetCategories.value
+    };
+
+    const res = await projects.setupForm(props.category.id, config, activate);
+
+    if (res?.success) {
+      formIsActive.value = activate;
+      formUrl.value = res.form_url;
+    }
+  } catch (e: any) {
+    alert(e.message || "Erro ao conectar com o servidor.");
+  } finally {
+    isTogglingLink.value = false;
+  }
+};
+
+const handleDelete = async () => {
   if (isEditing.value && props.category) {
-    if (confirm(`Excluir a categoria "${props.category.name}" e TODOS os seus itens?`)) {
+    if (confirm(`Excluir a categoria "${categoryName.value}" e TODOS os seus itens?`)) {
+      if (formIsActive.value || formUrl.value) {
+        await projects.deleteForm(props.category.id);
+      }
       store.deleteCategory(props.category.id);
       emit('close');
     }
@@ -83,7 +154,7 @@ const handleDelete = () => {
         <label>Nome</label>
         <input 
           ref="nameInput"
-          v-model="formName" 
+          v-model="categoryName" 
           type="text" 
           placeholder="Ex: Introdução, Exemplos..." 
           @keyup.enter="handleSave"
@@ -103,10 +174,10 @@ const handleDelete = () => {
               class="swatch"
               :style="{ backgroundColor: color }"
               :class="{ 
-                active: formColor?.toLowerCase() === color.toLowerCase(), 
-                used: !isEditing && store.usedColors.has(color) && formColor !== color 
+                active: categoryColor?.toLowerCase() === color.toLowerCase(), 
+                used: !isEditing && store.usedColors.has(color) && categoryColor !== color 
               }"
-              @click="formColor = color"
+              @click="categoryColor = color"
               :title="(!isEditing && store.usedColors.has(color)) ? 'Já utilizada' : ''"
             ></div>
           </div>
@@ -119,7 +190,7 @@ const handleDelete = () => {
               <!-- Preview Visual -->
               <div 
                 class="color-preview" 
-                :style="{ backgroundColor: formColor }"
+                :style="{ backgroundColor: categoryColor }"
                 @click="openNativePicker"
                 title="Clique para escolher uma cor"
               ></div>
@@ -129,7 +200,7 @@ const handleDelete = () => {
                 <Hash class="icon-hash" />
                 <input 
                   type="text" 
-                  :value="formColor" 
+                  :value="categoryColor" 
                   @input="handleHexInput"
                   maxlength="7"
                   class="hex-input"
@@ -146,11 +217,78 @@ const handleDelete = () => {
             <input 
               ref="colorInputRef"
               type="color" 
-              v-model="formColor" 
+              v-model="categoryColor" 
               class="hidden-native-input" 
             />
           </div>
 
+        </div>
+      </div>
+
+      <!-- SEÇÃO DE FORMULÁRIO -->
+      <div class="form-divider"></div>
+      
+      <div class="form-section">
+        <div class="section-header">
+          <Settings2 class="icon-xs" />
+          <span>Utilizar formulário nesta categoria</span>
+          <label class="switch">
+            <input type="checkbox" v-model="formEnabled">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div v-if="formEnabled" class="form-config-box">
+          <div class="form-group sm">
+            <label>Pergunta do Formulário</label>
+            <input v-model="formNameFieldLabel" type="text" placeholder="Ex: Qual seu nome?">
+          </div>
+
+          <div class="form-group sm">
+            <label>Conectar com Categorias:</label>
+            <div class="target-list">
+              <label v-for="cat in eligibleCategories" :key="cat.id" class="target-item">
+                <input type="checkbox" :value="cat.id" v-model="formTargetCategories">
+                <span :style="{ color: cat.color }">{{ cat.name }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- STATUS DO LINK (EXPLICITO) -->
+          <div class="link-manager">
+            
+            <div v-if="!canActivateLink" class="warning-box">
+              Atenção: Para gerar o link público, salve a categoria e o projeto na nuvem.
+            </div>
+            
+            <!-- Estado de Carregamento da API -->
+            <div v-else-if="isLoadingStatus" class="loading-status-box">
+              <Loader2 class="icon-spin icon-sm" />
+              <span>Verificando status do link...</span>
+            </div>
+
+            <div v-else>
+              <div v-if="!formIsActive" class="activate-box">
+                <p class="hint">A configuração viaja com o arquivo. Ative o link para começar a receber dados desta turma.</p>
+                <button class="btn-activate" @click="handleToggleLink(true)" :disabled="isTogglingLink">
+                  <Link class="icon-xs" /> {{ isTogglingLink ? 'Processando...' : 'Ativar Link Público' }}
+                </button>
+              </div>
+              
+              <div v-else class="active-link-box">
+                <label class="active-label">Link Ativo e recebendo respostas</label>
+                <div class="link-input-group">
+                  <input type="text" readonly :value="formUrl">
+                  <button @click="copyLink" title="Copiar link" class="btn-subtle"><Copy class="icon-xs" /></button>
+                  <a :href="formUrl" target="_blank" class="btn-subtle" title="Abrir Form"><ExternalLink class="icon-xs" /></a>
+                </div>
+                <button class="btn-deactivate" @click="handleToggleLink(false)" :disabled="isTogglingLink">
+                  <Unlink class="icon-xs" /> Desativar Link
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
@@ -271,4 +409,62 @@ button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; f
 .btn-cancel:hover { background: #cbd5e1; }
 .btn-delete { background: transparent; color: #ef4444; padding-left: 0; }
 .btn-delete:hover { text-decoration: underline; background: transparent; }
+
+/* --- FORM CONFIG STYLES --- */
+.form-divider { height: 1px; background: #e2e8f0; margin: 24px -24px 20px -24px; }
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.section-header span { font-weight: 600; font-size: 0.85rem; color: #475569; flex: 1; }
+
+.form-config-box { background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.form-group.sm { margin-bottom: 12px; }
+.form-group.sm label { font-size: 0.75rem; margin-bottom: 4px; }
+.form-group.sm input { padding: 6px 10px; font-size: 0.85rem; }
+
+.target-list { display: flex; flex-direction: column; gap: 6px; max-height: 100px; overflow-y: auto; background: white; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+.target-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; }
+
+/* Link Manager */
+.link-manager { margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 16px; }
+.warning-box { background: #fffbeb; color: #b45309; font-size: 0.75rem; padding: 10px; border-radius: 6px; border: 1px solid #fde68a; }
+
+.activate-box .hint { font-size: 0.75rem; color: #64748b; margin: 0 0 10px 0; line-height: 1.3; }
+.btn-activate { display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center; background: #10b981; color: white; }
+.btn-activate:hover:not(:disabled) { background: #059669; }
+.btn-activate:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.active-link-box .active-label { display: block; font-size: 0.75rem; font-weight: 600; color: #10b981; margin-bottom: 8px; }
+.link-input-group { display: flex; gap: 6px; align-items: center; margin-bottom: 12px; }
+.link-input-group input { flex: 1; font-size: 0.75rem; background: #fff; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 4px; color: #334155; }
+.btn-subtle { display: flex; align-items: center; background: white; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; color: #64748b; }
+.btn-subtle:hover { background: #f1f5f9; color: #1e293b; }
+
+.btn-deactivate { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: #fee2e2; color: #ef4444; font-size: 0.8rem; }
+.btn-deactivate:hover:not(:disabled) { background: #fecaca; }
+
+/* Switch Style */
+.switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 18px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: #3b82f6; }
+input:checked + .slider:before { transform: translateX(16px); }
+
+.loading-status-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 </style>

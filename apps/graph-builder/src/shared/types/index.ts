@@ -10,6 +10,17 @@ export interface Category {
   name: string;
   color: string;       // Ex: "#FF5733"
   order: number;       // Posição da coluna no Editor
+  formConfig?: CategoryFormConfig;
+}
+
+/**
+ * CONFIGURAÇÃO DE FORMULÁRIO
+ * Define as regras para preenchimento dinâmico de uma categoria via formulário público.
+ */
+export interface CategoryFormConfig {
+  enabled: boolean;             // Se o professor quer usar formulário nesta categoria
+  nameFieldLabel: string;       // A pergunta do nome (ex: "Qual seu nome?")
+  targetCategories: string[];   // IDs das categorias que virarão perguntas de escolha
 }
 
 /**

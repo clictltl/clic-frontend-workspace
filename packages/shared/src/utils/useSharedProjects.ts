@@ -592,6 +592,169 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
   /**
    * ---------------------------------------------------
+   * FORMULÁRIOS (Setup, Respostas e Sync)
+   * ---------------------------------------------------
+   */
+
+  async function setupForm(referenceId: string, formConfig: any, isActive: boolean = true) {
+    error.value = null;
+    if (!currentProjectId.value) {
+      error.value = 'PROJECT_NOT_SAVED';
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/setup`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+        body: JSON.stringify({
+          project_id: currentProjectId.value,
+          reference_id: referenceId,
+          config: formConfig,
+          is_active: isActive ? 1 : 0
+        })
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'UNKNOWN_ERROR');
+      return data; // Retorna { success, token, form_url, is_active }
+    } catch (err: any) {
+      error.value = err.message;
+      return null;
+    }
+  }
+
+  async function loadForm(token: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/${token}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Erro ao carregar formulário');
+      return data; // Retorna { form: { reference_id, config }, project: { data } }
+    } catch (err: any) {
+      error.value = err.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function submitFormAnswer(token: string, answerData: any) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/${token}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: answerData })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Erro ao enviar resposta');
+      return true;
+    } catch (err: any) {
+      error.value = err.message;
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getFormAnswers() {
+    error.value = null;
+    if (!currentProjectId.value) return [];
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/answers`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'X-WP-Nonce': nonce }
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Erro ao buscar respostas');
+      return data.answers || []; // [{ id, data, created_at, reference_id }, ...]
+    } catch (err: any) {
+      console.error(err);
+      return [];
+    }
+  }
+
+  async function syncFormAnswers(answerIds: number[]) {
+    error.value = null;
+    if (!currentProjectId.value || answerIds.length === 0) return false;
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/sync`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+        body: JSON.stringify({ answer_ids: answerIds })
+      });
+      const data = await res.json();
+      return data.success;
+    } catch (err: any) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  async function getFormStatus(referenceId: string) {
+    error.value = null;
+    if (!currentProjectId.value) {
+      return { exists: false };
+    }
+    
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/status`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'X-WP-Nonce': nonce }
+      });
+      const data = await res.json();
+      
+      if (!data.success) {
+        return { exists: false };
+      }
+      return data; // Retorna { exists: true, token, is_active, form_url }
+    } catch (err: any) {
+      console.error(err);
+      return { exists: false };
+    }
+  }
+
+  async function deleteForm(referenceId: string) {
+    if (!currentProjectId.value) return false;
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-WP-Nonce': nonce }
+      });
+      const data = await res.json();
+      return data.success;
+    } catch (err: any) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  async function clearFormAnswers(referenceId: string) {
+    if (!currentProjectId.value) return false;
+    try {
+      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/answers`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-WP-Nonce': nonce }
+      });
+      const data = await res.json();
+      return data.success;
+    } catch (err: any) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  /**
+   * ---------------------------------------------------
    * EXPORTAR SINGLETON
    * ---------------------------------------------------
    */
@@ -613,6 +776,14 @@ export function createSharedProjects(config: UseProjectsConfig) {
     publishProject,
     unpublishProject,
     getPublishStatus,
+    setupForm,
+    loadForm,
+    submitFormAnswer,
+    getFormAnswers,
+    syncFormAnswers,
+    getFormStatus,
+    deleteForm,
+    clearFormAnswers,
     markAsSaved: config.markAsSaved,
   };
 }
