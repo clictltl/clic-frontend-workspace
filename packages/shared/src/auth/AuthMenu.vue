@@ -8,7 +8,7 @@
     </span>
 
     <!-- Estado: Usuário NÃO logado -->
-    <button v-else-if="!auth.state.loggedIn" class="btn-login" @click="showLogin = true">
+    <button v-else-if="!auth.state.loggedIn" class="btn-login" @click="auth.state.showLoginModal = true">
       <User :size="16" class="icon" /> Entrar
     </button>
 
@@ -35,7 +35,7 @@
 
     <!-- Modal de Login -->
     <transition name="fade">
-      <div v-if="showLogin" class="modal-backdrop">
+      <div v-if="auth.state.showLoginModal" class="modal-backdrop">
         <div class="modal-overlay" @click="closeModal"></div>
         <div class="modal-card">
           <div class="modal-header">
@@ -86,7 +86,6 @@ const emit = defineEmits(['login-success']);
 const auth = useAuth();
 
 // Estados
-const showLogin = ref(false);
 const showUserMenu = ref(false); 
 const userMenuContainer = ref<HTMLElement | null>(null);
 
@@ -100,7 +99,7 @@ const usernameInput = ref<HTMLInputElement | null>(null);
 const isWordPress = typeof window !== 'undefined' && !!window.CLIC_AUTH;
 
 // --- Lógica de Interação ---
-watch(showLogin, (open) => {
+watch(() => auth.state.showLoginModal, (open) => {
   if (open) {
     requestAnimationFrame(() => usernameInput.value?.focus());
   }
@@ -120,7 +119,7 @@ function toggleUserMenu() {
 }
 
 function closeModal() {
-  showLogin.value = false;
+  auth.state.showLoginModal = false;
   username.value = '';
   password.value = '';
   error.value = '';
@@ -158,13 +157,12 @@ async function submitLogin() {
   loading.value = true;
 
   const restRoot = window.CLIC_AUTH?.rest_root ?? '/wp-json/clic-auth/v1/';
-  const nonce = window.CLIC_AUTH?.nonce ?? '';
-
+ 
   try {
     const res = await fetch(restRoot + 'login', {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username.value, password: password.value }),
     });
 

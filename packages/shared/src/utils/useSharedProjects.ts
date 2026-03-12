@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import type { ClicAsset } from '@clic/shared';
+import { useAuth } from '../auth/auth';
 
 export interface UseProjectsConfig {
   appSlug: string; // Ex: 'chatbot' ou 'graph-builder'
@@ -7,6 +8,19 @@ export interface UseProjectsConfig {
   setProjectData: (data: any) => void;
   markAsSaved: () => void;
   assetStore: any; // A instância do useSharedAssetStore
+}
+
+async function clicFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  
+  // Se der erro de sessão E estiver no ambiente do Editor (WP)
+  if ((res.status === 401 || res.status === 403) && window.CLIC_AUTH) {
+    const auth = useAuth();
+    auth.state.showLoginModal = true; // Abre o modal na tela automaticamente
+    throw new Error('Sessão expirada. Faça login novamente para continuar.');
+  }
+  
+  return res;
 }
 
 export function createSharedProjects(config: UseProjectsConfig) {
@@ -55,7 +69,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         let existingMedia = null;
         if (asset.hash) {
           // Usa a rota customizada rápida
-          const searchRes = await fetch(`${pluginRestRoot}media/find-by-hash?hash=${asset.hash}`, {
+          const searchRes = await clicFetch(`${pluginRestRoot}media/find-by-hash?hash=${asset.hash}`, {
               method: 'GET',
               headers: { 'X-WP-Nonce': nonce }
           });
@@ -83,7 +97,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
           // formData.append('alt_text', 'Imagem do Chatbot CLIC');
           
           // Envia para API Nativa (/wp/v2/media)
-          const res = await fetch(`${wpRestRoot}wp/v2/media`, {
+          const res = await clicFetch(`${wpRestRoot}wp/v2/media`, {
             method: 'POST',
             headers: { 'X-WP-Nonce': nonce },
             body: formData
@@ -94,7 +108,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
           // ATUALIZA O METADADO
           if (asset.hash) {
-            await fetch(`${wpRestRoot}wp/v2/media/${wpMedia.id}`, {
+            await clicFetch(`${wpRestRoot}wp/v2/media/${wpMedia.id}`, {
                 method: 'POST',
                 headers: { 
                   'Content-Type': 'application/json',
@@ -137,7 +151,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     try {
-      const res = await fetch(pluginRestRoot + 'list', {
+      const res = await clicFetch(pluginRestRoot + 'list', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -186,7 +200,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       };
 
       // 3. Salva o projeto
-      const res = await fetch(pluginRestRoot + 'save', {
+      const res = await clicFetch(pluginRestRoot + 'save', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -246,7 +260,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     try {
-      const res = await fetch(pluginRestRoot + 'load/' + id, {
+      const res = await clicFetch(pluginRestRoot + 'load/' + id, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -289,7 +303,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     try {
-      const res = await fetch(pluginRestRoot + 'delete/' + id, {
+      const res = await clicFetch(pluginRestRoot + 'delete/' + id, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -338,7 +352,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     };
 
     try {
-      const res = await fetch(pluginRestRoot + 'share', {
+      const res = await clicFetch(pluginRestRoot + 'share', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -377,7 +391,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const restRoot = window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
       
       // 1. Busca na API
-      const res = await fetch(restRoot + 'share/' + token);
+      const res = await clicFetch(restRoot + 'share/' + token);
       const data = await res.json();
 
       if (!data.success) {
@@ -421,7 +435,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     if (!currentProjectId.value) return null;
 
     try {
-      const res = await fetch(pluginRestRoot + 'unshare', {
+      const res = await clicFetch(pluginRestRoot + 'unshare', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -456,7 +470,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     if (!currentProjectId.value) return null;
 
     try {
-      const res = await fetch(`${pluginRestRoot}share-status?project_id=${currentProjectId.value}`, {
+      const res = await clicFetch(`${pluginRestRoot}share-status?project_id=${currentProjectId.value}`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }
@@ -492,7 +506,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     };
 
     try {
-      const res = await fetch(pluginRestRoot + 'publish', {
+      const res = await clicFetch(pluginRestRoot + 'publish', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -534,7 +548,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     if (!currentProjectId.value) return null;
 
     try {
-      const res = await fetch(pluginRestRoot + 'unpublish', {
+      const res = await clicFetch(pluginRestRoot + 'unpublish', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -569,7 +583,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     if (!currentProjectId.value) return null;
 
     try {
-      const res = await fetch(`${pluginRestRoot}publish-status?project_id=${currentProjectId.value}`, {
+      const res = await clicFetch(`${pluginRestRoot}publish-status?project_id=${currentProjectId.value}`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }
@@ -604,7 +618,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     }
 
     try {
-      const res = await fetch(`${pluginRestRoot}forms/setup`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/setup`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
@@ -629,7 +643,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     loading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${pluginRestRoot}forms/${token}`);
+      const res = await clicFetch(`${pluginRestRoot}forms/${token}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Erro ao carregar formulário');
       return data; // Retorna { form: { reference_id, config }, project: { data } }
@@ -645,7 +659,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     loading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${pluginRestRoot}forms/${token}/submit`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/${token}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: answerData })
@@ -665,7 +679,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
     if (!currentProjectId.value) return [];
     try {
-      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/answers`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/answers`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }
@@ -683,7 +697,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
     if (!currentProjectId.value || answerIds.length === 0) return false;
     try {
-      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/sync`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/sync`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
@@ -704,7 +718,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     }
     
     try {
-      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/status`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/status`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }
@@ -724,7 +738,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
   async function deleteForm(referenceId: string) {
     if (!currentProjectId.value) return false;
     try {
-      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }
@@ -740,7 +754,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
   async function clearFormAnswers(referenceId: string) {
     if (!currentProjectId.value) return false;
     try {
-      const res = await fetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/answers`, {
+      const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/answers`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'X-WP-Nonce': nonce }

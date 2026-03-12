@@ -75,11 +75,13 @@ onMounted(async () => {
   if (saved) {
     try {
       // Restaura os binários para a memória RAM
-      // Isso garante que quando o JSON carregar, as URLs de blob já existam na memória
       await assetStore.restoreFromDisk();
 
       // Restaura o projeto
-      setProjectData(JSON.parse(saved), true);
+      const parsedSaved = JSON.parse(saved);
+      setProjectData(parsedSaved.data, !!parsedSaved.wasDirty);
+      projects.currentProjectId.value = parsedSaved.id;
+      projects.currentProjectName.value = parsedSaved.name || '';
 
       // Remove do SessionStorage (texto)
       sessionStorage.removeItem('clic-chatbot:login-backup');
@@ -370,8 +372,15 @@ function startResize(event: MouseEvent) {
 
 async function handleLoginSuccess() {
   await assetStore.persistToDisk(); 
-  const project = getProjectData();
-  sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(project));
+  
+  const backup = {
+    id: projects.currentProjectId.value,
+    name: projects.currentProjectName.value,
+    data: getProjectData(),
+    wasDirty: hasUnsavedChanges.value
+  };
+
+  sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(backup));
 
   // Evita o aviso que vai perder tudo se atualizar
   hasUnsavedChanges.value = false;

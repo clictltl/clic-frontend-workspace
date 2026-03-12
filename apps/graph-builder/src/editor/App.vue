@@ -20,7 +20,19 @@ const isPreview = ref(false);
 
 async function handleLoginSuccess() {
   await assetStore.persistToDisk(); 
-  sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(store.project));
+  
+  const backup = {
+    id: projects.currentProjectId.value,
+    name: projects.currentProjectName.value,
+    data: store.project,
+    wasDirty: store.hasUnsavedChanges
+  };
+
+  sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(backup));
+
+  // Evita o aviso que vai perder tudo se atualizar
+  store.hasUnsavedChanges = false;
+
   window.location.reload();
 }
 

@@ -100,11 +100,11 @@ export const useProjectStore = defineStore('project', {
       setTimeout(() => { this._isLoading = false; }, 500);
     },
 
-    loadProject(json: GraphProject) {
+    loadProject(json: GraphProject, markAsUnsaved: boolean = false) {
       this._isLoading = true;
       this.project = json;
       this.selectedNodeId = null;
-      this.hasUnsavedChanges = false;
+      this.hasUnsavedChanges = markAsUnsaved;
       setTimeout(() => { this._isLoading = false; }, 500);
     },
 

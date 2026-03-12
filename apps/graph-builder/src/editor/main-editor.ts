@@ -20,10 +20,17 @@ async function init() {
   const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
   if (loginBackup) {
     try {
-      const project = JSON.parse(loginBackup);
-      useProjectStore().loadProject(project);
+      const parsedSaved = JSON.parse(loginBackup);
+      const projects = useProjects();
+      
+      useProjectStore().loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
+      projects.currentProjectId.value = parsedSaved.id;
+      projects.currentProjectName.value = parsedSaved.name || '';
+            
       await assetStore.restoreFromDisk();
+
       sessionStorage.removeItem('clic-graph-builder:login-backup');
+      await assetStore.clearDisk();
     } catch (e) {
       console.error("Erro ao restaurar backup local:", e);
     }

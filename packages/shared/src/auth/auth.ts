@@ -12,6 +12,7 @@ type MeResponse = {
 const state = reactive({
   ready: false,       // já fez a checagem inicial
   loggedIn: false,
+  showLoginModal: false,
   id: 0,
   name: '',
   email: '',
