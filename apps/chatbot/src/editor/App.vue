@@ -393,7 +393,7 @@ async function handleLoginSuccess() {
 <template>
   <div class="app">
     <!-- Toolbar superior com controles principais -->
-    <AppHeader title="Chatbot">
+    <AppHeader title="Novelo">
     <FileMenu 
       item-name="Chatbot"
       file-extension=".clic-chat"

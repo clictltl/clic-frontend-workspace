@@ -63,7 +63,7 @@ onUnmounted(() => {
   <div class="app-root">
     
     <!-- HEADER -->
-    <AppHeader title="Graph Builder">
+    <AppHeader title="Graph.it">
       <FileMenu 
         item-name="Grafo"
         file-extension=".clic-graph"
