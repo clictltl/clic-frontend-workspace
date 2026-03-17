@@ -19,6 +19,7 @@ declare global {
       app_url: string;
       wp_rest_root: string;
       site_url: string;
+      matomo_active: boolean;
       [key: string]: any; 
     };
   }

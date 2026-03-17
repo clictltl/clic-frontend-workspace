@@ -30,3 +30,6 @@ export { default as PublishModal } from './ui/modals/PublishModal.vue';
 export { default as UnsavedChangesModal } from './ui/modals/UnsavedChangesModal.vue';
 export { default as NeedSaveModal } from './ui/modals/NeedSaveModal.vue';
 export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkModal.vue';
+
+// analytics
+export * from './analytics/matomo';

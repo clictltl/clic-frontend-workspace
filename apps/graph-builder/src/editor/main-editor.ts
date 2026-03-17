@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import '@/styles/index.css';
 import App from './App.vue';
-import { checkLogin } from '@clic/shared';
+import { checkLogin, initMatomo } from '@clic/shared';
 import { useProjects } from '@/editor/utils/useProjects';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { assetStore } from '@/shared/stores/assetStore';
@@ -60,6 +60,8 @@ async function init() {
     shareLoadError 
   });
   
+  initMatomo({ app: 'Graph Builder', context: 'Editor' });
+
   // E avisamos o app para usar o Pinia que já estava rodando
   app.use(pinia);
   app.mount('#app');

@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { checkLogin } from '@clic/shared';
+import { checkLogin, initMatomo } from '@clic/shared';
 import { useProjects } from './utils/useProjects';
 
 async function init() {
@@ -31,6 +31,8 @@ if (shareToken) {
   const app = createApp(App, { 
     shareLoadError: shareLoadError 
   });
+
+  initMatomo({ app: 'Chatbot', context: 'Editor' });
   
   app.mount('#app');
 }
