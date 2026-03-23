@@ -56,7 +56,7 @@
               v-if="isActive" 
               class="btn-danger-outline" 
               @click="handleUnpublish" 
-              title="Desativar {{ itemName.toLowerCase() }}"
+              :title="`Desativar ${itemName.toLowerCase()}`"
             >
               Despublicar
             </button>
