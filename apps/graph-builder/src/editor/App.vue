@@ -66,8 +66,8 @@ onUnmounted(() => {
     <AppHeader title="Graph.it">
       <FileMenu 
         item-name="Grafo"
-        file-extension=".clic-graph"
-        file-accept=".clic-graph,.zip,.json"
+        file-extension=".cgr"
+        file-accept=".cgr"
         :projectsStore="projects"
         :assetStore="assetStore"
         :has-unsaved-changes="store.hasUnsavedChanges"

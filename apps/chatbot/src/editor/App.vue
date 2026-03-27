@@ -356,8 +356,8 @@ async function handleLoginSuccess() {
     <AppHeader title="Novelo">
     <FileMenu 
       item-name="Chatbot"
-      file-extension=".clic-chat"
-      file-accept=".clic-chat,.clic,.zip,.json"
+      file-extension=".cnv"
+      file-accept=".cnv"
       :projectsStore="projects"
       :assetStore="assetStore"
       :hasUnsavedChanges="store.hasUnsavedChanges"
