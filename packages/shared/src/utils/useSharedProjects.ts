@@ -69,7 +69,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         let existingMedia = null;
         if (asset.hash) {
           // Usa a rota customizada rápida
-          const searchRes = await clicFetch(`${pluginRestRoot}media/find-by-hash?hash=${asset.hash}`, {
+          const searchRes = await clicFetch(`${wpRestRoot}clic/v1/media/find-by-hash?hash=${asset.hash}`, {
               method: 'GET',
               headers: { 'X-WP-Nonce': nonce }
           });

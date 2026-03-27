@@ -11,7 +11,7 @@
 
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Block, BlockType } from '@/shared/types/chatbot';
-import { blocks, connections, variables, selectedBlockId, getProjectData, setProjectData, hasUnsavedChanges, resetProjectData } from '@/editor/utils/projectData';
+import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { useAssetStore } from '@/editor/utils/useAssetStore';
 import Canvas from '@/editor/components/canvas/Canvas.vue';
@@ -24,6 +24,7 @@ const props = defineProps<{
   shareLoadError?: boolean
 }>();
 
+const store = useProjectStore();
 const projects = useProjects();
 const assetStore = useAssetStore();
 
@@ -45,13 +46,13 @@ const propertiesPanelRef = ref<InstanceType<typeof PropertiesPanel> | null>(null
 
 // Retorna o bloco atualmente selecionado
 const selectedBlock = computed(() => {
-  if (!selectedBlockId.value) return null;
-  return blocks.value.find(b => b.id === selectedBlockId.value) || null;
+  if (!store.ui.selectedBlockId) return null;
+  return store.document.blocks.find(b => b.id === store.ui.selectedBlockId) || null;
 });
 
 // Intercepta o fechamento da aba ou F5
 const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (hasUnsavedChanges.value) {
+  if (store.hasUnsavedChanges) {
     // Cancela o evento (Padrão moderno)
     e.preventDefault();
     
@@ -63,58 +64,17 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   }
 };
 
-onMounted(async () => {
-  // Verifica se houve erro no carregamento do share (via prop)
+onMounted(() => {
+  // 1. Verifica se houve erro no carregamento do share (via prop do main-editor)
   if (props.shareLoadError) {
     showInvalidShareModal.value = true;
   }
 
-  // Verifica se há backup de login (JSON)
-  const saved = sessionStorage.getItem('clic-chatbot:login-backup');
-
-  if (saved) {
-    try {
-      // Restaura os binários para a memória RAM
-      await assetStore.restoreFromDisk();
-
-      // Restaura o projeto
-      const parsedSaved = JSON.parse(saved);
-      setProjectData(parsedSaved.data, !!parsedSaved.wasDirty);
-      projects.currentProjectId.value = parsedSaved.id;
-      projects.currentProjectName.value = parsedSaved.name || '';
-
-      // Remove do SessionStorage (texto)
-      sessionStorage.removeItem('clic-chatbot:login-backup');
-      
-      // Remove do IndexedDB (disco) para liberar espaço
-      await assetStore.clearDisk(); 
-
-    } catch (e) {
-      console.error('Erro ao restaurar projeto após login:', e);
-    }
-  }
-
-  // Verifica se há bloco copiado no localStorage ao montar o componente
+  // 2. Lógica local da UI do Chatbot
   hasCopiedBlock.value = !!localStorage.getItem('copiedBlock');
-
-  // Adiciona listener para fechar menus ao clicar fora
   document.addEventListener('click', handleDocumentClick);
-
-  // Garante start block
-  const hasStart = blocks.value.some(b => b.type === 'start');
-  if (!hasStart) {
-    const startBlock: Block = {
-      id: 'start',                // id fixo ajuda MUITO
-      type: 'start',
-      position: { x: 80, y: 80 }, // escolha um lugar bom
-      content: '',                // vazio sempre
-      nextBlockId: undefined
-    };
-
-    blocks.value.unshift(startBlock); // coloca no começo
-    selectedBlockId.value = startBlock.id;
-  }
-
+  
+  // 3. Proteção contra fechar a aba sem salvar
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
@@ -128,7 +88,7 @@ function handleCloseInvalidShareModal() {
   showInvalidShareModal.value = false;
   
   // Reseta para um projeto novo limpo
-  resetProjectData();
+  store.resetProjectData();
   
   // Remove query params da URL (caso ainda tenha sobrado algo)
   const cleanUrl = window.location.pathname;
@@ -146,15 +106,15 @@ function createBlock(type: BlockType, position?: { x: number; y: number }) {
       ? position
       : contextMenuPosition.value
         ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
-        : { x: 100 + blocks.value.length * 50, y: 100 + blocks.value.length * 30 },
+        : { x: 100 + store.document.blocks.length * 50, y: 100 + store.document.blocks.length * 30 },
     content: getDefaultContent(type),
     choices: type === 'choiceQuestion' ? [] : undefined,
     conditions: type === 'condition' ? [] : undefined,
     nextBlockId: undefined
   };
 
-  blocks.value.push(newBlock);
-  selectedBlockId.value = newBlock.id;
+  store.document.blocks.push(newBlock);
+  store.ui.selectedBlockId = newBlock.id;
 
   // fecha menus antigos do pai (se existirem)
   showNewBlockMenu.value = false;
@@ -204,15 +164,15 @@ function getDefaultContent(type: BlockType): string {
 
 // Atualiza um bloco existente
 function updateBlock(updatedBlock: Block) {
-  const index = blocks.value.findIndex(b => b.id === updatedBlock.id);
+  const index = store.document.blocks.findIndex(b => b.id === updatedBlock.id);
   if (index !== -1) {
-    blocks.value[index] = updatedBlock;
+    store.document.blocks[index] = updatedBlock;
   }
 }
 
 // Adiciona uma nova variável ao chatbot
 function addVariable(name: string, type: 'string' | 'number') {
-  variables.value[name] = {
+  store.document.variables[name] = {
     name,
     type,
     value: type === 'number' ? 0 : ''
@@ -232,7 +192,7 @@ async function handleFocusBlockEditor() {
 
 // Remove uma variável do chatbot
 function removeVariable(name: string) {
-  delete variables.value[name];
+  delete store.document.variables[name];
 }
 
 // Alterna o modo tela cheia do preview
@@ -276,7 +236,7 @@ function duplicateBlock() {
     return;
   }
 
-  const blockToDuplicate = blocks.value.find(b => b.id === contextMenuBlockId.value);
+  const blockToDuplicate = store.document.blocks.find(b => b.id === contextMenuBlockId.value);
   if (!blockToDuplicate) return;
   const newBlock: Block = {
     ...JSON.parse(JSON.stringify(blockToDuplicate)),
@@ -287,7 +247,7 @@ function duplicateBlock() {
     }
   };
 
-  blocks.value = [...blocks.value, newBlock];
+  store.document.blocks = [...store.document.blocks, newBlock];
   closeContextMenu();
 }
 
@@ -301,7 +261,7 @@ function copyBlock() {
     return;
   }
 
-  const blockToCopy = blocks.value.find(b => b.id === contextMenuBlockId.value);
+  const blockToCopy = store.document.blocks.find(b => b.id === contextMenuBlockId.value);
   if (!blockToCopy) return;
 
   localStorage.setItem('copiedBlock', JSON.stringify(blockToCopy));
@@ -323,7 +283,7 @@ function pasteBlock() {
       : { x: copiedBlock.position.x + 50, y: copiedBlock.position.y + 50 }
   };
 
-  blocks.value = [...blocks.value, newBlock];
+  store.document.blocks = [...store.document.blocks, newBlock];
   closeContextMenu();
 }
 
@@ -337,13 +297,13 @@ function deleteBlockFromMenu() {
     return;
   }
 
-  blocks.value = blocks.value.filter(b => b.id !== contextMenuBlockId.value);
-  connections.value = connections.value.filter(
+  store.document.blocks = store.document.blocks.filter(b => b.id !== contextMenuBlockId.value);
+  store.document.connections = store.document.connections.filter(
     c => c.fromBlockId !== contextMenuBlockId.value && c.toBlockId !== contextMenuBlockId.value
   );
 
-  if (selectedBlockId.value === contextMenuBlockId.value) {
-    selectedBlockId.value = null;
+  if (store.ui.selectedBlockId === contextMenuBlockId.value) {
+    store.ui.selectedBlockId = null;
   }
 
   closeContextMenu();
@@ -376,14 +336,14 @@ async function handleLoginSuccess() {
   const backup = {
     id: projects.currentProjectId.value,
     name: projects.currentProjectName.value,
-    data: getProjectData(),
-    wasDirty: hasUnsavedChanges.value
+    data: store.getProjectData(),
+    wasDirty: store.hasUnsavedChanges
   };
 
   sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(backup));
 
   // Evita o aviso que vai perder tudo se atualizar
-  hasUnsavedChanges.value = false;
+  store.markAsSaved();
   
   window.location.reload();
 }
@@ -400,10 +360,10 @@ async function handleLoginSuccess() {
       file-accept=".clic-chat,.clic,.zip,.json"
       :projectsStore="projects"
       :assetStore="assetStore"
-      :hasUnsavedChanges="hasUnsavedChanges"
-      :getProjectData="getProjectData"
-      @new-project="resetProjectData"
-      @import-project="setProjectData"
+      :hasUnsavedChanges="store.hasUnsavedChanges"
+      :getProjectData="store.getProjectData"
+      @new-project="store.resetProjectData"
+      @import-project="store.setProjectData"
     />
     <AuthMenu @login-success="handleLoginSuccess" />
   </AppHeader>
@@ -413,14 +373,14 @@ async function handleLoginSuccess() {
       <!-- Canvas onde os blocos são desenhados e conectados -->
       <div class="canvas-area" v-show="!isPreviewFullscreen" @click="closeContextMenu">
         <Canvas
-          :blocks="blocks"
-          :connections="connections"
-          :selected-block-id="selectedBlockId"
+          :blocks="store.document.blocks"
+          :connections="store.document.connections"
+          :selected-block-id="store.ui.selectedBlockId"
           :zoom="zoom"
-          @update:selected-block-id="selectedBlockId = $event"
-          @update:blocks="blocks = $event"
+          @update:selected-block-id="store.ui.selectedBlockId = $event"
+          @update:blocks="store.document.blocks = $event"
           @focus-block-editor="handleFocusBlockEditor"
-          @update:connections="connections = $event"
+          @update:connections="store.document.connections = $event"
           @update:zoom="zoom = $event"
           @context-menu="handleCanvasContextMenu"
           @block-context-menu="handleBlockContextMenu"
@@ -537,23 +497,23 @@ async function handleLoginSuccess() {
             ref="propertiesPanelRef"
             v-show="activeTab === 'properties'"
             :block="selectedBlock"
-            :variables="variables"
+            :variables="store.document.variables"
             @update:block="updateBlock"
           />
 
           <VariablesPanel
             v-show="activeTab === 'variables'"
-            :variables="variables"
-            @update:variables="variables = $event"
+            :variables="store.document.variables"
+            @update:variables="store.document.variables = $event"
             @add-variable="addVariable"
             @remove-variable="removeVariable"
           />
 
           <PreviewPanel
             v-show="activeTab === 'preview'"
-            :blocks="blocks"
-            :variables="variables"
-            @update:variables="variables = $event"
+            :blocks="store.document.blocks"
+            :variables="store.document.variables"
+            @update:variables="store.document.variables = $event"
             @toggle-fullscreen="togglePreviewFullscreen"
           />
         </div>

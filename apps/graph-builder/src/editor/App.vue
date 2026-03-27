@@ -31,7 +31,7 @@ async function handleLoginSuccess() {
   sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(backup));
 
   // Evita o aviso que vai perder tudo se atualizar
-  store.hasUnsavedChanges = false;
+  store.markAsSaved();
 
   window.location.reload();
 }

@@ -1,12 +1,12 @@
 import { createSharedProjects } from '@clic/shared';
-import { getProjectData, setProjectData, markAsSaved } from './projectData';
+import { useProjectStore } from '@/shared/stores/projectStore';
 import { assetStore } from './useAssetStore';
 
 const sharedProjectsInstance = createSharedProjects({
   appSlug: 'chatbot',
-  getProjectData,
-  setProjectData,
-  markAsSaved,
+  getProjectData: () => useProjectStore().getProjectData(),
+  setProjectData: (data: any, markAsUnsaved?: boolean) => useProjectStore().setProjectData(data, markAsUnsaved),
+  markAsSaved: () => useProjectStore().markAsSaved(),
   assetStore
 });
 

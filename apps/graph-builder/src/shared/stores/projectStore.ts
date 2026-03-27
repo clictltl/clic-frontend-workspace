@@ -50,15 +50,19 @@ const validateCategoryName = (categories: Category[], name: string, excludeId?: 
 };
 
 export const useProjectStore = defineStore('project', {
-  state: () => ({
-    project: createEmptyProject() as GraphProject,
-    selectedNodeId: null as string | null, 
-    // --- CONTROLE DE ALTERAÇÕES ---
-    hasUnsavedChanges: false,
-    _isLoading: false, // Trava para evitar marcar 'dirty' ao carregar projetos
-  }),
+  state: () => {
+    const initialProject = createEmptyProject() as GraphProject;
+
+    return {
+      project: initialProject,
+      selectedNodeId: null as string | null, 
+      lastSavedState: JSON.stringify(initialProject),
+    };
+  },
 
   getters: {
+    hasUnsavedChanges: (state) => JSON.stringify(state.project) !== state.lastSavedState,
+
     nodesByCategory: (state) => (categoryId: string) => 
       state.project.nodes
         .filter((n) => n.categoryId === categoryId)
@@ -74,38 +78,26 @@ export const useProjectStore = defineStore('project', {
   actions: {
     // --- FUNÇÕES DE CONTROLE DE SALVAMENTO ---
     markAsSaved() {
-      this._isLoading = true;
-      this.hasUnsavedChanges = false;
-      
-      // Mantém bloqueado por 500ms para garantir que "ecos" de reatividade sejam ignorados
-      setTimeout(() => {
-        this.hasUnsavedChanges = false;
-        this._isLoading = false;
-      }, 500);
-    },
-
-    touch() {
       this.project.meta.updatedAt = now();
-      if (!this._isLoading) {
-        this.hasUnsavedChanges = true;
-      }
+      this.lastSavedState = JSON.stringify(this.project);
     },
 
     // --- AÇÕES DO PROJETO ---
     createNew() {
-      this._isLoading = true;
       this.project = createEmptyProject();
       this.selectedNodeId = null;
-      this.hasUnsavedChanges = false;
-      setTimeout(() => { this._isLoading = false; }, 500);
+      this.markAsSaved();
     },
 
     loadProject(json: GraphProject, markAsUnsaved: boolean = false) {
-      this._isLoading = true;
       this.project = json;
       this.selectedNodeId = null;
-      this.hasUnsavedChanges = markAsUnsaved;
-      setTimeout(() => { this._isLoading = false; }, 500);
+
+      if (markAsUnsaved) {
+        this.lastSavedState = 'FORCED_UNSAVED';
+      } else {
+        this.lastSavedState = JSON.stringify(this.project);
+      }
     },
 
     addCategory(name: string, color?: string) {
@@ -124,7 +116,6 @@ export const useProjectStore = defineStore('project', {
       };
       this.project.categories.unshift(newCategory);
       this.project.categories.forEach((cat, index) => { cat.order = index; });
-      this.touch();
     },
 
     updateCategory(id: string, name: string, color?: string) {
@@ -133,7 +124,6 @@ export const useProjectStore = defineStore('project', {
       if (category) {
         category.name = name;
         if (color) category.color = color;
-        this.touch();
       }
     },
 
@@ -146,13 +136,11 @@ export const useProjectStore = defineStore('project', {
         !nodeIds.includes(e.source) && !nodeIds.includes(e.target)
       );
       this.project.categories.forEach((cat, index) => { cat.order = index; });
-      this.touch();
     },
 
     reorderCategories(newCategories: Category[]) {
       this.project.categories = newCategories;
       this.project.categories.forEach((cat, index) => { cat.order = index; });
-      this.touch();
     },
 
     addNode(categoryId: string) {
@@ -166,14 +154,12 @@ export const useProjectStore = defineStore('project', {
       };
       this.project.nodes.push(newNode);
       this.selectedNodeId = newNode.id;
-      this.touch();
     },
 
     updateNode(id: string, updates: Partial<Node>) {
       const node = this.project.nodes.find(n => n.id === id);
       if (node) {
         Object.assign(node, updates);
-        this.touch();
       }
     },
 
@@ -181,7 +167,6 @@ export const useProjectStore = defineStore('project', {
       this.project.nodes = this.project.nodes.filter(n => n.id !== id);
       this.project.edges = this.project.edges.filter(e => e.source !== id && e.target !== id);
       if (this.selectedNodeId === id) this.selectedNodeId = null;
-      this.touch();
     },
 
     reorderNodesInCategory(categoryId: string, newOrderedNodes: Node[]) {
@@ -192,14 +177,12 @@ export const useProjectStore = defineStore('project', {
         order: index
       }));
       this.project.nodes = [...otherNodes, ...updatedNodes];
-      this.touch();
     },
 
     saveNodeContent(nodeId: string, content: string) {
       const node = this.project.nodes.find(n => n.id === nodeId);
       if (node) {
         node.content = content;
-        this.touch();
       }
     },
 
@@ -222,7 +205,6 @@ export const useProjectStore = defineStore('project', {
           target: targetId
         };
         this.project.edges.push(newEdge);
-        this.touch();
       }
     },
 
@@ -235,7 +217,6 @@ export const useProjectStore = defineStore('project', {
         } else {
           category.formConfig = { ...config };
         }
-        this.touch();
       }
     },
 
@@ -275,7 +256,6 @@ export const useProjectStore = defineStore('project', {
         syncedIds.push(answer.id);
       });
 
-      this.touch();
       return syncedIds;
     }
   }

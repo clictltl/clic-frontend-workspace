@@ -19,6 +19,7 @@
     "file-type": "^20.5.0",
     "jszip": "^3.10.1",
     "leader-line-new": "^1.1.9",
+    "pinia": "^3.0.4",
     "vue": "^3.4.38"
   },
   "devDependencies": {

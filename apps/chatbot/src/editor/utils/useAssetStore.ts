@@ -1,12 +1,12 @@
 import { useSharedAssetStore } from '@clic/shared';
-import { assets, blocks } from './projectData';
+import { useProjectStore } from '@/shared/stores/projectStore';
 
 // Criamos uma instância do store compartilhado, configurada especificamente para as regras do Chatbot
 export const assetStore = useSharedAssetStore({
   appName: 'chatbot',
-  getAssets: () => assets.value,
+  getAssets: () => useProjectStore().document.assets,
   isAssetUsed: (assetId, excludeElementId) => {
-    return blocks.value.some(block => {
+    return useProjectStore().document.blocks.some(block => {
       if (excludeElementId && block.id === excludeElementId) return false;
       return block.assetId === assetId;
     });
