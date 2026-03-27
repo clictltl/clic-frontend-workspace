@@ -70,13 +70,6 @@
           <div class="menu-item" @click="handleMenuClick(() => withGuard(openFromComputer))">
             <FolderInput :size="16" class="icon" /> Importar Projeto
           </div>
-          <input 
-            type="file" 
-            ref="fileInput" 
-            :accept="fileAccept"
-            style="display: none" 
-            @change="handleImport"
-          />
           <div class="menu-item" @click="handleMenuClick(saveToComputer)">
             <Download :size="16" class="icon" /> Exportar Projeto
           </div>
@@ -84,6 +77,15 @@
 
       </div>
     </transition>
+
+    <!-- Input invisível de Upload (Fora do v-if do dropdown para não ser destruído) -->
+    <input 
+      type="file" 
+      ref="fileInput" 
+      :accept="fileAccept"
+      style="display: none" 
+      @change="handleImport"
+    />
 
     <!-- Modais -->
     <SaveAsModal v-if="showSaveAs" :mode="saveAsMode" :projectsStore="projectsStore" :item-name="itemName" @close="handleSaveAsClose"  @success="handleSaveAsSuccess"/>
