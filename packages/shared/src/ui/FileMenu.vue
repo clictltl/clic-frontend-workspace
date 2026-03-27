@@ -15,6 +15,7 @@
         <div class="separator-vertical"></div>
         <FileText :size="16" class="icon" />
         <span class="name" :title="currentProjectName">{{ currentProjectName }}</span>
+        <span v-if="hasUnsavedChanges" class="unsaved-dot" title="Alterações não salvas"></span>
       </div>
 
     </div>
@@ -97,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, computed, onMounted, onUnmounted } from 'vue';
+import { ref, toRefs, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAuth } from '../auth/auth';
 import { useToast } from './useToast';
 import { exportClicFile, importClicFile } from '../utils/projectIO'
@@ -197,6 +198,23 @@ const handleClickOutside = (event: MouseEvent) => {
 // Lifecycle Hooks para adicionar/remover o listener global
 onMounted(() => { document.addEventListener('click', handleClickOutside); });
 onUnmounted(() => { document.removeEventListener('click', handleClickOutside); });
+
+// Captura o nome da ferramenta que estava na aba (ex: "Novelo", "Graph.it")
+const baseTitle = typeof document !== 'undefined' ? document.title.split(' - ').pop() : 'CLIC';
+
+// Sincroniza o título da aba do navegador
+watch(
+  () =>[props.hasUnsavedChanges, currentProjectName?.value],
+  ([unsaved, name]) => {
+    const prefix = unsaved ? '* ' : '';
+    if (name) {
+      document.title = `${prefix}${name} - ${baseTitle}`;
+    } else {
+      document.title = `${prefix}${baseTitle}`;
+    }
+  },
+  { immediate: true }
+);
 
 // --- Lógica de Proteção (Guard) ---
 
@@ -441,6 +459,7 @@ async function saveToComputer() {
 }
 .separator-vertical { width: 1px; height: 16px; background-color: #e5e7eb; }
 .project-info .name { font-weight: 500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+.unsaved-dot { width: 8px; height: 8px; background-color: #f59e0b; border-radius: 50%; flex-shrink: 0; }
 
 .dropdown-menu {
   position: absolute; top: calc(100% + 6px); left: 0; right: auto;
