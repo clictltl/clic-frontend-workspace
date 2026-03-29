@@ -34,3 +34,4 @@ _site         # Pasta temporária que criamos no GitHub Actions
 .idea         # (Configurações do WebStorm/IntelliJ, se alguém usar)
 .vscode/*     # (Ignora configs pessoais do VSCode...)
 !.vscode/extensions.json # (...mas permite commitar as extensões recomendadas da equipe)
+.vscode/settings.json

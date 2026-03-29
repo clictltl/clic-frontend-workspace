@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
-import { useAssetStore } from '@/editor/utils/useAssetStore';
+import { useAssetStore } from '@/editor/composables/useAssetStore';
 
 const props = defineProps<{
   block: Block | null;

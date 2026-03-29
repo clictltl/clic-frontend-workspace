@@ -2,9 +2,9 @@ import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import App from './App.vue';
 import { checkLogin, initMatomo } from '@clic/shared';
-import { useProjects } from '@/editor/utils/useProjects';
+import { useProjects } from '@/editor/composables/useProjects';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { useAssetStore } from '@/editor/utils/useAssetStore';
+import { useAssetStore } from '@/editor/composables/useAssetStore';
 
 async function init() {
   // 1. Inicializa o Pinia globalmente ANTES de tudo (Evita crash de Lazy Evaluation)

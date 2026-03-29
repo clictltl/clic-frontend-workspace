@@ -18,7 +18,7 @@
 import { ref, nextTick, watch, computed } from 'vue';
 import type { Block, Variable } from '@/shared/types/chatbot';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
-import { useAssetStore } from '@/editor/utils/useAssetStore';
+import { useAssetStore } from '@/editor/composables/useAssetStore';
 
 const props = defineProps<{
   blocks: Block[];

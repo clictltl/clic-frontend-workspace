@@ -12,8 +12,8 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Block, BlockType } from '@/shared/types/chatbot';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { useProjects } from '@/editor/utils/useProjects';
-import { useAssetStore } from '@/editor/utils/useAssetStore';
+import { useProjects } from '@/editor/composables/useProjects';
+import { useAssetStore } from '@/editor/composables/useAssetStore';
 import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
