@@ -50,6 +50,25 @@ const validateCategoryName = (categories: Category[], name: string, excludeId?: 
 };
 
 export const useProjectStore = defineStore('project', {
+  history: {
+    stateKey: 'project',
+    ignoreActions: ['markAsSaved'],
+    clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
+    actionLabels: {
+      saveNodeContent: 'Edição do conteúdo',
+      addNode: 'Criação de item',
+      deleteNode: 'Exclusão de item',
+      updateNode: 'Atualização de item',
+      reorderNodesInCategory: 'Reordenação de item',
+      addCategory: 'Criação de categoria',
+      deleteCategory: 'Exclusão de categoria',
+      updateCategory: 'Atualização de categoria',
+      reorderCategories: 'Reordenação de categoria',
+      addEdge: 'Conexão',
+      updateCategoryFormConfig: 'Configuração de Formulário'
+    }
+  },
+
   state: () => {
     const initialProject = createEmptyProject() as GraphProject;
 

@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAuth } from '../auth/auth';
 import { useToast } from './useToast';
 import { exportClicFile, importClicFile } from '../utils/projectIO'
@@ -142,7 +142,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['new-project', 'import-project']);
 
-const { currentProjectId, currentProjectName } = toRefs(props.projectsStore);
+const { currentProjectId, currentProjectName } = props.projectsStore;
 const auth = useAuth();
 const toast = useToast();
 const fileInput = ref<HTMLInputElement | null>(null);

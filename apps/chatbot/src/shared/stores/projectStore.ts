@@ -42,6 +42,12 @@ const initialConnection: Connection = {
 };
 
 export const useProjectStore = defineStore('chatbot-project', {
+  history: {
+    stateKey: 'document',
+    ignoreActions: ['markAsSaved', 'getProjectData'],
+    clearHistoryActions: ['setProjectData', 'resetProjectData']
+  },
+
   state: () => {
     const initialDocument = {
       blocks:[

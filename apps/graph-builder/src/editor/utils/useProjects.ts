@@ -7,7 +7,13 @@ const sharedProjectsInstance = createSharedProjects({
   getProjectData: () => useProjectStore().project,
   setProjectData: (data: any, markAsUnsaved?: boolean) => useProjectStore().loadProject(data, markAsUnsaved),
   markAsSaved: () => useProjectStore().markAsSaved(),
-  assetStore
+  assetStore,
+  // Filtra e retorna apenas os IDs das categorias que possuem formulário ativo no JSON
+  getActiveFormReferences: () => {
+    return useProjectStore().project.categories
+      .filter(c => c.formConfig?.enabled)
+      .map(c => c.id);
+  }
 });
 
 export function useProjects() {

@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import '@/styles/index.css';
 import App from './App.vue';
-import { checkLogin, initMatomo } from '@clic/shared';
+import { checkLogin, initMatomo, piniaInteractionHistoryPlugin } from '@clic/shared';
 import { useProjects } from '@/editor/utils/useProjects';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { assetStore } from '@/shared/stores/assetStore';
@@ -11,6 +11,7 @@ async function init() {
   // 1. Inicializa o Pinia globalmente ANTES do App
   // Isso permite que qualquer função use os stores livremente aqui no init
   const pinia = createPinia();
+  pinia.use(piniaInteractionHistoryPlugin);
   setActivePinia(pinia);
 
   // 2. Verificar Login no WordPress

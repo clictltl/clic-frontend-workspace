@@ -5,7 +5,7 @@ import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
 import { Pencil, Eye } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -17,6 +17,9 @@ const projects = useProjects();
 
 const showInvalidShareModal = ref(props.shareLoadError || false);
 const isPreview = ref(false);
+
+// Ativa os atalhos globais de Undo/Redo
+useHistoryShortcuts(store);
 
 async function handleLoginSuccess() {
   await assetStore.persistToDisk(); 
@@ -39,13 +42,9 @@ async function handleLoginSuccess() {
 // --- PROTEÇÃO CONTRA FECHAMENTO DE ABA (F5 / Fechar Aba) ---
 const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   if (store.hasUnsavedChanges) {
-    // Cancela o evento (Padrão moderno)
     e.preventDefault();
-    
-    // Define o valor de retorno (Exigido pelo Chrome/Chromium para mostrar o alerta)
     // @ts-ignore: Propriedade depreciada, mas necessária para compatibilidade
     e.returnValue = ''; 
-    
     return '';
   }
 };

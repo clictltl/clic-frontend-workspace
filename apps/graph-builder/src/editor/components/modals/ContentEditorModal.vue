@@ -37,18 +37,27 @@ const insertMarkdown = (prefix: string, suffix: string = '') => {
 
   const start = el.selectionStart;
   const end = el.selectionEnd;
-  const text = content.value;
+  const text = el.value; // Lê direto do DOM
   const selection = text.substring(start, end);
-
-  // Insere o texto envolvendo a seleção
   const replacement = prefix + selection + suffix;
-  content.value = text.substring(0, start) + replacement + text.substring(end);
 
-  // Recupera o foco e ajusta o cursor
+  el.focus();
+  el.setSelectionRange(start, end);
+
+  let success = false;
+  try {
+    success = document.execCommand('insertText', false, replacement);
+  } catch (e) {
+    console.warn("execCommand não suportado, usando fallback.");
+  }
+
+  if (!success) {
+    el.setRangeText(replacement, start, end, 'end');
+    el.dispatchEvent(new Event('input', { bubbles: true })); 
+  }
+
   nextTick(() => {
-    el.focus();
-    el.selectionStart = start + prefix.length;
-    el.selectionEnd = start + prefix.length + selection.length;
+    el.setSelectionRange(start + prefix.length, start + prefix.length + selection.length);
   });
 };
 

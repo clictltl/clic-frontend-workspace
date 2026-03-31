@@ -9,6 +9,12 @@ export * from './types/asset';
 export { useAuth, checkLogin } from './auth/auth';
 export { default as AuthMenu } from './auth/AuthMenu.vue';
 
+// composables
+export { useHistoryShortcuts } from './composables/useHistoryShortcuts';
+
+//plugins
+export { piniaInteractionHistoryPlugin } from './plugins/piniaInteractionHistory';
+
 // utils
 export { decodeHtml } from './utils/decodeHtml';
 export { exportClicFile, importClicFile } from './utils/projectIO';

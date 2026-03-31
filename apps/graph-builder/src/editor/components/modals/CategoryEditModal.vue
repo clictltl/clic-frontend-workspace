@@ -33,6 +33,7 @@ const formTargetCategories = ref<string[]>(props.category?.formConfig?.targetCat
 
 // --- ESTADO DO SERVIDOR (Efêmero, não vai pro JSON) ---
 const formIsActive = ref(false);
+const formExists = ref(false);
 const formUrl = ref('');
 const isLoadingStatus = ref(false);
 const isTogglingLink = ref(false);
@@ -49,8 +50,10 @@ onMounted(async () => {
     try {
       const status = await projects.getFormStatus(props.category.id);
       if (status && status.exists) {
+        formExists.value = true;
         formIsActive.value = status.is_active;
         formUrl.value = status.form_url;
+        formEnabled.value = true;
       }
     } finally {
       isLoadingStatus.value = false;
@@ -124,6 +127,11 @@ const handleToggleLink = async (activate: boolean) => {
     if (res?.success) {
       formIsActive.value = activate;
       formUrl.value = res.form_url;
+      // Se ativou com sucesso uma vez, o form agora existe no banco e não pode mais ser desabilitado
+      if (activate) {
+        formExists.value = true;
+        formEnabled.value = true;
+      }
     }
   } catch (e: any) {
     alert(e.message || "Erro ao conectar com o servidor.");
@@ -232,11 +240,19 @@ const handleDelete = async () => {
         <div class="section-header">
           <Settings2 class="icon-xs" />
           <span>Utilizar formulário nesta categoria</span>
-          <label class="switch">
-            <input type="checkbox" v-model="formEnabled">
+          <label class="switch" :title="formExists ? 'Esta categoria já possui um formulário vinculado' : ''">
+            <input 
+              type="checkbox" 
+              v-model="formEnabled" 
+              :disabled="formExists"
+            >
             <span class="slider"></span>
           </label>
         </div>
+
+        <p v-if="formExists" class="lock-notice">
+          Vínculo com formulário ativo. Para remover, exclua a categoria.
+        </p>
 
         <div v-if="formEnabled" class="form-config-box">
           <div class="form-group sm">
@@ -448,6 +464,22 @@ button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; f
 .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
 input:checked + .slider { background-color: #3b82f6; }
 input:checked + .slider:before { transform: translateX(16px); }
+
+.section-header.is-locked {
+  cursor: help;
+}
+
+.section-header.is-locked span {
+  color: #6b7280; /* Texto levemente acinzentado */
+}
+
+.lock-notice {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: -8px;
+  margin-bottom: 12px;
+  padding-left: 28px; /* Alinha com o ícone de Settings2 */
+}
 
 .loading-status-box {
   display: flex;
