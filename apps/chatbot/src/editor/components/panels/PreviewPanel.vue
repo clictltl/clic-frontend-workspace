@@ -27,7 +27,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'toggle-fullscreen': [];
-  'update:variables': [variables: Record<string, Variable>];
 }>();
 
 const assetStore = useAssetStore();
@@ -37,7 +36,6 @@ function getRuntimeOptions() {
   return {
     blocks: props.blocks,
     variables: props.variables,
-    onVariablesChange: handleVariablesChange,
     resolveAsset: (id: string) => assetStore.getAssetSrc(id)
   };
 }
@@ -86,16 +84,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   START_NO_NEXT: 'Início sem conexão de saída.',
   UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.',
 };
-
-function handleVariablesChange(sessionVars: Record<string, Variable>) {
-  const updated = { ...props.variables };
-  Object.keys(sessionVars).forEach(key => {
-    if (updated[key]) {
-      updated[key] = { ...sessionVars[key] };
-    }
-  });
-  emit('update:variables', updated);
-}
 
 // ✅ Para o chat e volta pra tela inicial limpa
 function stopChat() {

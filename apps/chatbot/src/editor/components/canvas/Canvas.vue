@@ -13,6 +13,7 @@ import { useConnectionGeometry } from './composables/useConnectionGeometry';
 import { useConnectionManager } from './composables/useConnectionManager';
 import { useWaypointEditor } from './composables/useWaypointEditor';
 import { useCanvasInteractions } from './composables/useCanvasInteractions';
+import { useProjectStore } from '@/shared/stores/projectStore';
 
 const props = defineProps<{
   blocks: Block[];
@@ -24,13 +25,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:selectedBlockId': [id: string | null];
   'focus-block-editor': [];
-  'update:blocks': [blocks: Block[]];
-  'update:connections': [connections: Connection[]];
   'update:zoom': [zoom: number];
   'context-menu': [position: { x: number; y: number; screenX: number; screenY: number }];
   'block-context-menu': [blockId: string, position: { x: number; y: number; screenX: number; screenY: number }];
   'create-block': [payload: { type: BlockType; position?: { x: number; y: number } }];
 }>();
+
+const store = useProjectStore();
 
 // Refs
 const canvasRef = ref<HTMLDivElement | null>(null);
@@ -38,10 +39,6 @@ const renderKey = ref(0);
 
 // DETECÇÃO DE TOUCH
 const isTouchDevice = ref(false);
-
-// Callbacks para composables
-const updateBlocks = (blocks: Block[]) => emit('update:blocks', blocks);
-const updateConnections = (connections: Connection[]) => emit('update:connections', connections);
 
 // Setup dos composables
 const blocksRef = toRef(props, 'blocks');
@@ -58,19 +55,13 @@ const geometry = useConnectionGeometry({
   zoom: transform.zoom
 });
 
-const connectionMgr = useConnectionManager({
-  blocks: blocksRef,
-  connections: connectionsRef,
-  onUpdateBlocks: updateBlocks,
-  onUpdateConnections: updateConnections
-});
+const connectionMgr = useConnectionManager();
 
 const waypointEditor = useWaypointEditor({
   canvasRef,
   panOffset: transform.panOffset,
   zoom: transform.zoom,
   connections: connectionsRef,
-  onUpdateConnections: updateConnections,
   onSelectConnection: connectionMgr.selectConnection
 });
 
@@ -78,8 +69,7 @@ const interactions = useCanvasInteractions({
   canvasRef,
   panOffset: transform.panOffset,
   zoom: transform.zoom,
-  blocks: blocksRef,
-  onUpdateBlocks: updateBlocks
+  blocks: blocksRef
 });
 
 // Estilo do canvas com transformações
@@ -251,20 +241,7 @@ function handleBlockSelect(blockId: string) {
 }
 
 function handleBlockDelete(blockId: string) {
-  // Remove o bloco
-  const updatedBlocks = props.blocks.filter(b => b.id !== blockId);
-  emit('update:blocks', updatedBlocks);
-
-  // Remove todas as conexões relacionadas ao bloco
-  const updatedConnections = props.connections.filter(
-    c => c.fromBlockId !== blockId && c.toBlockId !== blockId
-  );
-  emit('update:connections', updatedConnections);
-
-  // Limpa seleção se o bloco deletado estava selecionado
-  if (props.selectedBlockId === blockId) {
-    emit('update:selectedBlockId', null);
-  }
+  store.deleteBlock(blockId);
 }
 
 function handleBlockContextMenu(blockId: string, event: MouseEvent) {

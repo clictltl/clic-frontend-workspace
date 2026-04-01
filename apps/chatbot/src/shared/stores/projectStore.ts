@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { Block, Connection, Variable } from '@/shared/types/chatbot';
+import type { Block, Connection, Variable, BlockType } from '@/shared/types/chatbot';
 import type { ProjectData } from '@/shared/types/project';
 import type { ClicAsset } from '@clic/shared';
 
@@ -11,6 +11,22 @@ const FIRST_MESSAGE_ID = 'block_message_1';
 const START_POSITION = { x: 100, y: 120 };
 const GAP_X = 320;
 const GAP_Y = 60;
+
+// Helper: Retorna o conteúdo padrão baseado no tipo do bloco
+function getDefaultContent(type: BlockType): string {
+  switch (type) {
+    case 'start': return '';
+    case 'message': return 'Olá! Bem-vindo ao chatbot.';
+    case 'openQuestion': return 'Qual é o seu nome?';
+    case 'choiceQuestion': return 'Escolha uma opção:';
+    case 'condition': return 'Verificando condição...';
+    case 'setVariable': return 'Definindo variável...';
+    case 'math': return 'Operação matemática';
+    case 'image': return 'Imagem';
+    case 'end': return 'Obrigado por usar o chatbot!';
+    default: return '';
+  }
+}
 
 // Bloco START (inteiro verde, sem conteúdo)
 const startBlock: Block = {
@@ -25,11 +41,8 @@ const startBlock: Block = {
 const firstMessageBlock: Block = {
   id: FIRST_MESSAGE_ID,
   type: 'message',
-  position: {
-    x: START_POSITION.x + GAP_X,
-    y: START_POSITION.y + GAP_Y
-  },
-  content: 'Olá! Bem-vindo ao chatbot.',
+  position: { x: START_POSITION.x + GAP_X, y: START_POSITION.y + GAP_Y },
+  content: getDefaultContent('message'),
   nextBlockId: undefined
 };
 
@@ -42,10 +55,32 @@ const initialConnection: Connection = {
 };
 
 export const useProjectStore = defineStore('chatbot-project', {
+  // --- CONFIGURAÇÃO DO HISTÓRICO (UNDO/REDO) ---
   history: {
     stateKey: 'document',
-    ignoreActions: ['markAsSaved', 'getProjectData'],
-    clearHistoryActions: ['setProjectData', 'resetProjectData']
+    ignoreActions:[
+      'markAsSaved', 
+      'getProjectData', 
+      'updateBlockPositionSilent', // 60 FPS Fix (Blocos)
+      'updateConnectionSilent',    // 60 FPS Fix (Waypoints)
+      'selectBlock',               // UI State não entra no Undo
+      'updateBlockSilent'          // Ignora a digitação em tempo real
+    ],
+    clearHistoryActions:['setProjectData', 'resetProjectData'],
+    actionLabels: {
+      createBlock: 'Criação de Bloco',
+      updateBlock: 'Atualização de Bloco',
+      deleteBlock: 'Exclusão de Bloco',
+      duplicateBlock: 'Duplicação de Bloco',
+      pasteBlock: 'Colagem de Bloco',
+      commitBlockMove: 'Movimentação de Bloco',
+      addVariable: 'Criação de Variável',
+      updateVariableValue: 'Atualização de Variável',
+      removeVariable: 'Exclusão de Variável',
+      createConnection: 'Criação de Conexão',
+      deleteConnection: 'Exclusão de Conexão',
+      commitConnectionMove: 'Ajuste de Caminho (Linha)'
+    }
   },
 
   state: () => {
@@ -77,66 +112,190 @@ export const useProjectStore = defineStore('chatbot-project', {
   },
 
   actions: {
-    // --- FUNÇÕES DE SNAPSHOT E SALVAMENTO ---
-
-    /**
-     * Marca o projeto como salvo. 
-     * Congela o documento atual em uma string para comparação futura.
-     */
-    markAsSaved() {
-      this.meta.lastSavedState = JSON.stringify(this.document);
-    },
-
-    // --- AÇÕES DO PROJETO ---
-
-    /**
-     * Exporta o estado atual do editor garantindo a Regra de Ouro 1 (JSON Limpo)
-     */
-    getProjectData(): ProjectData {
-      // Retornamos um clone profundo para evitar reatividade acidental
-      return JSON.parse(JSON.stringify(this.document));
-    },
-
-    /**
-     * Aplica um projeto ao editor (login, import JSON, banco de dados)
-     */
+    // --- FUNÇÕES DE INFRAESTRUTURA ---
+    markAsSaved() { this.meta.lastSavedState = JSON.stringify(this.document); },
+    getProjectData(): ProjectData { return JSON.parse(JSON.stringify(this.document)); },
     setProjectData(data: ProjectData, markAsUnsaved: boolean = false) {
       this.document = {
-        blocks: Array.isArray(data.blocks) ? data.blocks : [],
+        blocks: Array.isArray(data.blocks) ? data.blocks :[],
         connections: Array.isArray(data.connections) ? data.connections :[],
         variables: typeof data.variables === 'object' ? data.variables : {},
         assets: typeof data.assets === 'object' ? data.assets : {},
       };
-
       this.ui.selectedBlockId = null;
+      if (markAsUnsaved) { this.meta.lastSavedState = 'FORCED_UNSAVED'; } else { this.markAsSaved(); }
+    },
+    resetProjectData() {
+      this.document = {
+        blocks:[ { ...startBlock, position: { ...startBlock.position } }, { ...firstMessageBlock, position: { ...firstMessageBlock.position } } ],
+        connections:[ { ...initialConnection, id: `conn_${Date.now()}` } ],
+        variables: {}, assets: {},
+      };
+      this.ui.selectedBlockId = null;
+      this.markAsSaved();
+    },
 
-      if (markAsUnsaved) {
-        // Força a flag de unsaved a ficar true, definindo o snapshot como uma string vazia/diferente
-        this.meta.lastSavedState = 'FORCED_UNSAVED';
-      } else {
-        // Se é um carregamento normal, o snapshot atual é exatamente este documento recém-carregado
-        this.markAsSaved();
+    // --- AÇÕES DE SELEÇÃO E UI ---
+    selectBlock(id: string | null) {
+      this.ui.selectedBlockId = id;
+    },
+
+    // --- AÇÕES DE BLOCOS ---
+    createBlock(type: BlockType, position: { x: number; y: number }) {
+      if (type === 'start') return;
+      const newBlock: Block = {
+        id: `block_${Date.now()}`,
+        type,
+        position,
+        content: getDefaultContent(type),
+        choices: type === 'choiceQuestion' ?[] : undefined,
+        conditions: type === 'condition' ?[] : undefined,
+        nextBlockId: undefined
+      };
+      this.document.blocks.push(newBlock);
+      this.selectBlock(newBlock.id);
+    },
+
+    updateBlock(id: string, updates: Partial<Block>) {
+      const index = this.document.blocks.findIndex(b => b.id === id);
+      if (index !== -1) {
+        this.document.blocks[index] = { ...this.document.blocks[index], ...updates };
       }
     },
 
-    /**
-     * Reseta o editor para um estado inicial válido
-     */
-    resetProjectData() {
-      this.document = {
-        blocks:[
-          { ...startBlock, position: { ...startBlock.position } },
-          { ...firstMessageBlock, position: { ...firstMessageBlock.position } }
-        ],
-        connections:[
-          { ...initialConnection, id: `conn_${Date.now()}` }
-        ],
-        variables: {},
-        assets: {},
-      };
+    updateBlockSilent(id: string, updates: Partial<Block>) {
+      const index = this.document.blocks.findIndex(b => b.id === id);
+      if (index !== -1) {
+        this.document.blocks[index] = { ...this.document.blocks[index], ...updates };
+      }
+    },
 
-      this.ui.selectedBlockId = null;
-      this.markAsSaved();
+    deleteBlock(id: string) {
+      if (id === 'start') return;
+
+      // 1. Apaga conexões atreladas a este bloco (como origem ou destino)
+      const connectionsToRemove = this.document.connections.filter(c => c.fromBlockId === id || c.toBlockId === id);
+      connectionsToRemove.forEach(c => this.deleteConnection(c.id));
+
+      // 2. Apaga o bloco
+      this.document.blocks = this.document.blocks.filter(b => b.id !== id);
+      if (this.ui.selectedBlockId === id) this.selectBlock(null);
+    },
+
+    duplicateBlock(id: string, newPosition: { x: number; y: number }) {
+      if (id === 'start') return;
+      const blockToDuplicate = this.document.blocks.find(b => b.id === id);
+      if (!blockToDuplicate) return;
+
+      const newBlock: Block = {
+        ...JSON.parse(JSON.stringify(blockToDuplicate)),
+        id: `block_${Date.now()}`,
+        position: newPosition
+      };
+      this.document.blocks.push(newBlock);
+      this.selectBlock(newBlock.id);
+    },
+
+    pasteBlock(copiedBlock: Block, position: { x: number; y: number }) {
+      const newBlock: Block = {
+        ...JSON.parse(JSON.stringify(copiedBlock)), // Clone profundo para segurança
+        id: `block_${Date.now()}`,
+        position
+      };
+      this.document.blocks.push(newBlock);
+      this.selectBlock(newBlock.id);
+    },
+
+    // --- AÇÕES DE MOVIMENTAÇÃO (60 FPS FIX - BLOCOS) ---
+    updateBlockPositionSilent(id: string, x: number, y: number) {
+      const block = this.document.blocks.find(b => b.id === id);
+      if (block) {
+        block.position.x = x;
+        block.position.y = y;
+      }
+    },
+
+    commitBlockMove(id: string, x: number, y: number) {
+      // Esta ação é registrada pelo Histórico ao soltar o mouse.
+      this.updateBlockPositionSilent(id, x, y);
+    },
+
+    // --- AÇÕES DE MOVIMENTAÇÃO (60 FPS FIX - WAYPOINTS/CONEXÕES) ---
+    updateConnectionSilent(updatedConnections: Connection[]) {
+      // Substitui o array inteiro silenciosamente durante o arraste
+      this.document.connections = updatedConnections;
+    },
+
+    commitConnectionMove(updatedConnections: Connection[]) {
+      // Registrada pelo Histórico ao soltar o mouse do waypoint
+      this.updateConnectionSilent(updatedConnections);
+    },
+
+    // --- AÇÕES DE VARIÁVEIS ---
+    addVariable(name: string, type: 'string' | 'number') {
+      this.document.variables[name] = { name, type, value: type === 'number' ? 0 : '' };
+    },
+
+    updateVariableValue(name: string, value: string | number) {
+      if (this.document.variables[name]) {
+        this.document.variables[name].value = value;
+      }
+    },
+
+    removeVariable(name: string) {
+      delete this.document.variables[name];
+    },
+
+    // --- AÇÕES DE CONEXÕES ---
+    createConnection(fromBlockId: string, fromOutputId: string | undefined, toBlockId: string) {
+      const fromBlock = this.document.blocks.find(b => b.id === fromBlockId);
+      const toBlock = this.document.blocks.find(b => b.id === toBlockId);
+
+      if (!fromBlock || !toBlock || fromBlock.type === 'end') return;
+
+      // Impede duplicata exata
+      if (this.document.connections.some(c => c.fromBlockId === fromBlockId && c.fromOutputId === fromOutputId && c.toBlockId === toBlockId)) return;
+
+      // 1. Remove qualquer conexão antiga que saía DESSA MESMA "porta" (Substituição)
+      this.document.connections = this.document.connections.filter(c => !(c.fromBlockId === fromBlockId && c.fromOutputId === fromOutputId));
+
+      // 2. Cria a conexão visual
+      const newConnection: Connection = {
+        id: `conn_${Date.now()}`,
+        fromBlockId,
+        fromOutputId,
+        toBlockId
+      };
+      this.document.connections.push(newConnection);
+
+      // 3. Atualiza a propriedade nextBlockId atômica no bloco de origem
+      if (fromOutputId && fromBlock.choices) {
+        fromBlock.choices = fromBlock.choices.map(c => c.id === fromOutputId ? { ...c, nextBlockId: toBlockId } : c);
+      } else if (fromOutputId && fromBlock.conditions) {
+        fromBlock.conditions = fromBlock.conditions.map(c => c.id === fromOutputId ? { ...c, nextBlockId: toBlockId } : c);
+      } else {
+        fromBlock.nextBlockId = toBlockId;
+      }
+    },
+
+    deleteConnection(connectionId: string) {
+      const connection = this.document.connections.find(c => c.id === connectionId);
+      if (!connection) return;
+
+      // 1. Remove a conexão visual
+      this.document.connections = this.document.connections.filter(c => c.id !== connectionId);
+
+      // 2. Remove o nextBlockId do bloco de origem
+      const fromBlock = this.document.blocks.find(b => b.id === connection.fromBlockId);
+      if (fromBlock) {
+        if (connection.fromOutputId && fromBlock.choices) {
+          fromBlock.choices = fromBlock.choices.map(c => c.id === connection.fromOutputId ? { ...c, nextBlockId: undefined } : c);
+        } else if (connection.fromOutputId && fromBlock.conditions) {
+          fromBlock.conditions = fromBlock.conditions.map(c => c.id === connection.fromOutputId ? { ...c, nextBlockId: undefined } : c);
+        } else {
+          fromBlock.nextBlockId = undefined;
+        }
+      }
     }
   }
 });

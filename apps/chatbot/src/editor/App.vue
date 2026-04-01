@@ -18,7 +18,7 @@ import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
 
 const props = defineProps<{
   shareLoadError?: boolean
@@ -27,6 +27,9 @@ const props = defineProps<{
 const store = useProjectStore();
 const projects = useProjects();
 const assetStore = useAssetStore();
+
+// Ativa os atalhos globais de Undo/Redo (Ctrl+Z) para o Chatbot
+useHistoryShortcuts(store);
 
 const showInvalidShareModal = ref(false);
 
@@ -97,26 +100,17 @@ function handleCloseInvalidShareModal() {
 
 // Cria um novo bloco no canvas
 function createBlock(type: BlockType, position?: { x: number; y: number }) {
-  if (type === 'start') return; // ✅ start não é criado pelo menu
+  if (type === 'start') return; 
 
-  const newBlock: Block = {
-    id: `block_${Date.now()}`,
-    type,
-    position: position
-      ? position
-      : contextMenuPosition.value
-        ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
-        : { x: 100 + store.document.blocks.length * 50, y: 100 + store.document.blocks.length * 30 },
-    content: getDefaultContent(type),
-    choices: type === 'choiceQuestion' ? [] : undefined,
-    conditions: type === 'condition' ? [] : undefined,
-    nextBlockId: undefined
-  };
+  const finalPosition = position
+    ? position
+    : contextMenuPosition.value
+      ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
+      : { x: 100 + store.document.blocks.length * 50, y: 100 + store.document.blocks.length * 30 };
 
-  store.document.blocks.push(newBlock);
-  store.ui.selectedBlockId = newBlock.id;
+  // Delega a criação para a Store
+  store.createBlock(type, finalPosition);
 
-  // fecha menus antigos do pai (se existirem)
   showNewBlockMenu.value = false;
   showContextMenu.value = false;
   contextMenuPosition.value = null;
@@ -136,47 +130,18 @@ function handleDocumentClick(event: MouseEvent) {
   }
 }
 
-// Retorna o conteúdo padrão baseado no tipo do bloco
-function getDefaultContent(type: BlockType): string {
-  switch (type) {
-    case 'start':
-      return '';
-    case 'message':
-      return 'Olá! Bem-vindo ao chatbot.';
-    case 'openQuestion':
-      return 'Qual é o seu nome?';
-    case 'choiceQuestion':
-      return 'Escolha uma opção:';
-    case 'condition':
-      return 'Verificando condição...';
-    case 'setVariable':
-      return 'Definindo variável...';
-    case 'math':
-      return 'Operação matemática';
-    case 'image':
-      return 'Imagem';
-    case 'end':
-      return 'Obrigado por usar o chatbot!';
-    default:
-      return '';
-  }
-}
-
 // Atualiza um bloco existente
 function updateBlock(updatedBlock: Block) {
-  const index = store.document.blocks.findIndex(b => b.id === updatedBlock.id);
-  if (index !== -1) {
-    store.document.blocks[index] = updatedBlock;
-  }
+  store.updateBlock(updatedBlock.id, updatedBlock);
 }
 
-// Adiciona uma nova variável ao chatbot
+function updateBlockSilent(updatedBlock: Block) {
+  store.updateBlockSilent(updatedBlock.id, updatedBlock);
+}
+
+// Adiciona uma nova variável
 function addVariable(name: string, type: 'string' | 'number') {
-  store.document.variables[name] = {
-    name,
-    type,
-    value: type === 'number' ? 0 : ''
-  };
+  store.addVariable(name, type);
 }
 
 async function handleFocusBlockEditor() {
@@ -192,7 +157,7 @@ async function handleFocusBlockEditor() {
 
 // Remove uma variável do chatbot
 function removeVariable(name: string) {
-  delete store.document.variables[name];
+  store.removeVariable(name);
 }
 
 // Alterna o modo tela cheia do preview
@@ -228,26 +193,20 @@ function handleBlockContextMenu(blockId: string, position: { x: number; y: numbe
 
 // Duplica um bloco
 function duplicateBlock() {
-  if (!contextMenuBlockId.value) return;
-
-  // ✅ nunca duplicar o start
-  if (contextMenuBlockId.value === 'start') {
+  if (!contextMenuBlockId.value || contextMenuBlockId.value === 'start') {
     closeContextMenu();
     return;
   }
 
   const blockToDuplicate = store.document.blocks.find(b => b.id === contextMenuBlockId.value);
   if (!blockToDuplicate) return;
-  const newBlock: Block = {
-    ...JSON.parse(JSON.stringify(blockToDuplicate)),
-    id: Date.now().toString(),
-    position: {
-      x: blockToDuplicate.position.x + 50,
-      y: blockToDuplicate.position.y + 50
-    }
+
+  const newPosition = {
+    x: blockToDuplicate.position.x + 50,
+    y: blockToDuplicate.position.y + 50
   };
 
-  store.document.blocks = [...store.document.blocks, newBlock];
+  store.duplicateBlock(contextMenuBlockId.value, newPosition);
   closeContextMenu();
 }
 
@@ -275,37 +234,22 @@ function pasteBlock() {
   if (!copiedBlockJson) return;
 
   const copiedBlock = JSON.parse(copiedBlockJson);
-  const newBlock: Block = {
-    ...copiedBlock,
-    id: Date.now().toString(),
-    position: contextMenuPosition.value
-      ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
-      : { x: copiedBlock.position.x + 50, y: copiedBlock.position.y + 50 }
-  };
+  const newPosition = contextMenuPosition.value
+    ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
+    : { x: copiedBlock.position.x + 50, y: copiedBlock.position.y + 50 };
 
-  store.document.blocks = [...store.document.blocks, newBlock];
+  store.pasteBlock(copiedBlock, newPosition);
   closeContextMenu();
 }
 
 // Deleta um bloco do menu de contexto
 function deleteBlockFromMenu() {
-  if (!contextMenuBlockId.value) return;
-
-  // ✅ nunca deletar o start
-  if (contextMenuBlockId.value === 'start') {
+  if (!contextMenuBlockId.value || contextMenuBlockId.value === 'start') {
     closeContextMenu();
     return;
   }
 
-  store.document.blocks = store.document.blocks.filter(b => b.id !== contextMenuBlockId.value);
-  store.document.connections = store.document.connections.filter(
-    c => c.fromBlockId !== contextMenuBlockId.value && c.toBlockId !== contextMenuBlockId.value
-  );
-
-  if (store.ui.selectedBlockId === contextMenuBlockId.value) {
-    store.ui.selectedBlockId = null;
-  }
-
+  store.deleteBlock(contextMenuBlockId.value);
   closeContextMenu();
 }
 
@@ -377,10 +321,8 @@ async function handleLoginSuccess() {
           :connections="store.document.connections"
           :selected-block-id="store.ui.selectedBlockId"
           :zoom="zoom"
-          @update:selected-block-id="store.ui.selectedBlockId = $event"
-          @update:blocks="store.document.blocks = $event"
+          @update:selected-block-id="store.selectBlock($event)"
           @focus-block-editor="handleFocusBlockEditor"
-          @update:connections="store.document.connections = $event"
           @update:zoom="zoom = $event"
           @context-menu="handleCanvasContextMenu"
           @block-context-menu="handleBlockContextMenu"
@@ -499,12 +441,12 @@ async function handleLoginSuccess() {
             :block="selectedBlock"
             :variables="store.document.variables"
             @update:block="updateBlock"
+            @update:block-silent="updateBlockSilent"
           />
 
           <VariablesPanel
             v-show="activeTab === 'variables'"
             :variables="store.document.variables"
-            @update:variables="store.document.variables = $event"
             @add-variable="addVariable"
             @remove-variable="removeVariable"
           />
@@ -513,7 +455,6 @@ async function handleLoginSuccess() {
             v-show="activeTab === 'preview'"
             :blocks="store.document.blocks"
             :variables="store.document.variables"
-            @update:variables="store.document.variables = $event"
             @toggle-fullscreen="togglePreviewFullscreen"
           />
         </div>

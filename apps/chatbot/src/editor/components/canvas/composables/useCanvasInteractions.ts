@@ -7,66 +7,53 @@
 
 import { ref, type Ref } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
+import { useProjectStore } from '@/shared/stores/projectStore';
 
 export interface UseCanvasInteractionsOptions {
   canvasRef: Ref<HTMLDivElement | null>;
   panOffset: Ref<{ x: number; y: number }>;
   zoom: Ref<number>;
   blocks: Ref<Block[]>;
-  onUpdateBlocks: (blocks: Block[]) => void;
 }
 
 export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
-  const { canvasRef, panOffset, zoom, blocks, onUpdateBlocks } = options;
+  const { canvasRef, panOffset, zoom, blocks } = options;
+  const store = useProjectStore();
 
-  // Estado do cursor
   const mousePosition = ref({ x: 0, y: 0 });
-
-  // Estado do arraste de blocos
   const draggedBlock = ref<string | null>(null);
   const dragStart = ref({ x: 0, y: 0, blockX: 0, blockY: 0 });
 
-  /**
-   * Converte coordenadas da tela para coordenadas do mundo
-   */
+  // Guardamos o último pixel calculado para fazer o commit final
+  const lastDragPos = ref({ x: 0, y: 0 });
+
   function screenToWorld(clientX: number, clientY: number): { x: number; y: number } {
     const rect = canvasRef.value?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
-
     const zoomScale = zoom.value / 100;
-    
     return {
       x: (clientX - rect.left - panOffset.value.x) / zoomScale,
       y: (clientY - rect.top - panOffset.value.y) / zoomScale
     };
   }
 
-  /**
-   * Atualiza a posição do cursor (mouse/touch) em coordenadas do mundo
-   */
   function updateMousePosition(clientX: number, clientY: number) {
     mousePosition.value = screenToWorld(clientX, clientY);
   }
 
-  /**
-   * Inicia o arraste de um bloco
-   */
   function startBlockDrag(blockId: string, clientX: number, clientY: number) {
     draggedBlock.value = blockId;
     const block = blocks.value.find(b => b.id === blockId);
     if (block) {
+      // RESET DE SEGURANÇA: Inicializa o rastro com a posição atual do bloco
+      lastDragPos.value = { x: block.position.x, y: block.position.y };
+      
       dragStart.value = {
-        x: clientX,
-        y: clientY,
-        blockX: block.position.x,
-        blockY: block.position.y
+        x: clientX, y: clientY, blockX: block.position.x, blockY: block.position.y
       };
     }
   }
 
-  /**
-   * Atualiza a posição do bloco durante o arraste
-   */
   function updateBlockDrag(clientX: number, clientY: number) {
     if (!draggedBlock.value) return;
 
@@ -74,28 +61,24 @@ export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
     const dx = (clientX - dragStart.value.x) / zoomScale;
     const dy = (clientY - dragStart.value.y) / zoomScale;
 
-    const updatedBlocks = blocks.value.map(b =>
-      b.id === draggedBlock.value
-        ? { ...b, position: { x: dragStart.value.blockX + dx, y: dragStart.value.blockY + dy } }
-        : b
-    );
-    
-    onUpdateBlocks(updatedBlocks);
+    const newX = dragStart.value.blockX + dx;
+    const newY = dragStart.value.blockY + dy;
+
+    lastDragPos.value = { x: newX, y: newY };
+
+    // 60 FPS FIX: Move o bloco na tela silenciosamente (Sem Histórico)
+    store.updateBlockPositionSilent(draggedBlock.value, newX, newY);
   }
 
-  /**
-   * Finaliza o arraste de bloco
-   */
   function endBlockDrag() {
+    if (draggedBlock.value) {
+      // COMMIT DO HISTÓRICO: Salva o Undo/Redo apenas na hora de soltar o mouse!
+      store.commitBlockMove(draggedBlock.value, lastDragPos.value.x, lastDragPos.value.y);
+    }
     draggedBlock.value = null;
   }
 
-  /**
-   * Verifica se está arrastando um bloco
-   */
-  function isDraggingBlock(): boolean {
-    return draggedBlock.value !== null;
-  }
+  function isDraggingBlock(): boolean { return draggedBlock.value !== null; }
 
   return {
     // Estado

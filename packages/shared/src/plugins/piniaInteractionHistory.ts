@@ -86,7 +86,9 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
     const currentStateObj = JSON.parse(previousStateStr);
     const nextStateObj = jsonpatch.applyPatch(currentStateObj, patch).newDocument;
     
-    store.$patch({[stateKey]: nextStateObj } as any);
+    store.$patch((state: any) => {
+      state[stateKey] = nextStateObj;
+    });
     previousStateStr = JSON.stringify(nextStateObj);
     
     interactionLogs.value.push({ 

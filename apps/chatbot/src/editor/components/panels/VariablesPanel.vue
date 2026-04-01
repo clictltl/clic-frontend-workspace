@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import type { Variable } from '@/shared/types/chatbot';
+import { useProjectStore } from '@/shared/stores/projectStore';
 
 const props = defineProps<{
   variables: Record<string, Variable>;
 }>();
 
+const store = useProjectStore();
+
 const emit = defineEmits<{
-  'update:variables': [variables: Record<string, Variable>];
-  'add-variable': [name: string, type: 'string' | 'number'];
+  'add-variable':[name: string, type: 'string' | 'number'];
   'remove-variable': [name: string];
 }>();
 
@@ -41,16 +43,9 @@ function removeVariable(name: string) {
 }
 
 function updateVariable(name: string, value: string | number) {
-  const updated = { ...props.variables };
-  const variable = updated[name];
-
-  if (variable.type === 'number') {
-    updated[name] = { ...variable, value: Number(value) };
-  } else {
-    updated[name] = { ...variable, value };
-  }
-
-  emit('update:variables', updated);
+  const variable = props.variables[name];
+  const finalValue = variable.type === 'number' ? Number(value) : value;
+  store.updateVariableValue(name, finalValue);
 }
 </script>
 
@@ -88,7 +83,7 @@ function updateVariable(name: string, value: string | number) {
           <input
             :type="variable.type === 'number' ? 'number' : 'text'"
             :value="variable.value ?? ''"
-            @input="updateVariable(name, ($event.target as HTMLInputElement).value)"
+            @change="updateVariable(name, ($event.target as HTMLInputElement).value)"
             placeholder="Valor atual"
             class="variable-value"
           />

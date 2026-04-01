@@ -8,11 +8,10 @@ type UseChatRuntimeOptions = {
   variables: Record<string, Variable>;
   assets?: Record<string, ClicAsset>; // Metadados (importante para Remote)
   resolveAsset?: (id: string) => string | undefined;
-  onVariablesChange?: (vars: Record<string, Variable>) => void;
 };
 
 export function useChatRuntime(options: UseChatRuntimeOptions) {
-  const { blocks, variables, assets, resolveAsset, onVariablesChange } = options;
+  const { blocks, variables, assets, resolveAsset } = options;
 
   // ===== Estado =====
   const messages = ref<ChatMessage[]>([]);
@@ -22,11 +21,6 @@ export function useChatRuntime(options: UseChatRuntimeOptions) {
   const isRunning = ref(false);
   const sessionVariables = ref<Record<string, Variable>>({});
   const runId = ref(0);
-
-  // ===== Glue =====
-  function syncVariables() {
-    onVariablesChange?.({ ...sessionVariables.value });
-  }
 
   // ===== add... =====
   function addBotMessage(content: string) {
@@ -99,7 +93,6 @@ export function useChatRuntime(options: UseChatRuntimeOptions) {
     Object.keys(variables).forEach(key => {
       sessionVariables.value[key] = { ...variables[key] };
     });
-    syncVariables();
 
     const startBlock = blocks.find(b => b.id === 'start' || b.type === 'start');
     if (!startBlock) {
@@ -134,7 +127,6 @@ export function useChatRuntime(options: UseChatRuntimeOptions) {
             value: text,
           };
         }
-        syncVariables();
       }
     }
 
@@ -275,7 +267,6 @@ export function useChatRuntime(options: UseChatRuntimeOptions) {
         if (block.variableName && sessionVariables.value[block.variableName]) {
           const value = interpolateText(block.variableValue || '', sessionVariables.value);
           sessionVariables.value[block.variableName].value = value;
-          syncVariables();
         }
         setTimeout(() => {
           if (!isRunning.value || runId.value !== myRun) return;
@@ -301,7 +292,6 @@ export function useChatRuntime(options: UseChatRuntimeOptions) {
           }
 
           variable.value = result;
-          syncVariables();
         }
         setTimeout(() => {
           if (!isRunning.value || runId.value !== myRun) return;

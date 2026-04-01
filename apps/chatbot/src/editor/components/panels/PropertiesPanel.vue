@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, computed } from 'vue';
+import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
 
@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:block': [block: Block];
+  'update:block-silent': [block: Block];
 }>();
 
 const localBlock = ref<Block | null>(null);
@@ -19,24 +20,47 @@ const imageTab = ref<'url' | 'upload'>('url');
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploadError = ref<string | null>(null);
 
-watch(() => props.block, (newBlock) => {
-  if (newBlock) {
-    localBlock.value = JSON.parse(JSON.stringify(newBlock));
-
-    // Se já tiver assetId, abre na aba Upload. Caso contrário, URL.
-    if (newBlock.type === 'image') {
-      imageTab.value = newBlock.assetId ? 'upload' : 'url';
-    }
-  } else {
-    localBlock.value = null;
-  }
-}, { immediate: true });
-
-function updateBlock() {
-  if (localBlock.value) {
-    emit('update:block', localBlock.value);
-  }
+function updateBlockSilent() {
+  if (localBlock.value) emit('update:block-silent', localBlock.value);
 }
+
+function commitBlock() {
+  if (localBlock.value) emit('update:block', localBlock.value);
+}
+
+watch(() => props.block, (newBlock, oldBlock) => {
+  // 1. O SALVA-VIDAS DO CTRL+Z:
+  // Só damos commit automático se o usuário clicou em UM BLOCO DIFERENTE ou CLICOU NO CANVAS (newBlock = null).
+  if (oldBlock && localBlock.value && oldBlock.id !== newBlock?.id) {
+    commitBlock();
+  }
+
+  // 2. Se desselecionou o bloco, limpa o painel e para por aqui
+  if (!newBlock) {
+    localBlock.value = null;
+    return;
+  }
+  
+  // 3. Se a mudança no prop foi causada pela nossa própria digitação (Silent Update),
+  // os dados já são iguais. Não fazemos nada para não quebrar o Ctrl+Z de letras!
+  if (localBlock.value && JSON.stringify(localBlock.value) === JSON.stringify(newBlock)) {
+    return;
+  }
+
+  // 4. Se a mudança veio de fora (ex: o usuário apertou Ctrl+Z), atualizamos a tela
+  localBlock.value = JSON.parse(JSON.stringify(newBlock));
+
+  if (newBlock.type === 'image') {
+    imageTab.value = newBlock.assetId ? 'upload' : 'url';
+  }
+}, { immediate: true, deep: true });
+
+// Garantia final: Se o componente pai destruir este painel abruptamente
+onBeforeUnmount(() => {
+  if (localBlock.value) {
+    commitBlock();
+  }
+});
 
 function addChoice() {
   if (localBlock.value && localBlock.value.type === 'choiceQuestion') {
@@ -46,14 +70,14 @@ function addChoice() {
       label: 'Nova opção',
       nextBlockId: undefined
     });
-    updateBlock();
+    commitBlock();
   }
 }
 
 function removeChoice(choiceId: string) {
   if (localBlock.value && localBlock.value.choices) {
     localBlock.value.choices = localBlock.value.choices.filter(c => c.id !== choiceId);
-    updateBlock();
+    commitBlock();
   }
 }
 
@@ -68,14 +92,14 @@ function addCondition() {
       value: '',
       nextBlockId: undefined
     });
-    updateBlock();
+    commitBlock();
   }
 }
 
 function removeCondition(condId: string) {
   if (localBlock.value && localBlock.value.conditions) {
     localBlock.value.conditions = localBlock.value.conditions.filter(c => c.id !== condId);
-    updateBlock();
+    commitBlock();
   }
 }
 
@@ -95,7 +119,7 @@ function handleUrlInput() {
   const oldAssetId = localBlock.value.assetId;
   
   localBlock.value.assetId = undefined; 
-  updateBlock();
+  commitBlock();
 
   // Tenta limpar
   if (oldAssetId) {
@@ -127,7 +151,7 @@ async function handleImageUpload(event: Event) {
       assetStore.deleteAssetIfUnused(oldAssetId, localBlock.value.id);
     }
     
-    updateBlock();
+    commitBlock();
     
   } catch (error) {
     uploadError.value = (error as Error).message || "Erro desconhecido ao carregar imagem.";
@@ -152,7 +176,7 @@ function clearImage() {
     
     localBlock.value.imageUrl = undefined;
     localBlock.value.assetId = undefined;
-    updateBlock();
+    commitBlock();
 
     // Chama a limpeza
     if (oldAssetId) {
@@ -201,7 +225,8 @@ defineExpose({ focusContent });
         <textarea
           ref="mainTextareaRef"
           v-model="localBlock.content"
-          @input="updateBlock"
+          @input="updateBlockSilent"
+          @change="commitBlock"
           placeholder="Digite o conteúdo..."
           rows="4"
         />
@@ -213,7 +238,8 @@ defineExpose({ focusContent });
         <textarea
           ref="mainTextareaRef"
           v-model="localBlock.content"
-          @input="updateBlock"
+          @input="updateBlockSilent"
+          @change="commitBlock"
           placeholder="Obrigado por usar o chatbot!"
           rows="3"
         />
@@ -221,7 +247,7 @@ defineExpose({ focusContent });
 
       <div v-if="localBlock.type === 'setVariable'" class="property-group">
         <label>Nome da Variável</label>
-        <select v-model="localBlock.variableName" @change="updateBlock">
+        <select v-model="localBlock.variableName" @change="commitBlock">
           <option :value="undefined">Selecione uma variável</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
@@ -233,7 +259,8 @@ defineExpose({ focusContent });
         <label>Valor</label>
         <input
           v-model="localBlock.variableValue"
-          @input="updateBlock"
+          @input="updateBlockSilent"
+          @change="commitBlock"
           placeholder="Digite o valor..."
         />
         <small>Use &#123;&#123;variavel&#125;&#125; para usar valores de outras variáveis</small>
@@ -241,7 +268,7 @@ defineExpose({ focusContent });
 
       <div v-if="localBlock.type === 'math'" class="property-group">
         <label>Variável</label>
-        <select v-model="localBlock.variableName" @change="updateBlock">
+        <select v-model="localBlock.variableName" @change="commitBlock">
           <option :value="undefined">Selecione uma variável</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
@@ -252,7 +279,7 @@ defineExpose({ focusContent });
 
       <div v-if="localBlock.type === 'math'" class="property-group">
         <label>Operação</label>
-        <select v-model="localBlock.mathOperation" @change="updateBlock">
+        <select v-model="localBlock.mathOperation" @change="commitBlock">
           <option value="+">+ (Somar)</option>
           <option value="-">- (Subtrair)</option>
           <option value="*">* (Multiplicar)</option>
@@ -264,7 +291,8 @@ defineExpose({ focusContent });
         <label>Valor</label>
         <input
           v-model="localBlock.mathValue"
-          @input="updateBlock"
+          @input="updateBlockSilent"
+          @change="commitBlock"
           placeholder="Digite um número ou {{variavel}}"
         />
         <small>Use um número fixo ou &#123;&#123;variavel&#125;&#125; para usar valor de outra variável</small>
@@ -272,7 +300,7 @@ defineExpose({ focusContent });
 
       <div v-if="localBlock.type === 'openQuestion'" class="property-group">
         <label>Salvar resposta em variável</label>
-        <select v-model="localBlock.variableName" @change="updateBlock">
+        <select v-model="localBlock.variableName" @change="commitBlock">
           <option :value="undefined">Não salvar</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
@@ -286,7 +314,8 @@ defineExpose({ focusContent });
           <div v-for="choice in localBlock.choices" :key="choice.id" class="choice-editor">
             <input
               v-model="choice.label"
-              @input="updateBlock"
+              @input="updateBlockSilent"
+              @change="commitBlock"
               placeholder="Texto da opção"
             />
             <button @click="removeChoice(choice.id)" class="btn-remove" title="Remover opção">×</button>
@@ -299,12 +328,12 @@ defineExpose({ focusContent });
         <label>Condições</label>
         <div class="conditions-list">
           <div v-for="condition in localBlock.conditions" :key="condition.id" class="condition-editor">
-            <select v-model="condition.variableName" @change="updateBlock">
+            <select v-model="condition.variableName" @change="commitBlock">
               <option v-for="name in Object.keys(variables)" :key="name" :value="name">
                 {{ name }}
               </option>
             </select>
-            <select v-model="condition.operator" @change="updateBlock">
+            <select v-model="condition.operator" @change="commitBlock">
               <option value="==">=</option>
               <option value="!=">≠</option>
               <option value=">">></option>
@@ -314,7 +343,8 @@ defineExpose({ focusContent });
             </select>
             <input
               v-model="condition.value"
-              @input="updateBlock"
+              @input="updateBlockSilent"
+              @change="commitBlock"
               placeholder="Valor"
             />
             <button @click="removeCondition(condition.id)" class="btn-remove" title="Remover condição">×</button>
