@@ -140,12 +140,9 @@ const handleToggleLink = async (activate: boolean) => {
   }
 };
 
-const handleDelete = async () => {
+const handleDelete = () => {
   if (isEditing.value && props.category) {
     if (confirm(`Excluir a categoria "${categoryName.value}" e TODOS os seus itens?`)) {
-      if (formIsActive.value || formUrl.value) {
-        await projects.deleteForm(props.category.id);
-      }
       store.deleteCategory(props.category.id);
       emit('close');
     }
