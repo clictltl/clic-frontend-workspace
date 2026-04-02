@@ -73,7 +73,7 @@ export function useCanvasInteractions(options: UseCanvasInteractionsOptions) {
   function endBlockDrag() {
     if (draggedBlock.value) {
       // COMMIT DO HISTÓRICO: Salva o Undo/Redo apenas na hora de soltar o mouse!
-      store.commitBlockMove(draggedBlock.value, lastDragPos.value.x, lastDragPos.value.y);
+      store.updateBlockPosition(draggedBlock.value, lastDragPos.value.x, lastDragPos.value.y);
     }
     draggedBlock.value = null;
   }

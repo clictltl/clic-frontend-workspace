@@ -77,7 +77,7 @@ export function useWaypointEditor(options: UseWaypointEditorOptions) {
   function endDrag() {
     if (draggingSegment.value || draggingWaypoint.value) {
       // COMMIT DO HISTÓRICO: Salva a rota final oficial
-      store.commitConnectionMove(store.document.connections);
+      store.updateConnection(store.document.connections);
     }
     draggingSegment.value = null;
     draggingWaypoint.value = null;

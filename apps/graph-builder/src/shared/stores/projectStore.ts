@@ -52,7 +52,7 @@ const validateCategoryName = (categories: Category[], name: string, excludeId?: 
 export const useProjectStore = defineStore('project', {
   history: {
     stateKey: 'project',
-    ignoreActions: ['markAsSaved'],
+    ignoreActions: ['markAsSaved', 'updateNodeSilent'],
     clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
     actionLabels: {
       saveNodeContent: 'Edição do conteúdo',
@@ -65,6 +65,7 @@ export const useProjectStore = defineStore('project', {
       updateCategory: 'Atualização de categoria',
       reorderCategories: 'Reordenação de categoria',
       addEdge: 'Conexão',
+      removeEdge: 'Remoção de conexão',
       updateCategoryFormConfig: 'Configuração de Formulário'
     }
   },
@@ -175,11 +176,15 @@ export const useProjectStore = defineStore('project', {
       this.selectedNodeId = newNode.id;
     },
 
-    updateNode(id: string, updates: Partial<Node>) {
+    updateNodeSilent(id: string, updates: Partial<Node>) {
       const node = this.project.nodes.find(n => n.id === id);
       if (node) {
         Object.assign(node, updates);
       }
+    },
+
+    updateNode(id: string, updates: Partial<Node>) {
+      this.updateNodeSilent(id, updates);
     },
 
     deleteNode(id: string) {
@@ -225,6 +230,13 @@ export const useProjectStore = defineStore('project', {
         };
         this.project.edges.push(newEdge);
       }
+    },
+
+    removeEdge(sourceId: string, targetId: string) {
+      this.project.edges = this.project.edges.filter(e => 
+        !(e.source === sourceId && e.target === targetId) &&
+        !(e.source === targetId && e.target === sourceId)
+      );
     },
 
     // --- AÇÕES DE FORMULÁRIO ---

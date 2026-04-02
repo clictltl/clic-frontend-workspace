@@ -62,14 +62,22 @@ const toggleConnection = (targetId: string) => {
   const sourceId = activeNode.value.id;
 
   if (isConnected(targetId)) {
-    // Remover conexão
-    store.project.edges = store.project.edges.filter(e => 
-      !(e.source === sourceId && e.target === targetId) &&
-      !(e.source === targetId && e.target === sourceId)
-    );
+    store.removeEdge(sourceId, targetId);
   } else {
-    // Adicionar conexão
     store.addEdge(sourceId, targetId);
+  }
+};
+
+// Handlers do Título (Silent Update + Commit)
+const handleTitleInput = (e: Event) => {
+  if (activeNode.value) {
+    store.updateNodeSilent(activeNode.value.id, { title: (e.target as HTMLInputElement).value });
+  }
+};
+
+const handleTitleCommit = (e: Event) => {
+  if (activeNode.value) {
+    store.updateNode(activeNode.value.id, { title: (e.target as HTMLInputElement).value });
   }
 };
 
@@ -111,7 +119,9 @@ watch(() => activeNode.value?.id, () => {
         <div class="form-group">
           <label>Título</label>
           <input 
-            v-model="activeNode.title" 
+            :value="activeNode.title" 
+            @input="handleTitleInput"
+            @change="handleTitleCommit"
             type="text" 
             placeholder="Nome do conceito"
             class="input-title"

@@ -73,13 +73,13 @@ export const useProjectStore = defineStore('chatbot-project', {
       deleteBlock: 'Exclusão de Bloco',
       duplicateBlock: 'Duplicação de Bloco',
       pasteBlock: 'Colagem de Bloco',
-      commitBlockMove: 'Movimentação de Bloco',
+      updateBlockPosition: 'Movimentação de Bloco',
       addVariable: 'Criação de Variável',
       updateVariableValue: 'Atualização de Variável',
       removeVariable: 'Exclusão de Variável',
       createConnection: 'Criação de Conexão',
       deleteConnection: 'Exclusão de Conexão',
-      commitConnectionMove: 'Ajuste de Caminho (Linha)'
+      updateConnection: 'Ajuste de Caminho (Linha)'
     }
   },
 
@@ -156,19 +156,17 @@ export const useProjectStore = defineStore('chatbot-project', {
       this.selectBlock(newBlock.id);
     },
 
-    updateBlock(id: string, updates: Partial<Block>) {
-      const index = this.document.blocks.findIndex(b => b.id === id);
-      if (index !== -1) {
-        this.document.blocks[index] = { ...this.document.blocks[index], ...updates };
-      }
-    },
-
     updateBlockSilent(id: string, updates: Partial<Block>) {
       const index = this.document.blocks.findIndex(b => b.id === id);
       if (index !== -1) {
         this.document.blocks[index] = { ...this.document.blocks[index], ...updates };
       }
     },
+
+    updateBlock(id: string, updates: Partial<Block>) {
+      this.updateBlockSilent(id, updates);
+    },
+
 
     deleteBlock(id: string) {
       if (id === 'start') return;
@@ -215,7 +213,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       }
     },
 
-    commitBlockMove(id: string, x: number, y: number) {
+    updateBlockPosition(id: string, x: number, y: number) {
       // Esta ação é registrada pelo Histórico ao soltar o mouse.
       this.updateBlockPositionSilent(id, x, y);
     },
@@ -226,7 +224,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       this.document.connections = updatedConnections;
     },
 
-    commitConnectionMove(updatedConnections: Connection[]) {
+    updateConnection(updatedConnections: Connection[]) {
       // Registrada pelo Histórico ao soltar o mouse do waypoint
       this.updateConnectionSilent(updatedConnections);
     },
