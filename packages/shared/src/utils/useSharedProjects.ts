@@ -9,6 +9,7 @@ export interface UseProjectsConfig {
   markAsSaved: () => void;
   assetStore: any; // A instância do useSharedAssetStore
   getActiveFormReferences?: () => string[]; // Retorna array de IDs (reference_id)
+  flushLogs?: () => any[];
 }
 
 async function clicFetch(url: string, options?: RequestInit) {
@@ -198,7 +199,8 @@ export function createSharedProjects(config: UseProjectsConfig) {
         id: currentProjectId.value,
         name: name ?? currentProjectName.value,
         data: config.getProjectData(),
-        active_form_references: config.getActiveFormReferences ? config.getActiveFormReferences() : []
+        active_form_references: config.getActiveFormReferences ? config.getActiveFormReferences() : [],
+        logs: config.flushLogs ? config.flushLogs() : []
       };
 
       // 3. Salva o projeto

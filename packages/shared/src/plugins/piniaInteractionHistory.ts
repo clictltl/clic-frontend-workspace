@@ -69,9 +69,17 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
           undoStack.value.push({ patch: reversePatch, actionName: name });
           redoStack.value =[]; 
           
+          // Sanitiza os argumentos para não estourar a memória RAM (Pruning)
+          const sanitizedArgs = args.map((arg: any) => {
+            if (arg === null || typeof arg !== 'object') return arg;
+            if (Array.isArray(arg)) return `[Array(${arg.length})]`;
+            if (arg.id) return { _pruned: true, id: arg.id };
+            return '[Object]';
+          });
+          
           interactionLogs.value.push({
             action: name,
-            args: JSON.parse(JSON.stringify(args)),
+            args: sanitizedArgs,
             mutations: forwardPatch,
             timestamp: new Date().toISOString()
           });
