@@ -10,7 +10,7 @@ import draggable from 'vuedraggable';
 const store = useProjectStore();
 const showCreateModal = ref(false);
 const myCategories = computed({
-  get: () => store.project.categories,
+  get: () => Object.values(store.project.categories).sort((a, b) => a.order - b.order),
   set: (val) => store.reorderCategories(val)
 });
 

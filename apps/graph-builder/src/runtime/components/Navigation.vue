@@ -5,12 +5,14 @@ import { Home, ChevronRight } from 'lucide-vue-next';
 
 const store = useProjectStore();
 
-// Agrupa nós por categoria
+// Agrupa nós por categoria e garante a ordem visual
 const categoriesWithNodes = computed(() => {
-  return store.project.categories.map(cat => ({
-    ...cat,
-    nodes: store.project.nodes.filter(n => n.categoryId === cat.id)
-  }));
+  return Object.values(store.project.categories)
+    .sort((a, b) => a.order - b.order)
+    .map(cat => ({
+      ...cat,
+      nodes: store.nodesByCategory(cat.id)
+    }));
 });
 
 // Estado das categorias abertas (Inicia vazio = todas fechadas)

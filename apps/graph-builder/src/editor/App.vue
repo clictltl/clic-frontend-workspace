@@ -62,7 +62,7 @@ onUnmounted(() => {
   <div class="app-root">
     
     <!-- HEADER -->
-    <AppHeader title="Graph.it">
+    <AppHeader title="Grafite">
       <FileMenu 
         item-name="Grafo"
         file-extension=".cgr"

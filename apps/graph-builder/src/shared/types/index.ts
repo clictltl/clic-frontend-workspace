@@ -56,8 +56,8 @@ export interface GraphProject {
     createdAt: string;
     updatedAt: string;
   };
-  categories: Category[];
-  nodes: Node[];
-  edges: Edge[];
+  categories: Record<string, Category>;
+  nodes: Record<string, Node>;
+  edges: Record<string, Edge>;
   assets: Record<string, ClicAsset>;
 }

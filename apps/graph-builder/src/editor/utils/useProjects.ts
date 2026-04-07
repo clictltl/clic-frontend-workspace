@@ -10,10 +10,11 @@ const sharedProjectsInstance = createSharedProjects({
   assetStore,
   // Filtra e retorna apenas os IDs das categorias que possuem formulário ativo no JSON
   getActiveFormReferences: () => {
-    return useProjectStore().project.categories
+    return Object.values(useProjectStore().project.categories)
       .filter(c => c.formConfig?.enabled)
       .map(c => c.id);
-  }
+  },
+  flushLogs: () => useProjectStore().flushLogs()
 });
 
 export function useProjects() {

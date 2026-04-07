@@ -20,7 +20,7 @@ let cyInstance: cytoscape.Core | null = null;
 
 // --- 1. Lógica de Tamanho (Grau de Conexão Global) ---
 const getNodeSize = (nodeId: string) => {
-  const allEdges = store.project.edges;
+  const allEdges = Object.values(store.project.edges);
   const degree = allEdges.filter(e => e.source === nodeId || e.target === nodeId).length;
   const baseSize = 20;    
   const multiplier = 5;   
@@ -30,7 +30,7 @@ const getNodeSize = (nodeId: string) => {
 
 // --- 2. Mappers ---
 const mapNodeToCy = (n: any) => {
-  const category = store.project.categories.find(c => c.id === n.categoryId);
+  const category = store.project.categories[n.categoryId];
   const size = getNodeSize(n.id);
   return {
     data: { 
@@ -47,8 +47,8 @@ const mapEdgeToCy = (e: any) => ({
 
 // --- 3. Lógica de Profundidade (BFS) ---
 const getFilteredElements = () => {
-  const allNodes = store.project.nodes;
-  const allEdges = store.project.edges;
+  const allNodes = Object.values(store.project.nodes);
+  const allEdges = Object.values(store.project.edges);
 
   if (props.forceGlobal || !props.activeNodeId) {
     return [...allNodes.map(mapNodeToCy), ...allEdges.map(mapEdgeToCy)];

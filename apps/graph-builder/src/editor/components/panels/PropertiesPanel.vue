@@ -32,14 +32,13 @@ const connectionGroups = computed(() => {
   const currentCategoryId = activeNode.value.categoryId;
 
   // 1. Pega todas as categorias, EXCETO a do nó atual (Regra de Negócio)
-  const eligibleCategories = store.project.categories.filter(
+  const eligibleCategories = Object.values(store.project.categories).filter(
     c => c.id !== currentCategoryId
   );
 
   // 2. Mapeia para um formato { category, nodes[] }
   return eligibleCategories.map(cat => {
-    // Pega os nós desta categoria
-    const nodes = store.project.nodes.filter(n => n.categoryId === cat.id);
+    const nodes = store.nodesByCategory(cat.id);
     return {
       category: cat,
       nodes: nodes
@@ -50,7 +49,7 @@ const connectionGroups = computed(() => {
 // Verifica se já existe conexão
 const isConnected = (targetId: string) => {
   if (!activeNode.value) return false;
-  return store.project.edges.some(e => 
+  return Object.values(store.project.edges).some(e => 
     (e.source === activeNode.value!.id && e.target === targetId) ||
     (e.source === targetId && e.target === activeNode.value!.id)
   );

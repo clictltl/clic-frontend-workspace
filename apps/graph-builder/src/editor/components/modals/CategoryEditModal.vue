@@ -38,7 +38,7 @@ const formUrl = ref('');
 const isLoadingStatus = ref(false);
 const isTogglingLink = ref(false);
 
-const eligibleCategories = computed(() => store.project.categories.filter(c => c.id !== props.category?.id));
+const eligibleCategories = computed(() => Object.values(store.project.categories).filter(c => c.id !== props.category?.id));
 const canActivateLink = computed(() => !!projects.currentProjectId.value && isEditing.value);
 
 onMounted(async () => {
@@ -86,7 +86,7 @@ const handleSave = () => {
       store.updateCategory(props.category.id, categoryName.value, categoryColor.value);
     } else {
       store.addCategory(categoryName.value, categoryColor.value);
-      const newCategory = store.project.categories[0];
+      const newCategory = Object.values(store.project.categories).find(c => c.name === categoryName.value);
       if (!newCategory) throw new Error("Falha ao criar categoria.");
       categoryId = newCategory.id;
     }

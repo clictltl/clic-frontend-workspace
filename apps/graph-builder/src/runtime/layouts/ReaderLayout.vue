@@ -15,7 +15,7 @@ const isGraphExpanded = ref(false);
 
 const activeNode = computed(() => {
   if (store.selectedNodeId) {
-    return store.project.nodes.find(n => n.id === store.selectedNodeId) || null;
+    return store.project.nodes[store.selectedNodeId] || null;
   }
   return null;
 });
@@ -25,7 +25,7 @@ const activeNodeContent = computed(() => {
   return store.getNodeContent(activeNode.value.id);
 });
 
-const isEmpty = computed(() => store.project.nodes.length === 0);
+const isEmpty = computed(() => Object.keys(store.project.nodes).length === 0);
 
 const contentAreaRef = ref<HTMLElement | null>(null);
 

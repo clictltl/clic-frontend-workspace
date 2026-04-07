@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
+import type { Node } from '@/shared/types';
 import { Link2 } from 'lucide-vue-next'; // Ícone de link
 
 const store = useProjectStore();
@@ -12,7 +13,7 @@ const referenceGroups = computed(() => {
   if (!activeId) return [];
 
   // 1. Encontra todas as conexões do nó ativo
-  const connectedEdges = store.project.edges.filter(
+  const connectedEdges = Object.values(store.project.edges).filter(
     e => e.source === activeId || e.target === activeId
   );
 
@@ -22,7 +23,9 @@ const referenceGroups = computed(() => {
   ));
 
   // 3. Busca os objetos completos dos nós vizinhos
-  const neighbors = store.project.nodes.filter(n => neighborIds.has(n.id));
+  const neighbors = Array.from(neighborIds)
+  .map(id => store.project.nodes[id])
+  .filter((node): node is Node => !!node);
 
   if (neighbors.length === 0) return [];
 
@@ -30,15 +33,17 @@ const referenceGroups = computed(() => {
   const groups: Record<string, typeof neighbors> = {};
   
   neighbors.forEach(node => {
-    if (!groups[node.categoryId]) {
-      groups[node.categoryId] = [];
+    let group = groups[node.categoryId];
+    if (!group) {
+      group = [];
+      groups[node.categoryId] = group;
     }
-    groups[node.categoryId]!.push(node);
+    group.push(node);
   });
 
   // 5. Formata para array para usar no v-for, ordenando por nome da categoria
   return Object.keys(groups).map(catId => {
-    const category = store.project.categories.find(c => c.id === catId);
+    const category = store.project.categories[catId];
     return {
       category: category || { name: 'Desconhecido', color: '#ccc', id: 'unknown' },
       nodes: groups[catId]

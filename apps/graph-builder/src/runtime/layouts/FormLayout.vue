@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import type { GraphProject } from '@/shared/types';
 import { Send, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps<{
   formConfig: any;      // { reference_id, config: { nameFieldLabel, targetCategories } }
-  projectData: any;     // { categories: [], nodes:[] }
+  projectData: GraphProject;     // { categories: [], nodes:[] }
   token: string;
 }>();
 
@@ -22,10 +23,10 @@ const questions = computed(() => {
   const targets: string[] = props.formConfig.config.targetCategories ||[];
   
   return targets.map(catId => {
-    const category = props.projectData.categories.find((c: any) => c.id === catId);
-    const options = props.projectData.nodes
-      .filter((n: any) => n.categoryId === catId)
-      .sort((a: any, b: any) => a.order - b.order);
+    const category = props.projectData.categories[catId];
+    const options = Object.values(props.projectData.nodes)
+      .filter(n => n.categoryId === catId)
+      .sort((a, b) => a.order - b.order);
       
     return {
       id: catId,
