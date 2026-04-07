@@ -21,9 +21,8 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Para alias @ */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]

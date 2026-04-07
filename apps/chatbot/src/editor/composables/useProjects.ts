@@ -7,7 +7,8 @@ const sharedProjectsInstance = createSharedProjects({
   getProjectData: () => useProjectStore().getProjectData(),
   setProjectData: (data: any, markAsUnsaved?: boolean) => useProjectStore().setProjectData(data, markAsUnsaved),
   markAsSaved: () => useProjectStore().markAsSaved(),
-  assetStore
+  assetStore,
+  flushLogs: () => useProjectStore().flushLogs()
 });
 
 export function useProjects() {
