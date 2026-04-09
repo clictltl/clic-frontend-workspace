@@ -90,39 +90,31 @@ export function createSharedProjects(config: UseProjectsConfig) {
           // REUTILIZAÇÃO: O arquivo já existe no servidor
           wpMedia = existingMedia;
         } else {
-          // UPLOAD NOVO
-          // Prepara o Payload no padrão do WordPress
+          // UPLOAD
           const formData = new FormData();
           formData.append('file', blob, asset.originalName);
-          formData.append('description', 'Chatbot Asset'); 
-          // Opcional: Adicionar legenda ou texto alternativo
-          // formData.append('alt_text', 'Imagem do Chatbot CLIC');
+
+          // Rastreador dinâmico do sistema (ex: 'chatbot', 'graph-builder')
+          formData.append('app_type', config.appSlug);
+
+          // Descrição humana para a Biblioteca de Mídia do WP
+          formData.append('description', `CLIC Asset (${config.appSlug})`);
+
+          if (asset.hash) formData.append('hash', asset.hash);
           
-          // Envia para API Nativa (/wp/v2/media)
-          const res = await clicFetch(`${wpRestRoot}wp/v2/media`, {
+          const res = await clicFetch(`${wpRestRoot}clic/v1/media/upload`, {
             method: 'POST',
             headers: { 'X-WP-Nonce': nonce },
             body: formData
           });
 
-          if (!res.ok) throw new Error(res.statusText);
-          wpMedia = await res.json();
-
-          // ATUALIZA O METADADO
-          if (asset.hash) {
-            await clicFetch(`${wpRestRoot}wp/v2/media/${wpMedia.id}`, {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'X-WP-Nonce': nonce 
-                },
-                body: JSON.stringify({
-                  meta: {
-                    _clic_image_hash: asset.hash
-                  }
-                })
-            });
+          const data = await res.json();
+          
+          if (!res.ok || !data.success) {
+            throw new Error(`Upload falhou: ${data.error || res.statusText}`);
           }
+          
+          wpMedia = data;
         }
 
         // Atualiza o Asset para Remote (Persistência)
