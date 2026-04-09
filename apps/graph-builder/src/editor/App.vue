@@ -49,7 +49,27 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 1. Restauração de backup (Hidratação de Estado Pós-Login)
+  const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
+  if (loginBackup) {
+    try {
+      const parsedSaved = JSON.parse(loginBackup);
+      
+      store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
+      projects.currentProjectId.value = parsedSaved.id;
+      projects.currentProjectName.value = parsedSaved.name || '';
+            
+      await assetStore.restoreFromDisk();
+
+      sessionStorage.removeItem('clic-graph-builder:login-backup');
+      await assetStore.clearDisk();
+    } catch (e) {
+      console.error("Erro ao restaurar backup local:", e);
+    }
+  }
+
+  // 2. Proteção contra fechar a aba sem salvar
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 

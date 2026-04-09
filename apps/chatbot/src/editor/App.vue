@@ -67,17 +67,35 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   }
 };
 
-onMounted(() => {
-  // 1. Verifica se houve erro no carregamento do share (via prop do main-editor)
+onMounted(async () => {
+  // 1. Restauração de backup (Hidratação de Estado Pós-Login)
+  const loginBackup = sessionStorage.getItem('clic-chatbot:login-backup');
+  if (loginBackup) {
+    try {
+      const parsedSaved = JSON.parse(loginBackup);
+      
+      await assetStore.restoreFromDisk();
+      store.setProjectData(parsedSaved.data, !!parsedSaved.wasDirty);
+      projects.currentProjectId.value = parsedSaved.id;
+      projects.currentProjectName.value = parsedSaved.name || '';
+            
+      sessionStorage.removeItem('clic-chatbot:login-backup');
+      await assetStore.clearDisk();
+    } catch (e) {
+      console.error("Erro ao restaurar backup local:", e);
+    }
+  }
+
+  // 2. Verifica se houve erro no carregamento do share (via prop do main-editor)
   if (props.shareLoadError) {
     showInvalidShareModal.value = true;
   }
 
-  // 2. Lógica local da UI do Chatbot
+  // 3. Lógica local da UI do Chatbot
   hasCopiedBlock.value = !!localStorage.getItem('copiedBlock');
   document.addEventListener('click', handleDocumentClick);
   
-  // 3. Proteção contra fechar a aba sem salvar
+  // 4. Proteção contra fechar a aba sem salvar
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 

@@ -4,8 +4,6 @@ import '@/styles/index.css';
 import App from './App.vue';
 import { checkLogin, initMatomo, piniaInteractionHistoryPlugin } from '@clic/shared';
 import { useProjects } from '@/editor/utils/useProjects';
-import { useProjectStore } from '@/shared/stores/projectStore';
-import { assetStore } from '@/shared/stores/assetStore';
 
 async function init() {
   // 1. Inicializa o Pinia globalmente ANTES do App
@@ -17,27 +15,7 @@ async function init() {
   // 2. Verificar Login no WordPress
   await checkLogin();
 
-  // 3. Restaurar Backup Pós-Login
-  const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
-  if (loginBackup) {
-    try {
-      const parsedSaved = JSON.parse(loginBackup);
-      const projects = useProjects();
-      
-      useProjectStore().loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
-      projects.currentProjectId.value = parsedSaved.id;
-      projects.currentProjectName.value = parsedSaved.name || '';
-            
-      await assetStore.restoreFromDisk();
-
-      sessionStorage.removeItem('clic-graph-builder:login-backup');
-      await assetStore.clearDisk();
-    } catch (e) {
-      console.error("Erro ao restaurar backup local:", e);
-    }
-  }
-
-  // 4. Detectar link compartilhado (?share=TOKEN)
+  // 3. Detectar link compartilhado (?share=TOKEN)
   const params = new URLSearchParams(window.location.search);
   const shareToken = params.get("share");
   let shareLoadError = false;
@@ -56,7 +34,7 @@ async function init() {
     window.history.replaceState({}, document.title, cleanUrl);
   }
 
-  // 5. Criamos o App passando a prop calculada
+  // 4. Criamos o App passando a prop calculada
   const app = createApp(App, { 
     shareLoadError 
   });
