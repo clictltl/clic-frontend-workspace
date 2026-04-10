@@ -9,6 +9,7 @@ declare module 'pinia' {
       ignoreActions?: string[];
       clearHistoryActions?: string[];
       actionLabels?: Record<string, string>;
+      maxLimit?: number;
     };
   }
   
@@ -26,7 +27,13 @@ declare module 'pinia' {
 export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: PiniaPluginContext) => {
   if (!options.history) return;
 
-  const { stateKey, ignoreActions = [], clearHistoryActions =[], actionLabels = {} } = options.history;
+  const { 
+    stateKey, 
+    ignoreActions = [], 
+    clearHistoryActions =[], 
+    actionLabels = {},
+    maxLimit = 50
+  } = options.history;
 
   // Pilhas de Deltas
   interface HistoryEntry {
@@ -67,6 +74,10 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
 
         if (forwardPatch.length > 0) {
           undoStack.value.push({ patch: reversePatch, actionName: name });
+          if (undoStack.value.length > maxLimit) {
+            undoStack.value.shift();
+          }
+
           redoStack.value =[]; 
           
           // Sanitiza os argumentos para não estourar a memória RAM (Pruning)
