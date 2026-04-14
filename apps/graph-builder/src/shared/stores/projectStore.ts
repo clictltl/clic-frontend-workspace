@@ -104,30 +104,14 @@ export const useProjectStore = defineStore('project', {
     },
 
     loadProject(json: any, markAsUnsaved: boolean = false) {
-      // ADAPTER DE MIGRAÇÃO: Converte projeto legado (Array) para o novo Estado Normalizado
-      const isLegacy = Array.isArray(json.categories) || Array.isArray(json.nodes);
-      
-      if (isLegacy) {
-        const migrated: GraphProject = { ...json, categories: {}, nodes: {}, edges: {} };
-        
-        (json.categories ||[]).forEach((c: any, index: number) => {
-          c.order = (index + 1) * 1000;
-          migrated.categories[c.id] = c;
-        });
-        (json.nodes ||[]).forEach((n: any, index: number) => {
-          n.order = (index + 1) * 1000;
-          migrated.nodes[n.id] = n;
-        });
-        (json.edges ||[]).forEach((e: any) => {
-          migrated.edges[e.id] = e;
-        });
-        
-        this.project = migrated;
-        markAsUnsaved = true; // Força salvar no banco com o formato novo na próxima vez
-      } else {
-        this.project = json;
-      }
+      // HIDRATAÇÃO DO ESTADO COM BLINDAGEM DO PHP:
+      // O PHP transforma objetos vazios {} em arrays [] ao salvar no banco.
+      // Forçamos a conversão de volta para Dicionários ({}) para evitar perda de dados no JSON.stringify.
+      json.categories = Array.isArray(json.categories) ? {} : (json.categories || {});
+      json.nodes = Array.isArray(json.nodes) ? {} : (json.nodes || {});
+      json.edges = Array.isArray(json.edges) ? {} : (json.edges || {});
 
+      this.project = json;
       this.selectedNodeId = null;
 
       if (markAsUnsaved) {
