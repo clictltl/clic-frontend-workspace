@@ -8,14 +8,10 @@ import { assetStore } from '@/shared/stores/assetStore';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
 import { Pencil, Eye } from 'lucide-vue-next';
 
-const props = defineProps<{
-  shareLoadError?: boolean;
-}>();
-
 const store = useProjectStore();
 const projects = useProjects();
 
-const showInvalidShareModal = ref(props.shareLoadError || false);
+const showInvalidShareModal = ref(false);
 const isPreview = ref(false);
 
 // Ativa os atalhos globais de Undo/Redo
@@ -50,7 +46,21 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 };
 
 onMounted(async () => {
-  // 1. Restauração de backup (Hidratação de Estado Pós-Login)
+  // 1. Carregamento via link compartilhado (Nuvem)
+  const params = new URLSearchParams(window.location.search);
+  const shareToken = params.get("share");
+
+  if (shareToken) {
+    const success = await projects.loadSharedProject(shareToken);
+    if (!success) {
+      showInvalidShareModal.value = true;
+      console.warn("Falha ao carregar projeto compartilhado. Token:", shareToken);
+    }
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  // 2. Restauração de backup (Hidratação de Estado Pós-Login)
   const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
   if (loginBackup) {
     try {

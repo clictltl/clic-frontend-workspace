@@ -20,10 +20,6 @@ import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
 
-const props = defineProps<{
-  shareLoadError?: boolean
-}>();
-
 const store = useProjectStore();
 const projects = useProjects();
 const assetStore = useAssetStore();
@@ -68,7 +64,21 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 };
 
 onMounted(async () => {
-  // 1. Restauração de backup (Hidratação de Estado Pós-Login)
+  // 1. Carregamento via link compartilhado (Nuvem)
+  const params = new URLSearchParams(window.location.search);
+  const shareToken = params.get("share");
+
+  if (shareToken) {
+    const success = await projects.loadSharedProject(shareToken);
+    if (!success) {
+      showInvalidShareModal.value = true;
+      console.warn("Falha ao carregar projeto compartilhado. Token:", shareToken);
+    }
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  // 2. Restauração de backup (Hidratação de Estado Pós-Login)
   const loginBackup = sessionStorage.getItem('clic-chatbot:login-backup');
   if (loginBackup) {
     try {
@@ -84,11 +94,6 @@ onMounted(async () => {
     } catch (e) {
       console.error("Erro ao restaurar backup local:", e);
     }
-  }
-
-  // 2. Verifica se houve erro no carregamento do share (via prop do main-editor)
-  if (props.shareLoadError) {
-    showInvalidShareModal.value = true;
   }
 
   // 3. Lógica local da UI do Chatbot

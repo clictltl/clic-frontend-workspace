@@ -384,10 +384,8 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     try {
-      const restRoot = window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
-      
       // 1. Busca na API
-      const res = await clicFetch(restRoot + 'share/' + token);
+      const res = await clicFetch(pluginRestRoot + 'share/' + token);
       const data = await res.json();
 
       if (!data.success) {
