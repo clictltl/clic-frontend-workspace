@@ -76,6 +76,15 @@ const confirmText = computed(() =>
 );
 
 onMounted(() => {
+  // Pré-preenche com o nome atual se for um projeto novo/fantasma
+  if (isCreateMode.value && props.projectsStore?.currentProjectName) {
+    // Garante compatibilidade caso currentProjectName seja passado como Ref bruto ou valor reativo
+    const name = props.projectsStore.currentProjectName.value ?? props.projectsStore.currentProjectName;
+    if (typeof name === 'string' && name.trim() !== '') {
+      projectName.value = name;
+    }
+  }
+
   inputRef.value?.focus();
 });
 

@@ -331,6 +331,44 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
   /**
    * ---------------------------------------------------
+   * CARREGAR COMO PROFESSOR
+   * ---------------------------------------------------
+   */
+  async function loadPreviewProject(id: string | number) {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const res = await clicFetch(pluginRestRoot + 'preview/' + id);
+      const data = await res.json();
+
+      if (!data.success) {
+        error.value = data.error || 'Erro ao carregar preview. Verifique as permissões.';
+        return false;
+      }
+
+      // Prepara o state limpo
+      config.assetStore.clearRegistry();
+      config.setProjectData(data.project.data);
+      await config.assetStore.privatizeRemoteAssets();
+
+      // Configura como Fantasma (Sem ID)
+      currentProjectId.value = null;
+      currentProjectName.value = data.project.name || 'Projeto do Aluno';
+
+      return true;
+
+    } catch (err: any) {
+      console.error("Erro no loadPreviewProject:", err);
+      error.value = err.message;
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * ---------------------------------------------------
    * COMPARTILHAR
    * ---------------------------------------------------
    */
@@ -777,6 +815,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     saveProjectAs,
     loadProject,
     deleteProject,
+    loadPreviewProject,
     shareProject,
     loadSharedProject,
     unshareProject,

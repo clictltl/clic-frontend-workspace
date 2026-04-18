@@ -11,7 +11,7 @@
       </button>
 
       <!-- Nome do Projeto -->
-      <div v-if="currentProjectId" class="project-info">
+      <div v-if="currentProjectId || currentProjectName" class="project-info">
         <div class="separator-vertical"></div>
         <FileText :size="16" class="icon" />
         <span class="name" :title="currentProjectName">{{ currentProjectName }}</span>
