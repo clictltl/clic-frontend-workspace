@@ -120,7 +120,7 @@ onUnmounted(() => {
     <!-- ÁREA PRINCIPAL -->
     <main class="main-viewport">
       <Board v-if="!isPreview" /> 
-      <ReaderLayout v-else />
+      <ReaderLayout v-else is-preview/>
     </main>
 
     <!-- BOTÃO FLUTUANTE (FAB) PARA VISUALIZAR -->

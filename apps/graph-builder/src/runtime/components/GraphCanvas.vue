@@ -101,7 +101,7 @@ const renderGraph = () => {
     elements: elements,
     minZoom: 0.2,
     maxZoom: 3,
-    wheelSensitivity: 0.2,
+    wheelSensitivity: 1,
     style: [
       {
         selector: 'node',
@@ -139,7 +139,14 @@ const renderGraph = () => {
       },
       {
         selector: '.center-node',
-        style: { 'border-width': 4, 'border-color': '#2563eb' }
+        style: { 
+          'border-width': 4, 
+          'border-color': '#ffffff',     // Borda branca para separar o nó do fundo
+          'underlay-color': '#3b82f6',   // Cor do anel brilhante (azul do CLIC)
+          'underlay-padding': 10,        // Tamanho/Espessura da "Aura"
+          'underlay-opacity': 0.4,       // Deixa translúcido (efeito de brilho)
+          'underlay-shape': 'ellipse'    // Garante que o brilho seja redondo
+        } as any
       }
     ]
   });

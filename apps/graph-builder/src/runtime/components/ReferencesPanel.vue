@@ -61,7 +61,7 @@ const handleNavigate = (nodeId: string) => {
     <div class="panel-header">
       <h3>
         <Link2 class="icon-sm" />
-        Referências
+        Conexões
       </h3>
     </div>
 

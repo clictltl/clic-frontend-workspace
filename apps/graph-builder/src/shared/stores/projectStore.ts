@@ -19,6 +19,7 @@ const DEFAULT_COLOR = '#64748b';
 const now = () => new Date().toISOString();
 
 const createEmptyProject = (): GraphProject => ({
+  title: '',
   meta: {
     id: uuidv4(),
     name: 'Novo Projeto',
@@ -46,9 +47,10 @@ const validateCategoryName = (categoriesObj: Record<string, Category>, name: str
 export const useProjectStore = defineStore('project', {
   history: {
     stateKey: 'project',
-    ignoreActions: ['markAsSaved', 'updateNodeSilent'],
+    ignoreActions: ['markAsSaved', 'updateNodeSilent', 'updateTitleSilent'],
     clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
     actionLabels: {
+      updateTitle: 'Alteração do título do grafo',
       saveNodeContent: 'Edição do conteúdo',
       addNode: 'Criação de item',
       deleteNode: 'Exclusão de item',
@@ -105,6 +107,9 @@ export const useProjectStore = defineStore('project', {
 
     loadProject(json: any, markAsUnsaved: boolean = false) {
       // HIDRATAÇÃO DO ESTADO COM BLINDAGEM DO PHP:
+      
+      json.title = json.title || ''; // Fallback para projetos antigos
+
       // O PHP transforma objetos vazios {} em arrays [] ao salvar no banco.
       // Forçamos a conversão de volta para Dicionários ({}) para evitar perda de dados no JSON.stringify.
       json.categories = Array.isArray(json.categories) ? {} : (json.categories || {});
@@ -119,6 +124,14 @@ export const useProjectStore = defineStore('project', {
       } else {
         this.lastSavedState = JSON.stringify(this.project);
       }
+    },
+
+    updateTitleSilent(newTitle: string) {
+      this.project.title = newTitle;
+    },
+
+    updateTitle(newTitle: string) {
+      this.updateTitleSilent(newTitle);
     },
 
     addCategory(name: string, color?: string) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import Navigation from '../components/Navigation.vue';
 import GraphCanvas from '../components/GraphCanvas.vue';
@@ -7,7 +7,46 @@ import ReferencesPanel from '../components/ReferencesPanel.vue';
 import { Maximize2, Minimize2 } from 'lucide-vue-next';
 import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
 
+const props = defineProps<{ isPreview?: boolean }>();
 const store = useProjectStore();
+
+// Sincronização: Hash do Navegador -> Store (Lida com o botão "Voltar" e Links Diretos)
+const syncHashToStore = () => {
+  if (props.isPreview) return;
+
+  const hashId = window.location.hash.replace('#', '');
+  
+  if (hashId && store.project.nodes[hashId]) {
+    store.selectedNodeId = hashId; // Entrou num deep link ou voltou/avançou
+  } else if (!hashId) {
+    store.selectedNodeId = null;   // Voltou para a Home (Mapa Global)
+  }
+};
+
+onMounted(() => {
+  syncHashToStore(); // Lê a URL logo que o aluno abre a página
+  window.addEventListener('hashchange', syncHashToStore);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', syncHashToStore);
+});
+
+// Sincronização: Store -> Hash do Navegador (Lida com cliques internos em qualquer componente)
+watch(() => store.selectedNodeId, (newId) => {
+  if (props.isPreview) return;
+  
+  const currentHash = window.location.hash.replace('#', '');
+  
+  if (newId !== currentHash) {
+    if (newId) {
+      window.location.hash = newId;
+    } else {
+      // Se clicou em "Ver Mapa Global", remove o hash da URL mantendo o histórico limpo
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+});
 
 // Profundidade do grafo (1 a 5)
 const graphDepth = ref(1);
@@ -60,8 +99,9 @@ watch(activeNode, (newVal) => {
       <!-- CASO 2: Home View (Grafo Global) -->
       <div v-else-if="!activeNode" class="home-view">
         <div class="home-header">
-          <h1>Visão Geral</h1>
-          <p>Selecione um item para ver detalhes.</p>
+          <h1>Mapa Global de Conexões</h1>
+          <span class="header-divider">—</span>
+          <p>Explore o mapa e clique em um item para descobrir mais.</p>
         </div>
         <div class="full-graph-container">
           <GraphCanvas :force-global="true" />
@@ -75,11 +115,11 @@ watch(activeNode, (newVal) => {
         <div class="graph-section" :class="{ 'expanded': isGraphExpanded }">
           
           <div class="graph-controls">
-            <span class="label">Contexto:</span>
+            <span class="label">Conexões:</span>
             
             <!-- Slider -->
             <div class="slider-container">
-              <span class="small-label">Foco</span>
+              <span class="small-label">Nível</span>
               <input 
                 type="range" 
                 min="1" 
@@ -142,9 +182,19 @@ watch(activeNode, (newVal) => {
 }
 
 /* --- HOME VIEW --- */
+/* --- HOME VIEW --- */
 .home-view { flex: 1; display: flex; flex-direction: column; height: 100%; }
-.home-header { padding: 30px 40px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-.home-header h1 { margin: 0; color: #1e293b; }
+.home-header { 
+  padding: 12px 24px; 
+  background: #f8fafc; 
+  border-bottom: 1px solid #e2e8f0; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+}
+.home-header h1 { margin: 0; color: #1e293b; font-size: 1.1rem; }
+.home-header p { margin: 0; color: #64748b; font-size: 0.95rem; }
+.header-divider { color: #cbd5e1; user-select: none; }
 .full-graph-container { flex: 1; background: #f1f5f9; }
 
 /* --- DOCUMENT VIEW --- */

@@ -36,7 +36,8 @@ const handleSelect = (nodeId: string) => {
 <template>
   <aside class="preview-sidebar">
     <div class="sidebar-header">
-      <h2>Índice</h2>
+      <h1 v-if="store.project.title" class="project-title">{{ store.project.title }}</h1>
+      <h2 class="index-label">Índice</h2>
       <!-- Botão para voltar ao início (Visão Global) -->
       <button 
         v-if="store.selectedNodeId" 
@@ -44,7 +45,7 @@ const handleSelect = (nodeId: string) => {
         @click="store.selectedNodeId = null"
       >
         <Home class="icon-sm" /> 
-        <span>Ver Grafo Global</span>
+        <span>Ver Mapa Global</span>
       </button>
     </div>
     
@@ -101,12 +102,26 @@ const handleSelect = (nodeId: string) => {
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
   background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.sidebar-header h2 {
-  font-size: 1.1rem;
-  margin: 0 0 8px 0;
-  color: #334155;
+.project-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.index-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .btn-home {

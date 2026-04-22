@@ -20,6 +20,19 @@ const myCategories = computed({
   <div class="editor-layout">
     
     <div class="board-container">
+      
+      <!-- Novo Header do Board (Título) -->
+      <div class="board-header">
+        <input 
+          type="text" 
+          class="board-title-input" 
+          :value="store.project.title"
+          @input="e => store.updateTitleSilent((e.target as HTMLInputElement).value)"
+          @change="e => store.updateTitle((e.target as HTMLInputElement).value)"
+          placeholder="Título do seu Projeto..." 
+        />
+      </div>
+
       <div class="board-canvas">
         
         <div class="add-column-placeholder sticky-column">
@@ -73,12 +86,47 @@ const myCategories = computed({
   background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
   background-size: 20px 20px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.board-header {
+  margin-bottom: 24px;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  width: fit-content;
+}
+
+.board-title-input {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed transparent;
+  outline: none;
+  width: 500px;
+  padding: 4px 8px;
+  margin-left: -8px; /* Alinha visualmente a primeira letra com a coluna de baixo */
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.board-title-input:hover {
+  border-bottom-color: #cbd5e1;
+}
+
+.board-title-input:focus {
+  border-bottom-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px 6px 0 0;
 }
 
 .board-canvas {
   display: flex;
   gap: 16px;
-  height: 100%;
+  flex: 1; /* Pega o espaço restante da tela, em vez de forçar 100% da altura */
   align-items: flex-start;
   padding-right: 40px;
 }

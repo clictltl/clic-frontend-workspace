@@ -49,6 +49,7 @@ export interface Edge {
  * PROJETO: O arquivo salvo
  */
 export interface GraphProject {
+  title: string;
   meta: {
     id: string;
     name: string;
