@@ -89,17 +89,19 @@ function handleCanvasMouseDown(event: MouseEvent) {
     return;
   }
 
-  // Pan: botão do meio ou Espaço + botão esquerdo
-  if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
+  const isClickOnBackground = event.target === canvasRef.value;
+
+  // Desseleciona ao clicar no canvas vazio
+  if (isClickOnBackground) {
+    emit('update:selectedBlockId', null);
+    connectionMgr.deselectConnection();
+  }
+
+  // Pan: botão do meio (qualquer lugar) OU botão esquerdo (apenas no fundo do canvas)
+  if (event.button === 1 || (event.button === 0 && isClickOnBackground)) {
     event.preventDefault();
     transform.startPan(event.clientX, event.clientY);
     return;
-  }
-
-  // Desseleciona ao clicar no canvas vazio
-  if (event.target === canvasRef.value) {
-    emit('update:selectedBlockId', null);
-    connectionMgr.deselectConnection();
   }
 }
 
