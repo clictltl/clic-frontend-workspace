@@ -208,9 +208,11 @@ function handleDelete(event: MouseEvent | TouchEvent) {
       />
 
       <div class="block-content">
-        <p v-if="block.type !== 'setVariable' && block.type !== 'image' && block.type !== 'math'">
-          {{ block.content || 'Sem conteúdo' }}
-        </p>
+        <div 
+          v-if="block.type !== 'setVariable' && block.type !== 'image' && block.type !== 'math'"
+          class="rich-text-preview"
+          v-html="block.content || 'Sem conteúdo'"
+        ></div>
 
         <!-- Visualização para setVariable -->
         <div v-if="block.type === 'setVariable'" class="variable-assignment">
@@ -387,13 +389,20 @@ function handleDelete(event: MouseEvent | TouchEvent) {
   padding: 12px;
 }
 
-.block-content p {
-  margin: 0;
+.rich-text-preview {
   font-size: 13px;
   color: #374151;
   line-height: 1.4;
   word-break: break-word;
 }
+
+.rich-text-preview :deep(p) { margin: 0 0 0.5em 0; }
+.rich-text-preview :deep(p:last-child) { margin-bottom: 0; }
+.rich-text-preview :deep(ul), .rich-text-preview :deep(ol) { padding-left: 20px; margin: 0 0 0.5em 0; }
+.rich-text-preview :deep(h3) { margin: 0 0 0.5em 0; font-size: 14px; }
+.rich-text-preview :deep(blockquote) { border-left: 3px solid #d1d5db; margin: 0; padding-left: 8px; color: #6b7280; }
+.rich-text-preview :deep(a) { color: #3b82f6; text-decoration: underline; pointer-events: none; } /* ponteiro inativo no canvas */
+.rich-text-preview :deep(code) { background: #e5e7eb; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 11px; }
 
 .choices, .conditions {
   margin-top: 12px;

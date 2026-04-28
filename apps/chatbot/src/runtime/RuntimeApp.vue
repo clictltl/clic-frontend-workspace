@@ -187,7 +187,8 @@ onMounted(loadProject);
                 class="message-bubble"
                 :class="{ 'message-error': ERROR_MESSAGES[message.content] }"
               >
-                {{ ERROR_MESSAGES[message.content] ?? message.content }}
+                <span v-if="ERROR_MESSAGES[message.content]">{{ ERROR_MESSAGES[message.content] }}</span>
+                <div v-else class="rich-text-content" v-html="message.content"></div>
               </div>
             </div>
 
@@ -672,4 +673,13 @@ onMounted(loadProject);
     font-size: 14px;
   }
 }
+
+/* Formatação do Rich Text nas mensagens do Runtime */
+.rich-text-content :deep(p) { margin: 0 0 0.5em 0; }
+.rich-text-content :deep(p:last-child) { margin-bottom: 0; }
+.rich-text-content :deep(ul), .rich-text-content :deep(ol) { padding-left: 20px; margin: 0 0 0.5em 0; }
+.rich-text-content :deep(h3) { margin: 0 0 0.5em 0; font-size: 15px; }
+.rich-text-content :deep(blockquote) { border-left: 3px solid rgba(0,0,0,0.1); margin: 0; padding-left: 10px; opacity: 0.9; }
+.rich-text-content :deep(a) { color: inherit; text-decoration: underline; font-weight: 600; }
+.rich-text-content :deep(code) { background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 12px; }
 </style>

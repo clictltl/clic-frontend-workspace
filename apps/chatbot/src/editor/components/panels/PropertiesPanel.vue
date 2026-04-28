@@ -2,6 +2,7 @@
 import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
+import RichTextEditor from '@/editor/components/RichTextEditor.vue';
 
 const props = defineProps<{
   block: Block | null;
@@ -14,7 +15,7 @@ const emit = defineEmits<{
 }>();
 
 const localBlock = ref<Block | null>(null);
-const mainTextareaRef = ref<HTMLTextAreaElement | null>(null);
+const mainTextareaRef = ref<InstanceType<typeof RichTextEditor> | null>(null);
 const assetStore = useAssetStore();
 const imageTab = ref<'url' | 'upload'>('url'); 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -222,26 +223,22 @@ defineExpose({ focusContent });
         && localBlock.type !== 'image'" class="property-group"
       >
         <label>{{ localBlock.type === 'message' ? 'Mensagem' : 'Pergunta' }}</label>
-        <textarea
+        <RichTextEditor
           ref="mainTextareaRef"
           v-model="localBlock.content"
-          @input="updateBlockSilent"
-          @change="commitBlock"
-          placeholder="Digite o conteúdo..."
-          rows="4"
+          @update:modelValue="updateBlockSilent"
+          @blur="commitBlock"
         />
-        <small>Use &#123;&#123;variavel&#125;&#125; para inserir valores de variáveis</small>
+        <small>Use &#123;&#123;variavel&#125;&#125; para inserir valores de variáveis<br/><strong>Aviso:</strong> Evite formatar apenas "metade" da variável.</small>
       </div>
 
       <div v-if="localBlock.type === 'end'" class="property-group">
         <label>Mensagem Final</label>
-        <textarea
+        <RichTextEditor
           ref="mainTextareaRef"
           v-model="localBlock.content"
-          @input="updateBlockSilent"
-          @change="commitBlock"
-          placeholder="Obrigado por usar o chatbot!"
-          rows="3"
+          @update:modelValue="updateBlockSilent"
+          @blur="commitBlock"
         />
       </div>
 

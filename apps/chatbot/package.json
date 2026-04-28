@@ -15,10 +15,14 @@
   },
   "dependencies": {
     "@clic/shared": "*",
+    "@tiptap/extension-link": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
+    "@tiptap/vue-3": "^3.22.5",
     "browser-image-compression": "^2.0.2",
-    "file-type": "^20.5.0",
+    "file-type": "^22.0.1",
     "jszip": "^3.10.1",
     "leader-line-new": "^1.1.9",
+    "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "vue": "^3.4.38"
   },

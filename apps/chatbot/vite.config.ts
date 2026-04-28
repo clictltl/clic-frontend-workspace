@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'assets',
       sourcemap: false,
       manifest: true,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         input: {
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
