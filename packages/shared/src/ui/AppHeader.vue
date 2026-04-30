@@ -1,10 +1,14 @@
 <template>
   <header class="toolbar">
     <div class="toolbar-left">
+      <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
+      <h1 v-else class="toolbar-title">{{ title }}</h1>
+      
+      <span class="made-by-text">feito pelo</span>
+      
       <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
-        <img :src="logoClic" alt="CLIC" class="toolbar-logo" />
+        <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
       </a>
-      <h1 class="toolbar-title">{{ title }}</h1>
     </div>
 
     <div class="toolbar-right">
@@ -20,6 +24,7 @@ import logoClic from '../assets/logo-clic.svg'
 
 defineProps<{
   title: string;
+  appLogo?: string;
 }>();
 
 const logoUrl = computed(() => {
@@ -44,8 +49,21 @@ const logoUrl = computed(() => {
 
 .toolbar-left {
   display: flex;
-  align-items: center;
-  gap: 30px;
+  align-items: flex-end; /* Alinha todos os itens pela base inferior */
+  gap: 12px;
+}
+
+.app-logo {
+  height: 42px; /* Mantém o tamanho de destaque para o App */
+  width: auto;
+}
+
+.made-by-text {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0 4px 4px 4px; /* Adicionado 4px de margin-bottom para compensar o "desconto" visual da fonte */
+  line-height: 1;
 }
 
 .toolbar-logo-link {
@@ -54,8 +72,8 @@ const logoUrl = computed(() => {
   text-decoration: none;
 }
 
-.toolbar-logo {
-  height: 42px;
+.toolbar-logo-small {
+  height: 24px; /* Logo do CLIC proporcionalmente menor */
   width: auto;
 }
 

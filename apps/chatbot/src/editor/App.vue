@@ -19,6 +19,7 @@ import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
+import appLogo from '@/assets/logo_novelo_amarelo.svg'
 
 const store = useProjectStore();
 const projects = useProjects();
@@ -330,7 +331,7 @@ async function handleLoginSuccess() {
 <template>
   <div class="app">
     <!-- Toolbar superior com controles principais -->
-    <AppHeader title="Novelo">
+    <AppHeader title="Novelo" :app-logo="appLogo">
     <FileMenu 
       item-name="Chatbot"
       file-extension=".cnv"
