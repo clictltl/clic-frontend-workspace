@@ -40,14 +40,6 @@ const ClicEmojiNode = Node.create({
   },
 });
 
-const extensions =[
-  StarterKit,
-  ClicEmojiNode,
-  Link.configure({
-    openOnClick: false,
-  }),
-];
-
 // --- LÓGICA DO EMOJI-MART (LAZY LOADING & TELEPORT) ---
 const showEmojiPicker = ref(false);
 const pickerContainer = ref<HTMLElement | null>(null);
@@ -75,6 +67,13 @@ function closePopover(e: Event) {
   if (pickerContainer.value?.contains(target) || emojiBtnRef.value?.contains(target)) return;
   
   showEmojiPicker.value = false;
+
+  // Se fechou clicando fora e o editor não recuperou o foco, enviamos o blur agora!
+  setTimeout(() => {
+    if (editor.value && !editor.value.isFocused) {
+      emit('blur');
+    }
+  }, 0);
 }
 
 onMounted(() => {
@@ -104,6 +103,7 @@ async function toggleEmojiPicker() {
       pickerInstance = new Picker({
         data: data.default || data,
         locale: 'pt',
+        theme: 'light', // Força o modo claro (fundo branco)
         onEmojiSelect: (emoji: any) => {
           if (!editor.value || editor.value.isDestroyed) return;
           
@@ -127,7 +127,15 @@ async function toggleEmojiPicker() {
 
 const editor = useEditor({
   content: props.modelValue || '',
-  extensions,
+  extensions:[
+    StarterKit.configure({
+      link: false,
+    }),
+    ClicEmojiNode,
+    Link.configure({
+      openOnClick: false,
+    }),
+  ],
   onUpdate: ({ editor }) => {
     if (editor.isDestroyed) return; // Evita o erro de view['dom']
     
@@ -139,6 +147,10 @@ const editor = useEditor({
   },
   onBlur: ({ editor }) => {
     if (editor.isDestroyed) return;
+    
+    // Trava de Undo Duplo: Se o picker estiver aberto, não emite o commit!
+    if (showEmojiPicker.value) return;
+    
     emit('blur');
   },
 });
