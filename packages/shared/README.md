@@ -33,3 +33,9 @@ import { AppHeader, useSharedProjects, useProjectStore } from '@clic/shared';
 ## Types
 
 Centralized TypeScript definitions for the entire CLIC platform, including project schemas, asset metadata, and WordPress global variables.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+
+If you modify and run this software over a network, you must make your source code available to users.
