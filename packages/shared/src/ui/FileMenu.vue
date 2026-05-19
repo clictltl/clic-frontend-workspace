@@ -6,15 +6,16 @@
       
       <!-- Botão Gatilho -->
       <button class="menu-trigger" :class="{ 'active': open }" @click="toggleMenu">
+        <Folder :size="16" class="icon-left" />
         <span class="label">Arquivo</span>
         <ChevronDown :size="16" class="chevron" />
       </button>
 
       <!-- Nome do Projeto -->
-      <div v-if="currentProjectId || currentProjectName" class="project-info">
+      <div class="project-info">
         <div class="separator-vertical"></div>
         <FileText :size="16" class="icon" />
-        <span class="name" :title="currentProjectName">{{ currentProjectName }}</span>
+        <span class="name" :title="currentProjectName || 'Novo projeto'">{{ currentProjectName || 'Novo projeto' }}</span>
         <span v-if="hasUnsavedChanges" class="unsaved-dot" title="Alterações não salvas"></span>
       </div>
 
@@ -122,7 +123,8 @@ import {
   Link,
   Rocket,
   FolderInput,
-  Download
+  Download,
+  Folder
 } from 'lucide-vue-next';
 
 const props = withDefaults(defineProps<{
@@ -142,7 +144,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['new-project', 'import-project']);
 
-const { currentProjectId, currentProjectName } = props.projectsStore;
+const { currentProjectName } = props.projectsStore;
 const auth = useAuth();
 const toast = useToast();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -454,6 +456,16 @@ async function saveToComputer() {
 .menu-trigger:hover, .menu-trigger.active { background-color: #f3f4f6; color: #111827; }
 .menu-trigger.active .chevron { transform: rotate(180deg); }
 .chevron { transition: transform 0.2s ease; opacity: 0.6; }
+
+.menu-trigger .icon-left {
+  opacity: 0.7; /* Deixa o ícone sutil, combinando com o chevron */
+  transition: opacity 0.2s ease;
+}
+
+.menu-trigger:hover .icon-left, 
+.menu-trigger.active .icon-left {
+  opacity: 1; /* Acende o ícone quando o mouse passa por cima ou o menu está aberto */
+}
 
 .project-info {
   display: flex; align-items: center; gap: 8px;

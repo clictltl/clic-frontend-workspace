@@ -19,7 +19,6 @@
         <div class="avatar-circle">
           {{ getUserInitials(auth.state.name) }}
         </div>
-        <span class="user-name">{{ auth.state.name || 'Usuário' }}</span>
         <ChevronDown :size="16" class="chevron" />
       </button>
 
@@ -254,16 +253,6 @@ function logout() {
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-}
-
-.user-name {
-  font-size: 14px;
-  color: #374151;
-  font-weight: 500;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .chevron { color: #9ca3af; transition: transform 0.2s; }
