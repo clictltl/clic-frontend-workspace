@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { GraphProject } from '@/shared/types';
-import { Send, CheckCircle } from 'lucide-vue-next';
+import { Send, CheckCircle } from '@lucide/vue';
 
 const props = defineProps<{
   formConfig: any;      // { reference_id, config: { nameFieldLabel, targetCategories } }

@@ -3,7 +3,7 @@
 import { computed } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import type { Node } from '@/shared/types';
-import { Link2 } from 'lucide-vue-next'; // Ícone de link
+import { Link2 } from '@lucide/vue'; // Ícone de link
 
 const store = useProjectStore();
 

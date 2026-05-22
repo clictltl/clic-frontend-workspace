@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { Save } from 'lucide-vue-next';
+import { Save } from '@lucide/vue';
 
 withDefaults(defineProps<{
   itemName?: string;

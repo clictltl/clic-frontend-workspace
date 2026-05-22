@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { Home, ChevronRight } from 'lucide-vue-next';
+import { Home, ChevronRight } from '@lucide/vue';
 
 const store = useProjectStore();
 

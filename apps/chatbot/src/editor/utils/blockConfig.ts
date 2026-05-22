@@ -8,7 +8,7 @@ import {
   Calculator,
   Image as ImageIcon,
   CircleCheck
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import type { BlockType } from '@/shared/types/chatbot';
 
 export interface BlockVisualConfig {

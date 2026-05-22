@@ -6,7 +6,7 @@ import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
-import { Pencil, Eye } from 'lucide-vue-next';
+import { Pencil, Eye } from '@lucide/vue';
 
 const store = useProjectStore();
 const projects = useProjects();

@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { 
   Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Smile
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 const props = defineProps<{
   modelValue?: string;

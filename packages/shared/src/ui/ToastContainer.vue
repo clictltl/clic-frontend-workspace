@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { useToast } from './useToast';
-import { CheckCircle, XCircle, Info } from 'lucide-vue-next';
+import { CheckCircle, XCircle, Info } from '@lucide/vue';
 
 const { toasts, remove } = useToast();
 </script>

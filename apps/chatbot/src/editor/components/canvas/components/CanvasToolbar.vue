@@ -8,7 +8,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { BlockType } from '@/shared/types/chatbot';
 import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
-import { Plus } from 'lucide-vue-next';
+import { Plus } from '@lucide/vue';
 
 const emit = defineEmits<{
   'create-block': [type: BlockType];

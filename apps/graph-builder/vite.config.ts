@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       manifest: true,
       chunkSizeWarningLimit: 1000,
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
           editor: fileURLToPath(new URL('./src/editor/main-editor.ts', import.meta.url)),

@@ -6,7 +6,7 @@ import {
   Save, X, 
   Bold, Italic, Heading, List, ListOrdered, Link, Image, Quote, 
   Columns, PanelLeft 
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 const props = defineProps<{
   nodeId: string;

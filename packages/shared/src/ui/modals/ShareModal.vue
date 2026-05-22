@@ -107,7 +107,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Link, AlertTriangle, Copy } from 'lucide-vue-next';
+import { Link, AlertTriangle, Copy } from '@lucide/vue';
 import { useToast } from '@clic/shared';
 
 const props = withDefaults(defineProps<{

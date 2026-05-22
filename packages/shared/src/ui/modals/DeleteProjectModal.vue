@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Trash2, AlertTriangle } from 'lucide-vue-next';
+import { Trash2, AlertTriangle } from '@lucide/vue';
 import { useToast } from '../../ui/useToast';
 
 const props = withDefaults(defineProps<{

@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Rocket, Moon, AlertTriangle, Copy } from 'lucide-vue-next';
+import { Rocket, Moon, AlertTriangle, Copy } from '@lucide/vue';
 import { useToast } from '../../ui/useToast';
 
 const props = withDefaults(defineProps<{

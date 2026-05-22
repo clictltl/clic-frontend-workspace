@@ -125,7 +125,7 @@ import {
   FolderInput,
   Download,
   Folder
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 const props = withDefaults(defineProps<{
   itemName?: string;

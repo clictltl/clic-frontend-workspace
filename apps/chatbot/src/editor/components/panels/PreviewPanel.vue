@@ -19,7 +19,7 @@ import { ref, nextTick, watch, computed } from 'vue';
 import type { Block, Variable } from '@/shared/types/chatbot';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
-import { Play, Square, Maximize2, Minimize2, Bot, Send, RefreshCw } from 'lucide-vue-next';
+import { Play, Square, Maximize2, Minimize2, Bot, Send, RefreshCw } from '@lucide/vue';
 
 const props = defineProps<{
   blocks: Block[];

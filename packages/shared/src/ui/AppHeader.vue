@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
-import { Info, BookOpen, X, Lock, Wrench, Mail, Globe } from 'lucide-vue-next';
+import { Info, BookOpen, X, Lock, Wrench, Mail, Globe } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
 
 defineProps<{

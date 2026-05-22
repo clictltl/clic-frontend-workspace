@@ -4,7 +4,7 @@ import { useProjectStore } from '@/shared/stores/projectStore';
 import CategoryColumn from '@/editor/components/board/CategoryColumn.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import CategoryEditModal from '@/editor/components/modals/CategoryEditModal.vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus } from '@lucide/vue';
 import draggable from 'vuedraggable';
 
 const store = useProjectStore();

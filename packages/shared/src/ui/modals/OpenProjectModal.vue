@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { FolderOpen, FileText, AlertTriangle } from 'lucide-vue-next';
+import { FolderOpen, FileText, AlertTriangle } from '@lucide/vue';
 
 const props = withDefaults(defineProps<{
   projectsStore: any;

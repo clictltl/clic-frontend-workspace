@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { Trash2, MousePointerClick, ChevronRight, FileEdit } from 'lucide-vue-next';
+import { Trash2, MousePointerClick, ChevronRight, FileEdit } from '@lucide/vue';
 import ContentEditorModal from '../modals/ContentEditorModal.vue';
 
 const store = useProjectStore();

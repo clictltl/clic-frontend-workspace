@@ -76,7 +76,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
-import { User, LogOut, ChevronDown, AlertTriangle } from 'lucide-vue-next';
+import { User, LogOut, ChevronDown, AlertTriangle } from '@lucide/vue';
 
 // Dispara evento para o App pai (ex: Chatbot, Graph Builder) lidar com reload/backup
 const emit = defineEmits(['login-success']);

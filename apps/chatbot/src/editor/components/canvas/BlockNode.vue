@@ -9,7 +9,7 @@ import { computed, onBeforeUnmount } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
 import { BLOCK_CONFIG } from '@/editor/utils/blockConfig';
-import { X } from 'lucide-vue-next';
+import { X } from '@lucide/vue';
 
 const props = defineProps<{
   block: Block;

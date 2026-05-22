@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import type { Category, CategoryFormConfig } from '@/shared/types';
 import { useProjectStore, CATEGORY_COLORS } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
-import { Palette, Hash, Copy, ExternalLink, Settings2, Link, Unlink, Loader2 } from 'lucide-vue-next'; // Loader2 adicionado
+import { Palette, Hash, Copy, ExternalLink, Settings2, Link, Unlink, Loader2 } from '@lucide/vue'; // Loader2 adicionado
 
 const props = defineProps<{ category?: Category; }>();
 const emit = defineEmits(['close']);

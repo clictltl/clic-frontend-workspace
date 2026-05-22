@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { Save, Download } from 'lucide-vue-next';
+import { Save, Download } from '@lucide/vue';
 
 defineProps<{
   isOffline?: boolean;

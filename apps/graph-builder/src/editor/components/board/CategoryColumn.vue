@@ -5,7 +5,7 @@ import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import NodeCard from './NodeCard.vue';
 import CategoryEditModal from '../modals/CategoryEditModal.vue';
-import { Pencil, Database, DownloadCloud, RefreshCw } from 'lucide-vue-next';
+import { Pencil, Database, DownloadCloud, RefreshCw } from '@lucide/vue';
 import draggable from 'vuedraggable';
 
 const props = defineProps<{

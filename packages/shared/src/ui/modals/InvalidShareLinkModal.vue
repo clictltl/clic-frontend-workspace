@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { Unlink } from 'lucide-vue-next';
+import { Unlink } from '@lucide/vue';
 
 withDefaults(defineProps<{
   itemName?: string;

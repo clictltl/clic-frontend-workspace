@@ -4,7 +4,7 @@ import ReaderLayout from './layouts/ReaderLayout.vue';
 import FormLayout from './layouts/FormLayout.vue';
 import { ToastContainer } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { Loader2, AlertCircle } from 'lucide-vue-next';
+import { Loader2, AlertCircle } from '@lucide/vue';
 
 const isLoading = ref(true);
 const fatalError = ref<string | null>(null);

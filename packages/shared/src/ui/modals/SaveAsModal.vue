@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { AlertTriangle } from 'lucide-vue-next';
+import { AlertTriangle } from '@lucide/vue';
 
 const props = withDefaults(defineProps<{
   mode?: 'create' | 'copy';

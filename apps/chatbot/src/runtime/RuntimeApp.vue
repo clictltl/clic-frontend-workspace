@@ -3,7 +3,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import type { ProjectData } from '@/shared/types/project';
 import { logoClic as clicLogo } from '@clic/shared';
-import { Play, Square, Loader2, AlertTriangle, Bot, Send, RefreshCw } from 'lucide-vue-next';
+import { Play, Square, Loader2, AlertTriangle, Bot, Send, RefreshCw } from '@lucide/vue';
 
 const logoUrl = computed(() => {
   if (typeof window !== 'undefined' && window.CLIC_CORE) {

@@ -4,7 +4,7 @@ import { useProjectStore } from '@/shared/stores/projectStore';
 import Navigation from '../components/Navigation.vue';
 import GraphCanvas from '../components/GraphCanvas.vue';
 import ReferencesPanel from '../components/ReferencesPanel.vue';
-import { Maximize2, Minimize2 } from 'lucide-vue-next';
+import { Maximize2, Minimize2 } from '@lucide/vue';
 import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
 
 const props = defineProps<{ isPreview?: boolean }>();
