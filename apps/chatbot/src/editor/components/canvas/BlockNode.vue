@@ -8,6 +8,8 @@
 import { computed, onBeforeUnmount } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
+import { BLOCK_CONFIG } from '@/editor/utils/blockConfig';
+import { X } from 'lucide-vue-next';
 
 const props = defineProps<{
   block: Block;
@@ -24,51 +26,7 @@ const emit = defineEmits<{
   contextMenu: [event: MouseEvent];
 }>();
 
-// Título e ícone do bloco baseado no tipo
-const blockTitle = computed(() => {
-  switch (props.block.type) {
-    case "start": return "Início";
-    case "message": return "Mensagem";
-    case "openQuestion": return "Pergunta Aberta";
-    case "choiceQuestion": return "Múltipla Escolha";
-    case "condition": return "Condicional";
-    case "setVariable": return "Definir Variável";
-    case "math": return "Operação Matemática";
-    case "image": return "Imagem";
-    case "end": return "Fim da Conversa";
-    default: return "Bloco";
-  }
-});
-
-const blockIcon = computed(() => {
-  switch (props.block.type) {
-    case "start": return "▶️";
-    case "message": return "💬";
-    case "openQuestion": return "❓";
-    case "choiceQuestion": return "📊";
-    case "condition": return "⚙️";
-    case "setVariable": return "📝";
-    case "math": return "🔢";
-    case "image": return "🖼️";
-    case "end": return "✅";
-    default: return "📦";
-  }
-});
-
-const blockColor = computed(() => {
-  switch (props.block.type) {
-    case "start": return "#10b981";
-    case "message": return "#3b82f6";
-    case "openQuestion": return "#d97706";
-    case "choiceQuestion": return "#f59e0b";
-    case "condition": return "#8b5cf6";
-    case "setVariable": return "#06b6d4";
-    case "math": return "#f97316";
-    case "image": return "#ec4899";
-    case "end": return "#ef4444";
-    default: return "#6b7280";
-  }
-});
+const blockConfig = computed(() => BLOCK_CONFIG[props.block.type]);
 
 const assetStore = useAssetStore();
 
@@ -166,7 +124,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
     :style="{
       left: `${block.position.x}px`,
       top: `${block.position.y}px`,
-      borderColor: blockColor
+      borderColor: blockConfig.color
     }"
     @mousedown="handleMouseDown"
     @touchstart="handleMouseDown"
@@ -174,15 +132,15 @@ function handleDelete(event: MouseEvent | TouchEvent) {
     @contextmenu="handleContextMenu"
   >
     <!-- START (inteiro verde, sem área branca) -->
-    <div v-if="block.type === 'start'" class="start-body" :style="{ backgroundColor: blockColor }">
+    <div v-if="block.type === 'start'" class="start-body" :style="{ backgroundColor: blockConfig.color }">
       <span class="start-title">Início</span>
     </div>
 
     <!-- RESTO (layout normal) -->
     <template v-else>
-      <div class="block-header" :style="{ backgroundColor: blockColor }">
-        <span class="block-icon">{{ blockIcon }}</span>
-        <span class="block-title">{{ blockTitle }}</span>
+      <div class="block-header" :style="{ backgroundColor: blockConfig.color }">
+        <component :is="blockConfig.icon" :size="20" />
+        <span class="block-title">{{ blockConfig.title }}</span>
 
         <button
           v-if="block.id !== 'start'"
@@ -192,7 +150,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
           @mousedown.stop
           title="Deletar bloco"
         >
-          ×
+          <X :size="14" />
         </button>
       </div>
 
@@ -360,8 +318,6 @@ function handleDelete(event: MouseEvent | TouchEvent) {
   background: rgba(0, 0, 0, 0.2);
   border: none;
   color: white;
-  font-size: 20px;
-  line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -375,10 +331,6 @@ function handleDelete(event: MouseEvent | TouchEvent) {
   background: rgba(0, 0, 0, 0.4);
   opacity: 1;
   transform: translateY(-50%) scale(1.1);
-}
-
-.block-icon {
-  font-size: 16px;
 }
 
 .block-title {

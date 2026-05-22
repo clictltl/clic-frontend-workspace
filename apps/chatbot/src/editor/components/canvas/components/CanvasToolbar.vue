@@ -7,6 +7,8 @@
 
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { BlockType } from '@/shared/types/chatbot';
+import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
+import { Plus } from 'lucide-vue-next';
 
 const emit = defineEmits<{
   'create-block': [type: BlockType];
@@ -47,48 +49,22 @@ onBeforeUnmount(() => {
 <template>
   <div class="canvas-toolbar" @click.stop>
     <button class="btn-newblock" @click="toggleMenu">
-      ➕ Novo Bloco
+      <Plus :size="16" />
+      Novo Bloco
     </button>
 
     <div v-if="showMenu" class="canvas-block-menu" ref="menuRef">
-      <button @click="createBlock('message')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#3b82f6;">💬</span>
-        <span class="menu-label">Mensagem</span>
-      </button>
-
-      <button @click="createBlock('openQuestion')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#b45309;">❓</span>
-        <span class="menu-label">Pergunta Aberta</span>
-      </button>
-
-      <button @click="createBlock('choiceQuestion')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#f59e0b;">📊</span>
-        <span class="menu-label">Múltipla Escolha</span>
-      </button>
-
-      <button @click="createBlock('condition')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#8b5cf6;">⚙️</span>
-        <span class="menu-label">Condicional</span>
-      </button>
-
-      <button @click="createBlock('setVariable')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#06b6d4;">📝</span>
-        <span class="menu-label">Definir Variável</span>
-      </button>
-
-      <button @click="createBlock('math')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#f97316;">🔢</span>
-        <span class="menu-label">Operação Matemática</span>
-      </button>
-
-      <button @click="createBlock('image')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#ec4899;">🖼️</span>
-        <span class="menu-label">Imagem</span>
-      </button>
-
-      <button @click="createBlock('end')" class="canvas-block-menu-item">
-        <span class="menu-icon" style="background:#ef4444;">✅</span>
-        <span class="menu-label">Fim</span>
+      <button 
+        v-for="type in CREATABLE_BLOCKS" 
+        :key="type"
+        @click="createBlock(type)" 
+        class="canvas-block-menu-item"
+      >
+        <!-- Ícone Lucide encapsulado na cor de fundo -->
+        <span class="menu-icon" :style="{ background: BLOCK_CONFIG[type].color }">
+          <component :is="BLOCK_CONFIG[type].icon" :size="16" color="#ffffff" />
+        </span>
+        <span class="menu-label">{{ BLOCK_CONFIG[type].title }}</span>
       </button>
     </div>
   </div>
@@ -119,6 +95,9 @@ onBeforeUnmount(() => {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-newblock:hover {

@@ -3,6 +3,14 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import type { ProjectData } from '@/shared/types/project';
 import { logoClic as clicLogo } from '@clic/shared';
+import { Play, Square, Loader2, AlertTriangle, Bot, Send, RefreshCw } from 'lucide-vue-next';
+
+const logoUrl = computed(() => {
+  if (typeof window !== 'undefined' && window.CLIC_CORE) {
+    return window.CLIC_CORE.site_url ?? window.CLIC_CORE.app_url ?? '/';
+  }
+  return 'https://clic.tltlab.org';
+});
 
 // ===== Estado de carregamento =====
 const isLoading = ref(true);
@@ -112,7 +120,7 @@ onMounted(loadProject);
       <!-- Header -->
       <header class="runtime-header">
         <a
-          href="https://clic.tltlab.org"
+          :href="logoUrl"
           target="_blank"
           rel="noopener noreferrer"
           class="runtime-logo-link"
@@ -126,7 +134,7 @@ onMounted(loadProject);
 
         <div class="runtime-actions">
           <button class="btn-start" @click="startChat">
-            ▶️ Iniciar
+            <Play :size="14" fill="currentColor" /> Iniciar
           </button>
 
           <button
@@ -134,7 +142,7 @@ onMounted(loadProject);
             @click="stopChat()"
             :disabled="!r?.isRunning"
           >
-            ■ Parar
+            <Square :size="14" fill="currentColor" /> Parar
           </button>
         </div>
       </header>
@@ -143,13 +151,17 @@ onMounted(loadProject);
       <main class="runtime-body">
         <!-- Loading -->
         <div v-if="isLoading" class="start-screen">
-          <div class="start-icon">💬</div>
+          <div class="start-icon">
+            <Loader2 class="animate-spin" :size="48" color="#9ca3af" />
+          </div>
           <p>Carregando chatbot…</p>
         </div>
 
         <!-- Fatal error -->
         <div v-else-if="fatalError" class="start-screen">
-          <div class="start-icon">⚠️</div>
+          <div class="start-icon">
+            <AlertTriangle :size="48" color="#ef4444" />
+          </div>
           <p>Chatbot indisponível.</p>
         </div>
 
@@ -160,14 +172,15 @@ onMounted(loadProject);
             v-if="!r?.isRunning && r?.messages.length === 0"
             class="start-screen"
           >
-            <div class="start-icon">💬</div>
+            <div class="start-icon">
+              <Bot :size="48" color="#3b82f6" />
+            </div>
             <h3>Iniciar conversa</h3>
             <p>Clique em iniciar para começar</p>
           </div>
 
           <!-- Mensagens -->
           <div v-else class="messages">
-            <!-- (mensagens iguais às atuais) -->
             <div
               v-for="message in r!.messages"
               :key="message.id"
@@ -187,7 +200,11 @@ onMounted(loadProject);
                 class="message-bubble"
                 :class="{ 'message-error': ERROR_MESSAGES[message.content] }"
               >
-                <span v-if="ERROR_MESSAGES[message.content]">{{ ERROR_MESSAGES[message.content] }}</span>
+                <!-- Usamos um div.error-content para alinhar o ícone com o texto -->
+                <div v-if="ERROR_MESSAGES[message.content]" class="error-content">
+                  <AlertTriangle :size="16" />
+                  <span>{{ ERROR_MESSAGES[message.content] }}</span>
+                </div>
                 <div v-else class="rich-text-content" v-html="message.content"></div>
               </div>
             </div>
@@ -214,7 +231,9 @@ onMounted(loadProject);
               placeholder="Digite sua resposta…"
               @keyup.enter="sendText"
             />
-            <button @click="sendText" class="btn-send">📤</button>
+            <button @click="sendText" class="btn-send">
+              <Send :size="16" />
+            </button>
           </div>
 
           <!-- Restart -->
@@ -223,7 +242,7 @@ onMounted(loadProject);
             class="restart-area"
           >
             <button @click="startChat" class="btn-restart">
-              🔄 Recomeçar
+              <RefreshCw :size="14" /> Recomeçar
             </button>
           </div>
         </div>
@@ -319,6 +338,10 @@ onMounted(loadProject);
   font-weight: 700;
 
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-start {
@@ -458,9 +481,10 @@ onMounted(loadProject);
   word-wrap: break-word;
 }
 
-.message-error::before {
-  content: '⚠️';
-  margin-right: 6px;
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .message-bot .message-bubble {
@@ -587,6 +611,9 @@ onMounted(loadProject);
 
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-send:hover {
@@ -621,6 +648,10 @@ onMounted(loadProject);
 
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-restart:hover {
@@ -672,6 +703,14 @@ onMounted(loadProject);
     padding: 12px 16px;
     font-size: 14px;
   }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Formatação do Rich Text nas mensagens do Runtime */

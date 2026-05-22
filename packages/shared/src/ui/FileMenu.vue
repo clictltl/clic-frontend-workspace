@@ -67,7 +67,7 @@
 
         <!-- Grupo: Local -->
         <div class="menu-group">
-          <div class="menu-label">Local (PC)</div>
+          <div class="menu-label">Local</div>
           <div class="menu-item" @click="handleMenuClick(() => withGuard(openFromComputer))">
             <FolderInput :size="16" class="icon" /> Importar Projeto
           </div>

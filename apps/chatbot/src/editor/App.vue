@@ -20,6 +20,8 @@ import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
 import appLogo from '@/assets/logo_novelo_amarelo.svg'
+import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
+import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from 'lucide-vue-next';
 
 const store = useProjectStore();
 const projects = useProjects();
@@ -373,40 +375,22 @@ async function handleLoginSuccess() {
           }"
           @click.stop
         >
-          <button @click="createBlock('message')" class="block-menu-item">
-            <span class="block-icon" style="background: #3b82f6;">💬</span>
-            Mensagem
+          <button 
+            v-for="type in CREATABLE_BLOCKS" 
+            :key="type"
+            @click="createBlock(type)" 
+            class="block-menu-item"
+          >
+            <span class="block-icon" :style="{ background: BLOCK_CONFIG[type].color }">
+              <component :is="BLOCK_CONFIG[type].icon" :size="14" color="#ffffff" />
+            </span>
+            {{ BLOCK_CONFIG[type].title }}
           </button>
-          <button @click="createBlock('openQuestion')" class="block-menu-item">
-            <span class="block-icon" style="background: #10b981;">❓</span>
-            Pergunta Aberta
-          </button>
-          <button @click="createBlock('choiceQuestion')" class="block-menu-item">
-            <span class="block-icon" style="background: #f59e0b;">📊</span>
-            Múltipla Escolha
-          </button>
-          <button @click="createBlock('condition')" class="block-menu-item">
-            <span class="block-icon" style="background: #8b5cf6;">⚙️</span>
-            Condicional
-          </button>
-          <button @click="createBlock('setVariable')" class="block-menu-item">
-            <span class="block-icon" style="background: #06b6d4;">📝</span>
-            Definir Variável
-          </button>
-          <button @click="createBlock('math')" class="block-menu-item">
-            <span class="block-icon" style="background: #f97316;">🔢</span>
-            Operação Matemática
-          </button>
-          <button @click="createBlock('image')" class="block-menu-item">
-            <span class="block-icon" style="background: #ec4899;">🖼️</span>
-            Imagem
-          </button>
-          <button @click="createBlock('end')" class="block-menu-item">
-            <span class="block-icon" style="background: #ef4444;">✅</span>
-            Fim da Conversa
-          </button>
+
           <button v-if="hasCopiedBlock" @click="pasteBlock" class="block-menu-item paste-item">
-            <span class="block-icon" style="background: #6366f1;">📋</span>
+            <span class="block-icon" style="background: #6366f1;">
+              <ClipboardPaste :size="14" color="#ffffff" />
+            </span>
             Colar Bloco
           </button>
         </div>
@@ -424,15 +408,15 @@ async function handleLoginSuccess() {
     >
       <template v-if="contextMenuBlockId !== 'start'">
         <button @click="duplicateBlock" class="context-menu-item">
-          <span>⚡</span>
+          <Zap :size="16" />
           Duplicar
         </button>
         <button @click="copyBlock" class="context-menu-item">
-          <span>📋</span>
+          <Copy :size="16" />
           Copiar
         </button>
         <button @click="deleteBlockFromMenu" class="context-menu-item delete">
-          <span>🗑️</span>
+          <Trash2 :size="16" />
           Deletar
         </button>
       </template>
@@ -452,19 +436,19 @@ async function handleLoginSuccess() {
             :class="['tab', { active: activeTab === 'properties' }]"
             @click="activeTab = 'properties'"
           >
-            🔧 Bloco
+            <Wrench :size="16" /> Bloco
           </button>
           <button
             :class="['tab', { active: activeTab === 'variables' }]"
             @click="activeTab = 'variables'"
           >
-            🔢 Variáveis
+            <Box :size="16" /> Variáveis
           </button>
           <button
             :class="['tab', { active: activeTab === 'preview' }]"
             @click="activeTab = 'preview'"
           >
-            👁️ Preview
+            <Eye :size="16" /> Preview
           </button>
         </div>
 
@@ -708,6 +692,10 @@ body {
   color: #6b7280;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .tab:hover {

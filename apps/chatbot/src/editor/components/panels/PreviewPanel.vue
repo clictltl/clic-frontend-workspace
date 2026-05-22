@@ -12,13 +12,14 @@
  * - Avalia condições lógicas
  * - Interpola variáveis no texto (ex: {{nome}})
  * - Trata erros de fluxo (blocos não encontrados)
- * - ✅ Sempre inicia pelo bloco "start" (se existir)
+ * - Sempre inicia pelo bloco "start" (se existir)
  */
 
 import { ref, nextTick, watch, computed } from 'vue';
 import type { Block, Variable } from '@/shared/types/chatbot';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
+import { Play, Square, Maximize2, Minimize2, Bot, Send, RefreshCw } from 'lucide-vue-next';
 
 const props = defineProps<{
   blocks: Block[];
@@ -85,12 +86,12 @@ const ERROR_MESSAGES: Record<string, string> = {
   UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.',
 };
 
-// ✅ Para o chat e volta pra tela inicial limpa
+// Para o chat e volta pra tela inicial limpa
 function stopChat() {
   runtime.value.stopChat();
 }
 
-// ✅ Inicia uma nova sessão do chatbot SEMPRE pelo bloco start
+// Inicia uma nova sessão do chatbot SEMPRE pelo bloco start
 function startChat() {
   userInput.value = '';
   runtime.value.start();
@@ -123,10 +124,9 @@ function toggleFullscreen() {
 
 <template>
   <div class="preview-panel">
-    <!-- ✅ NOVA BARRA (mantendo tudo igual) -->
     <div class="preview-toolbar">
       <button class="btn-toolbar btn-run" @click="startChat">
-        ▶️ {{ r.isRunning ? 'Reiniciar' : 'Iniciar' }}
+        <Play :size="14" fill="currentColor" /> {{ r.isRunning ? 'Reiniciar' : 'Iniciar' }}
       </button>
 
       <button
@@ -134,26 +134,30 @@ function toggleFullscreen() {
         @click="stopChat"
         :disabled="!r.isRunning && r.messages.length  === 0"
       >
-        ■ Parar
+        <Square :size="14" fill="currentColor" /> Parar
+      </button>
+
+      <!-- Botão de expandir/recolher -->
+      <button
+        @click="toggleFullscreen"
+        class="btn-fullscreen"
+        :title="isFullscreen ? 'Sair da tela cheia' : 'Expandir tela cheia'"
+      >
+        <Minimize2 v-if="isFullscreen" :size="18" />
+        <Maximize2 v-else :size="18" />
       </button>
     </div>
 
-    <!-- Botão de expandir/recolher (mantido) -->
-    <button
-      @click="toggleFullscreen"
-      class="btn-fullscreen"
-      :title="isFullscreen ? 'Sair da tela cheia' : 'Expandir tela cheia'"
-    >
-      <span v-if="isFullscreen">✕</span>
-      <span v-else>⛶</span>
-    </button>
-
     <!-- Tela inicial antes de começar o teste -->
     <div v-if="!r.isRunning && r.messages.length === 0" class="start-screen">
-      <div class="start-icon">💬</div>
+      <div class="start-icon">
+        <Bot :size="48" color="#3b82f6" />
+      </div>
       <h3>Teste seu Chatbot</h3>
       <p>Clique em "Iniciar" para conversar com seu chatbot e testar o fluxo criado.</p>
-      <button @click="startChat" class="btn-start">▶️ Iniciar Teste</button>
+      <button @click="startChat" class="btn-start">
+        <Play :size="16" fill="currentColor" /> Iniciar Teste
+      </button>
     </div>
 
     <!-- Área do chat -->
@@ -211,12 +215,16 @@ function toggleFullscreen() {
           @keyup.enter="handleSendMessage"
           autofocus
         />
-        <button @click="handleSendMessage" class="btn-send">📤 Enviar</button>
+        <button @click="handleSendMessage" class="btn-send">
+          <Send :size="16" /> Enviar
+        </button>
       </div>
 
       <!-- Botão para reiniciar o chat -->
       <div v-if="!r.isWaitingForInput && r.currentChoices.length === 0 && !r.isRunning" class="restart-area">
-        <button @click="startChat" class="btn-restart">🔄 Recomeçar</button>
+        <button @click="startChat" class="btn-restart">
+          <RefreshCw :size="16" /> Recomeçar
+        </button>
       </div>
     </div>
   </div>
@@ -231,7 +239,6 @@ function toggleFullscreen() {
   position: relative;
 }
 
-/* ✅ Barra nova com botões */
 .preview-toolbar {
   position: sticky;
   top: 0;
@@ -253,6 +260,10 @@ function toggleFullscreen() {
   font-size: 13px;
   font-weight: 700;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-run{
@@ -281,12 +292,8 @@ function toggleFullscreen() {
   transform: none;
 }
 
-/* Botão de tela cheia (seu original) */
 .btn-fullscreen {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 100;
+  margin-left: auto; /* Empurra o botão todo para a direita */
   width: 36px;
   height: 36px;
   padding: 0;
@@ -294,7 +301,6 @@ function toggleFullscreen() {
   color: #6b7280;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -328,8 +334,10 @@ function toggleFullscreen() {
 }
 
 .start-icon {
-  font-size: 64px;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .start-screen h3 {
@@ -358,6 +366,10 @@ function toggleFullscreen() {
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-start:hover {
@@ -499,6 +511,10 @@ function toggleFullscreen() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-send:hover {
@@ -524,6 +540,10 @@ function toggleFullscreen() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-restart:hover {
