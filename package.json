@@ -1,7 +1,7 @@
 {
   "name": "clic-frontend-workspace",
   "private": true,
-  "workspaces":[
+  "workspaces": [
     "apps/*",
     "packages/*"
   ],
@@ -14,7 +14,8 @@
   "dependencies": {
     "@lucide/vue": "^1.16.0",
     "pinia": "^3.0.4",
-    "vue": "^3.5.25"
+    "vue": "^3.5.25",
+    "vue-i18n": "^11.4.4"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",

@@ -20,6 +20,7 @@ declare global {
       wp_rest_root: string;
       site_url: string;
       matomo_active: boolean;
+      locale: string;
       [key: string]: any; 
     };
   }

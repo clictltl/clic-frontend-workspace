@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import App from './App.vue';
-import { checkLogin, initMatomo, piniaInteractionHistoryPlugin } from '@clic/shared';
+import { checkLogin, initMatomo, piniaInteractionHistoryPlugin, i18n } from '@clic/shared';
 
 async function init() {
   // 1. Inicializa o Pinia globalmente ANTES de tudo (Evita crash de Lazy Evaluation)
@@ -18,6 +18,7 @@ async function init() {
   initMatomo({ app: 'Chatbot', context: 'Editor' });
   
   app.use(pinia);
+  app.use(i18n);
   app.mount('#app');
 }
 

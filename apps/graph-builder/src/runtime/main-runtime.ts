@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import RuntimeApp from './RuntimeApp.vue';
-import { initMatomo } from '@clic/shared';
+import { initMatomo, i18n } from '@clic/shared';
 
 const app = createApp(RuntimeApp);
 const pinia = createPinia();
@@ -9,4 +9,5 @@ const pinia = createPinia();
 initMatomo({ app: 'Graph Builder', context: 'Editor' });
 
 app.use(pinia);
+app.use(i18n);
 app.mount('#app'); // Em produção, o container pode ter outro ID

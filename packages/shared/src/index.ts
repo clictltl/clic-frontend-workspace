@@ -39,3 +39,7 @@ export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkMo
 
 // analytics
 export * from './analytics/matomo';
+
+// i18n
+export { i18n, setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER } from './i18n';
+export type { SupportedLocales } from './i18n';

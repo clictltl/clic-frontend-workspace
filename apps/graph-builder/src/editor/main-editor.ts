@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import '@/styles/index.css';
 import App from './App.vue';
-import { checkLogin, initMatomo, piniaInteractionHistoryPlugin } from '@clic/shared';
+import { checkLogin, initMatomo, piniaInteractionHistoryPlugin, i18n } from '@clic/shared';
 
 async function init() {
   // 1. Inicializa o Pinia globalmente ANTES do App
@@ -21,6 +21,7 @@ async function init() {
 
   // E avisamos o app para usar o Pinia que já estava rodando
   app.use(pinia);
+  app.use(i18n);
   app.mount('#app');
 }
 
