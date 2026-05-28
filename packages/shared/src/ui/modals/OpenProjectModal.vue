@@ -4,21 +4,21 @@
     
     <div class="modal-card wide">
       <div class="modal-header">
-        <h3>Abrir {{ itemName.toLowerCase() }}</h3>
-        <p>Selecione um projeto da lista para continuar editando.</p>
+        <h3>{{ $t('modals.open.title', { itemName }) }}</h3>
+        <p>{{ $t('modals.open.description') }}</p>
       </div>
 
       <div class="modal-body list-container">
         
         <!-- Loading da Lista -->
         <div v-if="loadingList" class="state-msg">
-          <span class="spinner"></span> Carregando projetos...
+          <span class="spinner"></span> {{ $t('modals.open.loading') }}
         </div>
 
         <!-- Lista Vazia -->
         <div v-else-if="projectsList.length === 0" class="state-msg empty">
           <FolderOpen :size="32" class="icon" />
-          Você ainda não tem projetos salvos.
+          {{ $t('modals.open.empty') }}
         </div>
 
         <!-- Lista de Projetos -->
@@ -34,7 +34,7 @@
             <FileText :size="18" class="item-icon text-gray" />
             <div class="item-info">
               <span class="item-name">{{ p.name }}</span>
-              <span class="item-date">Editado em: {{ formatDate(p.updated_at) }}</span>
+              <span class="item-date">{{ $t('modals.open.edited_at', { date: formatDate(p.updated_at) }) }}</span>
             </div>
           </li>
         </ul>
@@ -46,13 +46,13 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" @click="close">Cancelar</button>
+        <button class="btn-cancel" @click="close">{{ $t('global.cancel') }}</button>
         <button 
           class="btn-confirm" 
           :disabled="!selectedId || isOpening" 
           @click="openSelected"
         >
-          {{ isOpening ? 'Abrindo...' : 'Abrir' }}
+          {{ isOpening ? $t('global.opening') : $t('global.open') }}
         </button>
       </div>
     </div>
@@ -60,17 +60,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { FolderOpen, FileText, AlertTriangle } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   projectsStore: any;
   itemName?: string;
-}>(), {
-  itemName: 'Projeto'
-});
+}>();
 
 const emit = defineEmits(['close']);
+
+const { t, locale } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project').toLowerCase()
+);
 
 // Store
 const projectsList = props.projectsStore.projectsList
@@ -118,7 +123,7 @@ async function openSelected() {
 function formatDate(dateStr: string) {
   try {
     const d = new Date(dateStr);
-    return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    return d.toLocaleString(locale.value, { dateStyle: 'short', timeStyle: 'short' });
   } catch {
     return dateStr;
   }

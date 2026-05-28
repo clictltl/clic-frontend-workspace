@@ -9,7 +9,7 @@
 
     <!-- Estado: Usuário NÃO logado -->
     <button v-else-if="!auth.state.loggedIn" class="btn-login" @click="auth.state.showLoginModal = true">
-      <User :size="16" class="icon" /> Entrar
+      <User :size="16" class="icon" /> {{ $t('auth.login') }}
     </button>
 
     <!-- Estado: Usuário LOGADO -->
@@ -26,7 +26,7 @@
       <transition name="fade-slide">
         <div v-if="showUserMenu" class="user-dropdown">
           <div class="menu-item danger" @click="logout">
-            <LogOut :size="16" class="icon" /> Sair
+            <LogOut :size="16" class="icon" /> {{ $t('auth.logout') }}
           </div>
         </div>
       </transition>
@@ -38,19 +38,19 @@
         <div class="modal-overlay" @click="closeModal"></div>
         <div class="modal-card">
           <div class="modal-header">
-            <h3>Bem-vindo de volta</h3>
-            <p>Faça login para salvar seus projetos na nuvem.</p>
+            <h3>{{ $t('auth.welcome_back') }}</h3>
+            <p>{{ $t('auth.login_prompt') }}</p>
           </div>
 
           <form @submit.prevent="submitLogin" class="login-form">
             <div class="form-group">
-              <label>Usuário ou E-mail</label>
-              <input ref="usernameInput" v-model="username" type="text" required placeholder="Digite seu usuário" />
+              <label>{{ $t('auth.user_or_email') }}</label>
+              <input ref="usernameInput" v-model="username" type="text" required :placeholder="$t('auth.type_user')" />
             </div>
 
             <div class="form-group">
-              <label>Senha</label>
-              <input v-model="password" type="password" required placeholder="Digite sua senha" />
+              <label>{{ $t('auth.password') }}</label>
+              <input v-model="password" type="password" required :placeholder="$t('auth.type_password')" />
             </div>
 
             <p v-if="error" class="error-msg">
@@ -58,10 +58,10 @@
             </p>
 
             <div class="form-actions">
-              <button type="button" class="btn-cancel" @click="closeModal">Cancelar</button>
+              <button type="button" class="btn-cancel" @click="closeModal">{{ $t('global.cancel') }}</button>
               <button type="submit" class="btn-confirm" :disabled="loading">
                 <span v-if="loading" class="spinner-sm"></span>
-                {{ loading ? 'Entrando...' : 'Entrar' }}
+                {{ loading ? $t('auth.logging_in') : $t('auth.login') }}
               </button>
             </div>
           </form>
@@ -77,6 +77,9 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
 import { User, LogOut, ChevronDown, AlertTriangle } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Dispara evento para o App pai (ex: Chatbot, Graph Builder) lidar com reload/backup
 const emit = defineEmits(['login-success']);
@@ -144,11 +147,11 @@ function getUserInitials(name: string = '') {
 
 // --- Lógica de Auth ---
 const ERROR_MESSAGES: Record<string, string> = {
-  'MISSING_CREDENTIALS': 'Preencha usuário e senha.',
-  'LOGIN_FAILED': 'Usuário ou senha incorretos.',
-  'TOO_MANY_ATTEMPTS': 'Muitas tentativas. Aguarde alguns minutos.',
-  'LGPD_REQUIRED': 'Acesso bloqueado. Acesse clic.tltlab.org pelo navegador para aceitar os Termos de Uso.',
-  'ACCOUNT_BLOCKED': 'Acesso Bloqueado: Procure seu professor para regularizar sua conta.'
+  'MISSING_CREDENTIALS': 'auth.fill_fields',
+  'LOGIN_FAILED': 'auth.invalid_credentials',
+  'TOO_MANY_ATTEMPTS': 'auth.too_many_attempts',
+  'LGPD_REQUIRED': 'auth.blocked_terms',
+  'ACCOUNT_BLOCKED': 'auth.blocked_teacher'
 }
 
 async function submitLogin() {
@@ -172,9 +175,10 @@ async function submitLogin() {
       return;
     }
 
-    error.value = ERROR_MESSAGES[data.error] || 'Erro ao fazer login.'
+    const errorKey = ERROR_MESSAGES[data.error];
+    error.value = errorKey ? t(errorKey) : t('auth.login_error');
   } catch (err: any) {
-    error.value = err?.message || 'Erro inesperado';
+    error.value = err?.message || t('global.unexpected_error');
   } finally {
     loading.value = false;
   }

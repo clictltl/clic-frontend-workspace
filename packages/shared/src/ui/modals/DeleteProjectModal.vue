@@ -8,16 +8,17 @@
         <div class="icon-container">
           <Trash2 :size="24" color="#dc2626" />
         </div>
-        <h3>Excluir {{ itemName }}</h3>
+        <h3>{{ $t('modals.delete.title', { itemName }) }}</h3>
         
-        <p v-if="currentProjectName">
-          Tem certeza de que deseja excluir o {{ itemName.toLowerCase() }} <strong>"{{ currentProjectName }}"</strong>?
-        </p>
+        <p
+          v-if="currentProjectName"
+          v-html="$t('modals.delete.confirm_named', { itemName: itemName.toLowerCase(), projectName: currentProjectName })"
+        />
         <p v-else>
-          Tem certeza de que deseja excluir este {{ itemName.toLowerCase() }}?
+          {{ $t('modals.delete.confirm_generic', { itemName: itemName.toLowerCase() }) }}
         </p>
         
-        <p class="warning-text">Esta ação é irreversível e os dados não poderão ser recuperados.</p>
+        <p class="warning-text">{{ $t('modals.delete.warning') }}</p>
       </div>
 
       <div class="modal-body">
@@ -27,13 +28,13 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" @click="close">Cancelar</button>
+        <button class="btn-cancel" @click="close">{{ $t('global.cancel') }}</button>
         <button 
           class="btn-danger" 
           @click="confirmDelete" 
           :disabled="loading"
         >
-          {{ loading ? 'Excluindo...' : 'Sim, Excluir' }}
+          {{ loading ? $t('global.deleting') : $t('modals.delete.btn_confirm') }}
         </button>
       </div>
     </div>
@@ -41,23 +42,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Trash2, AlertTriangle } from '@lucide/vue';
 import { useToast } from '../../ui/useToast';
+import { useI18n } from 'vue-i18n';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   projectsStore: any;
   itemName?: string;
-}>(), {
-  itemName: 'Projeto'
-});
+}>();
 
 const emit = defineEmits(["close", "deleted"]);
 
 const toast = useToast();
+const { t } = useI18n();
 const currentProjectId = props.projectsStore.currentProjectId;
 const currentProjectName = props.projectsStore.currentProjectName;
 const error = props.projectsStore.error;
+const itemName = computed(
+  () => props.itemName || t('global.project')
+);
 
 const loading = ref(false);
 
@@ -67,7 +71,7 @@ function close() {
 
 async function confirmDelete() {
   if (!currentProjectId.value) {
-    error.value = "Nenhum projeto selecionado.";
+    error.value = t('modals.delete.no_selection');
     return;
   }
 
@@ -78,15 +82,15 @@ async function confirmDelete() {
     const success = await props.projectsStore.deleteProject(currentProjectId.value);
 
     if (success) {
-      toast.success("Projeto excluído com sucesso.");
+      toast.success(t('modals.delete.success'));
       emit("deleted");
       emit("close");
     } else {
       // Se a função deleteProject não setou o error ref, definimos um padrão
-      if (!error.value) error.value = "Erro ao excluir o projeto.";
+      if (!error.value) error.value = t('modals.delete.error');
     }
   } catch (e: any) {
-    error.value = e.message || "Erro inesperado.";
+    error.value = e.message || t('global.unexpected_error');
   } finally {
     loading.value = false;
   }

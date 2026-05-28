@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import type { ClicAsset } from '../types/asset';
+import { i18n } from '../i18n';
 
 interface ExportOptions {
   filename?: string;
@@ -14,7 +15,7 @@ export async function exportClicFile(
   assetStore: any,  // A instância do useSharedAssetStore
   options: ExportOptions = {}
 ) {
-  const { filename = 'projeto', extension = '.clic' } = options;
+  const { filename = i18n.global.t('global.project').toLowerCase(), extension = '.clic' } = options;
   
   // Clona o projeto para não mutar o estado vivo da aplicação
   const projectToSave = JSON.parse(JSON.stringify(projectData));
@@ -50,7 +51,7 @@ export async function exportClicFile(
           assetsFolder.file(`${id}.${ext}`, blob);
         }
       } catch (err) {
-        console.error(`Erro ao processar asset ${id} para exportação:`, err);
+        console.error(i18n.global.t('messages.export_asset_error', { id }), err);
       }
     });
 
@@ -90,7 +91,7 @@ export async function importClicFile(
   const zip = await JSZip.loadAsync(file);
   
   const jsonFile = zip.file('project.json');
-  if (!jsonFile) throw new Error('Arquivo project.json não encontrado no pacote.');
+  if (!jsonFile) throw new Error(i18n.global.t('messages.missing_project_json'));
   
   const jsonStr = await jsonFile.async('string');
   const project = JSON.parse(jsonStr);

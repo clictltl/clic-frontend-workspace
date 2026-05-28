@@ -5,16 +5,15 @@
         <Unlink :size="32" color="#dc2626" />
       </div>
       
-      <h3>Link Inválido ou Expirado</h3>
+      <h3>{{ $t('modals.invalid_link.title') }}</h3>
       
-      <p>
-        Não foi possível carregar o {{ itemName.toLowerCase() }} compartilhado. <br>
-        O link pode estar incorreto, ter sido revogado pelo proprietário ou o {{ itemName.toLowerCase() }} foi excluído.
-      </p>
+      <p
+        v-html="$t('modals.invalid_link.description', { itemName })"
+      />
 
       <div class="modal-actions">
         <button class="btn-primary" @click="$emit('close')">
-          Entendi, criar novo {{ itemName.toLowerCase() }}
+          {{ $t('modals.invalid_link.btn_create', { itemName }) }}
         </button>
       </div>
     </div>
@@ -22,13 +21,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Unlink } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 
-withDefaults(defineProps<{
+const props = defineProps<{
   itemName?: string;
-}>(), {
-  itemName: 'projeto'
-});
+}>();
+
+const { t } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project').toLowerCase()
+);
 
 defineEmits(['close']);
 </script>

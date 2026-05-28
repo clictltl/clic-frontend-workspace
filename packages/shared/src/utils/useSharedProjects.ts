@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import type { ClicAsset } from '@clic/shared';
 import { useAuth } from '../auth/auth';
+import { i18n } from '../i18n';
 
 export interface UseProjectsConfig {
   appSlug: string; // Ex: 'chatbot' ou 'graph-builder'
@@ -19,7 +20,7 @@ async function clicFetch(url: string, options?: RequestInit) {
   if ((res.status === 401 || res.status === 403) && window.CLIC_AUTH) {
     const auth = useAuth();
     auth.state.showLoginModal = true; // Abre o modal na tela automaticamente
-    throw new Error('Sessão expirada. Faça login novamente para continuar.');
+    throw new Error(i18n.global.t('messages.session_expired'));
   }
   
   return res;
@@ -65,7 +66,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       try {
         // Recupera o Blob da memória
         const blob = await config.assetStore.getAssetBlob(asset.id);
-        if (!blob) throw new Error(`Arquivo não encontrado na memória: ${asset.originalName}`);
+        if (!blob) throw new Error( i18n.global.t('messages.file_not_in_memory', { name: asset.originalName }));
 
         // DESDUPLICAÇÃO GLOBAL
         let existingMedia = null;
@@ -111,7 +112,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
           const data = await res.json();
           
           if (!res.ok || !data.success) {
-            throw new Error(`Upload falhou: ${data.error || res.statusText}`);
+            throw new Error(i18n.global.t('messages.upload_failed', { error: data.error || res.statusText }));
           }
           
           wpMedia = data;
@@ -127,7 +128,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
       } catch (err: any) {
         console.error(`Falha no upload de ${asset.originalName}:`, err);
-        throw new Error(`Erro ao salvar imagem ${asset.originalName}: ${err.message}`);
+        throw new Error(i18n.global.t('messages.save_image_error', { name: asset.originalName, error: err.message}));
       }
     });
 
@@ -343,7 +344,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'Erro ao carregar preview. Verifique as permissões.';
+        error.value = data.error || i18n.global.t('messages.preview_load_error');
         return false;
       }
 
@@ -354,7 +355,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
       // Configura como Fantasma (Sem ID)
       currentProjectId.value = null;
-      currentProjectName.value = data.project.name || 'Projeto do Aluno';
+      currentProjectName.value = data.project.name || i18n.global.t('messages.student_project');
 
       return true;
 
@@ -427,7 +428,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'Erro ao carregar compartilhamento';
+        error.value = data.error || i18n.global.t('messages.share_load_error');
         return false;
       }
 
@@ -677,7 +678,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     try {
       const res = await clicFetch(`${pluginRestRoot}forms/${token}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Erro ao carregar formulário');
+      if (!data.success) throw new Error(data.error || i18n.global.t('messages.form_load_error'));
       return data; // Retorna { form: { reference_id, config }, project: { data } }
     } catch (err: any) {
       error.value = err.message;
@@ -697,7 +698,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         body: JSON.stringify({ data: answerData })
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Erro ao enviar resposta');
+      if (!data.success) throw new Error(data.error || i18n.global.t('messages.submit_response_error'));
       return true;
     } catch (err: any) {
       error.value = err.message;
@@ -717,7 +718,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         headers: { 'X-WP-Nonce': nonce }
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Erro ao buscar respostas');
+      if (!data.success) throw new Error(data.error || i18n.global.t('messages.fetch_responses_error'));
       return data.answers || []; // [{ id, data, created_at, reference_id }, ...]
     } catch (err: any) {
       console.error(err);

@@ -6,28 +6,34 @@
         <Save :size="24" color="#2563eb" />
       </div>
       
-      <h3>Salve o {{ itemName.toLowerCase() }} primeiro</h3>
+      <h3>{{ $t('modals.need_save.title', { itemName }) }}</h3>
       
       <p>
-        Para compartilhar ou publicar, seu {{ itemName.toLowerCase() }} precisa estar salvo na nuvem.
+        {{ $t('modals.need_save.description', { itemName }) }}
       </p>
 
       <div class="modal-actions">
-        <button class="btn-cancel" @click="$emit('close')">Cancelar</button>
-        <button class="btn-confirm" @click="$emit('save')">Salvar agora</button>
+        <button class="btn-cancel" @click="$emit('close')">{{ $t('global.cancel') }}</button>
+        <button class="btn-confirm" @click="$emit('save')">{{ $t('modals.need_save.btn_save') }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Save } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 
-withDefaults(defineProps<{
+const props = defineProps<{
   itemName?: string;
-}>(), {
-  itemName: 'projeto'
-});
+}>();
+
+const { t } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project').toLowerCase()
+);
 
 defineEmits(['close', 'save']);
 </script>

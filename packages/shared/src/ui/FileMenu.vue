@@ -7,7 +7,7 @@
       <!-- Botão Gatilho -->
       <button class="menu-trigger" :class="{ 'active': open }" @click="toggleMenu">
         <Folder :size="16" class="icon-left" />
-        <span class="label">Arquivo</span>
+        <span class="label">{{ $t('file_menu.title') }}</span>
         <ChevronDown :size="16" class="chevron" />
       </button>
 
@@ -15,8 +15,8 @@
       <div class="project-info">
         <div class="separator-vertical"></div>
         <FileText :size="16" class="icon" />
-        <span class="name" :title="currentProjectName || 'Novo projeto'">{{ currentProjectName || 'Novo projeto' }}</span>
-        <span v-if="hasUnsavedChanges" class="unsaved-dot" title="Alterações não salvas"></span>
+        <span class="name" :title="currentProjectName || t('file_menu.new_project')">{{ currentProjectName || $t('file_menu.new_project') }}</span>
+        <span v-if="hasUnsavedChanges" class="unsaved-dot" :title="t('file_menu.unsaved_changes')"></span>
       </div>
 
     </div>
@@ -28,7 +28,7 @@
         <!-- Grupo: Novo -->
         <div class="menu-group">
           <div class="menu-item" @click="handleMenuClick(() => withGuard(newProject))">
-            <FilePlus :size="16" class="icon" /> Novo projeto
+            <FilePlus :size="16" class="icon" /> {{ $t('file_menu.new_project') }}
           </div>
         </div>
         
@@ -36,18 +36,18 @@
 
         <!-- Grupo: WordPress -->
         <div class="menu-group" v-if="showWordPressItems">
-          <div class="menu-label">Nuvem</div>
+          <div class="menu-label">{{ $t('file_menu.cloud') }}</div>
           <div class="menu-item" @click="handleMenuClick(saveProject)">
-            <Save :size="16" class="icon" /> Salvar
+            <Save :size="16" class="icon" /> {{ $t('global.save') }}
           </div>
           <div class="menu-item" @click="handleMenuClick(openSaveAs)">
-            <Bookmark :size="16" class="icon" /> Salvar como...
+            <Bookmark :size="16" class="icon" /> {{ $t('file_menu.save_as') }}
           </div>
           <div class="menu-item" @click="handleMenuClick(() => withGuard(openList))">
-            <FolderOpen :size="16" class="icon" /> Abrir...
+            <FolderOpen :size="16" class="icon" /> {{ $t('file_menu.open') }}
           </div>
           <div class="menu-item danger" @click="handleMenuClick(openDeleteModal)">
-            <Trash2 :size="16" class="icon" /> Excluir...
+            <Trash2 :size="16" class="icon" /> {{ $t('file_menu.delete') }}
           </div>
         </div>
         
@@ -56,10 +56,10 @@
         <!-- Grupo: Publicação -->
          <div class="menu-group" v-if="showWordPressItems">
           <div class="menu-item" @click="handleMenuClick(openShare)">
-            <Link :size="16" class="icon" /> Compartilhar...
+            <Link :size="16" class="icon" /> {{ $t('file_menu.share') }}
           </div>
           <div class="menu-item highlight" @click="handleMenuClick(openPublish)">
-            <Rocket :size="16" class="icon" /> Publicar
+            <Rocket :size="16" class="icon" /> {{ $t('file_menu.publish') }}
           </div>
         </div>
 
@@ -67,12 +67,12 @@
 
         <!-- Grupo: Local -->
         <div class="menu-group">
-          <div class="menu-label">Local</div>
+          <div class="menu-label">{{ $t('file_menu.local') }}</div>
           <div class="menu-item" @click="handleMenuClick(() => withGuard(openFromComputer))">
-            <FolderInput :size="16" class="icon" /> Importar Projeto
+            <FolderInput :size="16" class="icon" /> {{ $t('file_menu.import_project') }}
           </div>
           <div class="menu-item" @click="handleMenuClick(saveToComputer)">
-            <Download :size="16" class="icon" /> Exportar Projeto
+            <Download :size="16" class="icon" /> {{ $t('file_menu.export_project') }}
           </div>
         </div>
 
@@ -102,6 +102,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuth } from '../auth/auth';
 import { useToast } from './useToast';
 import { exportClicFile, importClicFile } from '../utils/projectIO'
@@ -136,11 +137,16 @@ const props = withDefaults(defineProps<{
   hasUnsavedChanges?: boolean;
   getProjectData: () => any;
 }>(), {
-  itemName: 'Projeto',
   fileExtension: '.clic',
   fileAccept: '.clic,.zip,.json',
   hasUnsavedChanges: false
 });
+
+const { t } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project')
+);
 
 const emit = defineEmits(['new-project', 'import-project']);
 
@@ -274,7 +280,7 @@ async function handleUnsavedSave() {
   const saved = await props.projectsStore.saveProject();
 
  if (saved) {
-    toast.success("Salvo com sucesso!");
+    toast.success(t('file_menu.success_save_generic'));
 
     // Se tinha algo pendente (ex: abrir novo projeto), executa agora
     if (pendingAction.value) {
@@ -282,7 +288,7 @@ async function handleUnsavedSave() {
       pendingAction.value = null;
     }
   } else {
-    toast.error("Erro ao salvar.");
+    toast.error(t('global.error_saving'));
   }
 }
 
@@ -309,13 +315,13 @@ async function saveProject() {
     const success = await props.projectsStore.saveProject();
 
     if (success) {
-      toast.success('Projeto salvo com sucesso!');
+      toast.success(t('file_menu.success_save_project'));
     } else {
-      toast.error(props.projectsStore.error.value || 'Erro ao salvar projeto.');
+      toast.error(props.projectsStore.error.value || t('file_menu.error_save_project'));
     }
   } catch (err) {
     console.error(err);
-    toast.error('Ocorreu um erro inesperado.');
+    toast.error(t('global.unexpected_error'));
   }
 }
 
@@ -328,7 +334,7 @@ function openSaveAs() {
 // Sucesso do modal Salvar Como
 function handleSaveAsSuccess() {
   // Feedback visual sempre
-  toast.success('Projeto salvo com sucesso!'); 
+  toast.success(t('file_menu.success_save_project')); 
   
   // Prioridade 1: Havia uma ação pendente (vinda do Guard de "Não Salvo")?
   // Ex: Usuário clicou em "Novo Projeto" -> "Salvar" -> "Digitou Nome" -> Sucesso
@@ -411,20 +417,20 @@ async function handleImport(event: Event) {
     // Rompe vínculo com projeto salvo na nuvem
     props.projectsStore.currentProjectId.value = null;
     props.projectsStore.currentProjectName.value = '';
-    toast.success('Projeto carregado com sucesso!');
+    toast.success(t('file_menu.success_load'));
   } catch (err: any) {
     console.error(err);
-    toast.error('Erro ao carregar o projeto.');
+    toast.error(t('file_menu.error_load'));
   }
 }
 
 async function saveToComputer() {
   try {
     await exportClicFile(props.getProjectData(), props.assetStore, {
-      filename: props.projectsStore.currentProjectName.value || `meu-${props.itemName.toLowerCase()}`,
+      filename: props.projectsStore.currentProjectName.value || `meu-${itemName.value.toLowerCase()}`,
       extension: props.fileExtension
     });
-    toast.success(`${props.itemName} exportado com sucesso!`);
+    toast.success( t('file_menu.success_export', { itemName: itemName.value }));
     if (!showWordPressItems.value) {
       if (typeof props.projectsStore.markAsSaved === 'function') {
         props.projectsStore.markAsSaved();
@@ -432,7 +438,7 @@ async function saveToComputer() {
     }
   } catch (err) {
     console.error(err);
-    toast.error(`Erro ao exportar ${props.itemName.toLowerCase()}.`);
+    toast.error(t('file_menu.error_export', { itemName: itemName.value.toLowerCase() }));
   }
 }
 </script>

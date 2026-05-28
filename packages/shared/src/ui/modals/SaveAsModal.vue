@@ -9,7 +9,7 @@
       </div>
 
       <div class="modal-body">
-        <label>Nome do {{ itemLabel }}</label>
+        <label>{{ $t('modals.save_as.label_name', { itemName: itemLabel }) }}</label>
         <input 
           ref="inputRef"
           v-model="projectName" 
@@ -24,9 +24,9 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" @click="$emit('close')">Cancelar</button>
+        <button class="btn-cancel" @click="$emit('close')">{{ $t('global.cancel') }}</button>
         <button class="btn-confirm" @click="handleConfirm" :disabled="loading">
-          {{ loading ? 'Salvando...' : confirmText }}
+          {{ loading ? $t('global.saving') : confirmText }}
         </button>
       </div>
     </div>
@@ -36,17 +36,19 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { AlertTriangle } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 
 const props = withDefaults(defineProps<{
   mode?: 'create' | 'copy';
-  itemName?: string; // Ex: 'Chatbot' ou 'Grafo' (Padrão: 'Projeto')
-  projectsStore: any; // Instância do useSharedProjects enviada pelo FileMenu
+  itemName?: string;
+  projectsStore: any;
 }>(), {
-  mode: 'create',
-  itemName: 'Projeto'
+  mode: 'create'
 });
 
 const emit = defineEmits(['close', 'success']);
+
+const { t } = useI18n();
 
 const projectName = ref('');
 const loading = ref(false);
@@ -54,25 +56,25 @@ const error = ref<string | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 
 // Lógica de Texto Dinâmico Genérica
-const itemLabel = computed(() => props.itemName);
+const itemLabel = computed(() => props.itemName ?? t('global.project'));
 const isCreateMode = computed(() => props.mode === 'create');
 
 const titleText = computed(() => 
-  isCreateMode.value ? `Salvar ${itemLabel.value}` : 'Salvar como...'
+  isCreateMode.value ? t('modals.save_as.title_new', { itemName: itemLabel.value }) : t('modals.save_as.title_copy')
 );
 
 const descriptionText = computed(() => 
   isCreateMode.value 
-    ? `Dê um nome para o seu novo ${itemLabel.value.toLowerCase()} para salvá-lo.` 
-    : `Crie uma cópia deste ${itemLabel.value.toLowerCase()} com um novo nome.`
+    ? t('modals.save_as.desc_new', { itemName: itemLabel.value.toLowerCase() })
+    : t('modals.save_as.desc_copy', { itemName: itemLabel.value.toLowerCase() })
 );
 
 const placeholderText = computed(() => 
-  isCreateMode.value ? `Ex: Meu ${itemLabel.value}` : `Ex: ${itemLabel.value} v2`
+  isCreateMode.value ? t('modals.save_as.placeholder_new', { itemName: itemLabel.value }) : t('modals.save_as.placeholder_copy', { itemName: itemLabel.value })
 );
 
 const confirmText = computed(() => 
-  isCreateMode.value ? 'Salvar' : 'Criar Cópia'
+  isCreateMode.value ? t('global.save') : t('modals.save_as.btn_copy')
 );
 
 onMounted(() => {
@@ -90,7 +92,7 @@ onMounted(() => {
 
 async function handleConfirm() {
   if (!projectName.value.trim()) {
-    error.value = "O nome não pode estar vazio.";
+    error.value = t('modals.save_as.error_empty');
     return;
   }
 
@@ -105,10 +107,10 @@ async function handleConfirm() {
       emit('success');
       emit('close');
     } else {
-      error.value = props.projectsStore.error?.value || "Erro ao salvar.";
+      error.value = props.projectsStore.error?.value || t('global.error_saving');
     }
   } catch (e: any) {
-    error.value = e.message || "Erro inesperado.";
+    error.value = e.message || t('global.unexpected_error');
   } finally {
     loading.value = false;
   }

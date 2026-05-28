@@ -11,9 +11,9 @@
         
         <!-- Título Dinâmico -->
         <h3>
-          <span v-if="isActive">Compartilhamento Ativo</span>
-          <span v-else-if="exists">Compartilhamento Desativado</span>
-          <span v-else>Compartilhar {{ itemName }}</span>
+          <span v-if="isActive">{{ $t('modals.share.status_active') }}</span>
+          <span v-else-if="exists">{{ $t('modals.share.status_inactive') }}</span>
+          <span v-else>{{ $t('modals.share.title', { itemName }) }}</span>
         </h3>
       </div>
 
@@ -21,7 +21,7 @@
         
         <div v-if="loading" class="state-container">
           <span class="spinner"></span>
-          <span>{{ loadingText }}</span>
+          <span>{{ $t(loadingKey) }}</span>
         </div>
 
         <div v-else-if="error" class="error-msg">
@@ -32,13 +32,13 @@
         <div v-else-if="exists || isActive" class="share-content">
           
           <p class="description-text" v-if="isActive">
-            O link está ativo. Qualquer pessoa com a URL abaixo pode acessar o {{ itemName.toLowerCase() }}.
+            {{ $t('modals.share.desc_active', { itemName: itemName.toLowerCase() }) }}
           </p>
           <p class="description-text warning" v-else>
-            O link está desativado. Reative para permitir o acesso novamente.
+            {{ $t('modals.share.desc_inactive') }}
           </p>
 
-          <label class="input-label">Link Público</label>
+          <label class="input-label">{{ $t('modals.share.public_link') }}</label>
           <div class="input-group" :class="{ 'disabled': !isActive }">
             <input
               ref="inputRef"
@@ -51,7 +51,7 @@
             <button 
               class="btn-copy" 
               @click="copyToClipboard" 
-              title="Copiar"
+              :title="$t('global.copy')"
               :disabled="!isActive"
             >
               <Copy :size="18" class="icon" />
@@ -66,7 +66,7 @@
               class="btn-danger-outline" 
               @click="handleUnshare"
             >
-              Desativar Link
+              {{ $t('modals.share.btn_disable') }}
             </button>
 
             <button 
@@ -74,11 +74,11 @@
               class="btn-success-outline" 
               @click="handleReactivate"
             >
-              Reativar Link
+              {{ $t('modals.share.btn_reactivate') }}
             </button>
 
             <button class="btn-primary" @click="$emit('close')">
-              Concluído
+              {{ $t('global.done') }}
             </button>
           </div>
         </div>
@@ -86,16 +86,15 @@
         <!-- MODO CRIAÇÃO (Primeira vez apenas) -->
         <div v-else class="empty-state">
           <p class="description-text">
-            Nenhum link gerado anteriormente.
-            Gere um link para permitir que outros visualizem este {{ itemName.toLowerCase() }}.
+            {{ $t('modals.share.empty', { itemName: itemName.toLowerCase() }) }}
           </p>
 
           <div class="actions-center">
             <button class="btn-secondary" @click="$emit('close')" style="margin-right: 10px;">
-              Cancelar
+              {{ $t('global.cancel') }}
             </button>
             <button class="btn-primary large" @click="handleGenerateLink">
-              Gerar Link
+              {{ $t('modals.share.btn_generate') }}
             </button>
           </div>
         </div>
@@ -106,26 +105,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Link, AlertTriangle, Copy } from '@lucide/vue';
 import { useToast } from '@clic/shared';
+import { useI18n } from 'vue-i18n';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   projectsStore: any;
   itemName?: string;
-}>(), {
-  itemName: 'Projeto'
-});
+}>();
 
 const emit = defineEmits(['close']);
 const toast = useToast();
+
+const { t } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project')
+);
 const error = props.projectsStore.error;
 
 const shareUrl = ref<string | null>(null);
 const isActive = ref(false);
 const exists = ref(false);
 const loading = ref(true);
-const loadingText = ref('Verificando...');
+const loadingKey = ref('modals.share.checking');
 const inputRef = ref<HTMLInputElement | null>(null);
 
 onMounted(async () => {
@@ -150,16 +154,16 @@ onMounted(async () => {
 
 // Ação Inicial (Primeira vez)
 async function handleGenerateLink() {
-  await executeShare("Link gerado!");
+  await executeShare(t('modals.share.success_generated'));
 }
 
 // Ação de Reativar (Mesma API, mensagem diferente)
 async function handleReactivate() {
-  await executeShare("Link reativado com sucesso!");
+  await executeShare(t('modals.share.success_reactivated'));
 }
 
 async function executeShare(successMsg: string) {
-  loadingText.value = 'Processando...';
+  loadingKey.value = 'modals.share.processing';
   loading.value = true;
   try {
     const res = await props.projectsStore.shareProject();
@@ -175,15 +179,15 @@ async function executeShare(successMsg: string) {
 }
 
 async function handleUnshare() {
-  if (!confirm("O link ficará inacessível. Você poderá reativá-lo depois.")) return;
+  if (!confirm(t('modals.share.warning_disable'))) return;
 
-  loadingText.value = 'Desativando...';
+  loadingKey.value = 'modals.share.disabling';
   loading.value = true;
   try {
     const success = await props.projectsStore.unshareProject();
     if (success) {
       isActive.value = false;
-      toast.success("Link desativado.");
+      toast.success(t('modals.share.success_disabled'));
     }
   } finally {
     loading.value = false;
@@ -195,7 +199,7 @@ function handleInputClick() { if(isActive.value) inputRef.value?.select(); }
 async function copyToClipboard() {
   if (!shareUrl.value || !isActive.value) return;
   await navigator.clipboard.writeText(shareUrl.value);
-  toast.success("Copiado!");
+  toast.success(t('global.copied'));
   handleInputClick();
 }
 </script>

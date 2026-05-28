@@ -4,7 +4,7 @@
       <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
       <h1 v-else class="toolbar-title">{{ title }}</h1>
       
-      <span class="made-by-text">feito pelo</span>
+      <span class="made-by-text">{{ $t('header.made_by') }}</span>
       
       <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
         <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
@@ -14,7 +14,7 @@
     <div class="toolbar-right">
       <!-- Menu de Idiomas -->
       <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper">
-        <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" title="Idioma / Language">
+        <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" :title="t('header.language')">
           <Languages :size="20" />
         </button>
         
@@ -36,10 +36,10 @@
 
       <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn" rel="noopener noreferrer">
         <BookOpen :size="16" />
-        Guia
+        {{ $t('header.guide') }}
       </a>
       
-      <button class="info-btn" @click="isInfoModalOpen = true" title="Informações e Contato">
+      <button class="info-btn" @click="isInfoModalOpen = true" :title="t('header.info_contact')">
         <Info :size="20" />
       </button>
 
@@ -53,24 +53,24 @@
     <div v-if="isInfoModalOpen" class="about-modal-overlay" @click.self="isInfoModalOpen = false">
       <div class="about-modal-content">
         <div class="about-modal-header">
-          <h2>Sobre o CLIC</h2>
+          <h2>{{ $t('header.about_clic') }}</h2>
           <button class="about-close-btn" @click="isInfoModalOpen = false"><X :size="20" /></button>
         </div>
         
         <div class="about-modal-body">
-          <p>Esta ferramenta faz parte do <strong>CLIC</strong>, uma iniciativa do Transformative Learning Technologies Lab (TLTL) da Universidade de Columbia.</p>
+          <p v-html="$t('header.about_desc')" />
           
           <template v-if="!isLoggedIn">
-            <h3 class="about-section-title"><Lock :size="18" /> Acesso Completo</h3>
-            <p>Você está utilizando a ferramenta no modo livre. Caso seja um educador e queira salvar seus projetos na nuvem, criar turmas e acessar nossas Sequências Didáticas, solicite a sua conta através do nosso e-mail de contato.</p>
+            <h3 class="about-section-title"><Lock :size="18" /> {{ $t('header.full_access') }}</h3>
+            <p>{{ $t('header.full_access_desc') }}</p>
           </template>
 
-          <h3 class="about-section-title"><Wrench :size="18" /> Bugs e Sugestões</h3>
-          <p>Sua contribuição é muito importante para a evolução contínua deste projeto. Se você encontrou algum erro na ferramenta ou quer nos enviar feedbacks e sugestões de melhoria, não hesite em nos contatar.</p>
+          <h3 class="about-section-title"><Wrench :size="18" /> {{ $t('header.bugs_suggestions') }}</h3>
+          <p>{{ $t('header.bugs_desc') }}</p>
           
           <div class="about-footer-info">
-            <p class="about-footer-item"><Mail :size="18" /> <strong>Contato:</strong> <a href="mailto:clic@tltlab.org">clic@tltlab.org</a></p>
-            <p class="about-footer-item"><Globe :size="18" /> <strong>Site:</strong> <a href="https://clic.tltlab.org/" target="_blank">https://clic.tltlab.org/</a></p>
+            <p class="about-footer-item"><Mail :size="18" /> <strong>{{ $t('header.contact') }}</strong> <a href="mailto:clic@tltlab.org">clic@tltlab.org</a></p>
+            <p class="about-footer-item"><Globe :size="18" /> <strong>{{ $t('header.site') }}</strong> <a href="https://clic.tltlab.org/" target="_blank">https://clic.tltlab.org/</a></p>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ const logoUrl = computed(() => {
 });
 
 // Lógica de i18n
-const { locale: currentLocale } = useI18n();
+const { locale: currentLocale, t } = useI18n();
 const isLangMenuOpen = ref(false);
 
 function changeLanguage(code: SupportedLocales) {

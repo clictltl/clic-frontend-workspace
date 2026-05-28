@@ -10,16 +10,16 @@
         </div>
         
         <h3>
-          <span v-if="isActive">{{ itemName }} Publicado</span>
-          <span v-else-if="exists">Publicação Pausada</span>
-          <span v-else>Publicar {{ itemName }}</span>
+          <span v-if="isActive">{{ $t('modals.publish.title_published', { itemName }) }}</span>
+          <span v-else-if="exists">{{ $t('modals.publish.title_paused') }}</span>
+          <span v-else>{{ $t('modals.publish.title_publish', { itemName }) }}</span>
         </h3>
       </div>
 
       <div class="modal-body">
         
         <div v-if="loading" class="state-container">
-          <span class="spinner"></span><span>{{ loadingText }}</span>
+          <span class="spinner"></span><span>{{ $t(loadingKey) }}</span>
         </div>
         <div v-else-if="error" class="error-msg">
           <AlertTriangle :size="16" class="icon" /> {{ error }}
@@ -29,25 +29,25 @@
         <div v-else-if="exists || isActive" class="success-content">
           
           <div class="success-banner" v-if="isActive">
-            <p class="success-title">{{ itemName }} Online</p>
-            <p class="success-date">Versão de {{ formatDate(result.published_at) }}</p>
+            <p class="success-title">{{ $t('modals.publish.status_online', { itemName }) }}</p>
+            <p class="success-date">{{ $t('modals.publish.version', { date: formatDate(result.published_at) }) }}</p>
           </div>
           <div class="success-banner warning" v-else>
-            <p class="success-title">{{ itemName }} Offline</p>
-            <p class="success-date">Última versão: {{ formatDate(result.published_at) }}</p>
+            <p class="success-title">{{ $t('modals.publish.status_offline', { itemName }) }}</p>
+            <p class="success-date">{{ $t('modals.publish.last_version', { date: formatDate(result.published_at) }) }}</p>
           </div>
 
-          <label class="input-label">Link Público</label>
+          <label class="input-label">{{ $t('modals.publish.public_link') }}</label>
           <div class="input-group" :class="{ 'disabled': !isActive }">
             <input ref="inputRef" readonly class="input-copy" :value="result.publish_url" @click="handleInputClick" :disabled="!isActive"/>
-            <button class="btn-copy" @click="copyToClipboard" title="Copiar" :disabled="!isActive"><Copy :size="18" class="icon" /></button>
+            <button class="btn-copy" @click="copyToClipboard" :title="$t('global.copy')" :disabled="!isActive"><Copy :size="18" class="icon" /></button>
           </div>
 
           <p class="helper-text" v-if="isActive">
-            Se fez alterações, clique em "Atualizar" para salvar e sincronizar.
+            {{ $t('modals.publish.hint_update') }}
           </p>
           <p class="helper-text" v-else>
-            Deseja restaurar a versão antiga ou salvar e publicar suas novas alterações?
+            {{ $t('modals.publish.hint_restore') }}
           </p>
 
           <div class="actions-row">
@@ -56,22 +56,22 @@
               v-if="isActive" 
               class="btn-danger-outline" 
               @click="handleUnpublish" 
-              :title="`Desativar ${itemName.toLowerCase()}`"
+              :title="$t('modals.publish.btn_disable', { itemName: itemName.toLowerCase() })"
             >
-              Despublicar
+              {{ $t('modals.publish.btn_unpublish') }}
             </button>
             
             <button 
               v-else 
               class="btn-secondary" 
               @click="handleReactivateOnly"
-              title="Liga o bot como estava antes, sem salvar alterações atuais"
+              :title="$t('modals.publish.desc_restore')"
             >
-              Restaurar Anterior
+              {{ $t('modals.publish.btn_restore') }}
             </button>
             
             <div class="right-actions">
-              <button class="btn-secondary" @click="$emit('close')">Fechar</button>
+              <button class="btn-secondary" @click="$emit('close')">{{ $t('global.close') }}</button>
               
               <!-- BOTÃO DIREITO: Atualizar / Publicar Nova -->
               <button 
@@ -79,7 +79,7 @@
                 @click="handlePublishOrUpdate"
                 :disabled="!isActive && !exists"
               >
-                {{ isActive ? 'Atualizar' : 'Publicar Nova Versão' }}
+                {{ isActive ? $t('modals.publish.btn_update') : $t('modals.publish.btn_publish_new') }}
               </button>
             </div>
           </div>
@@ -88,12 +88,11 @@
         <!-- MODO CRIAÇÃO -->
         <div v-else class="empty-state">
           <p class="description-text">
-            Este {{ itemName.toLowerCase() }} nunca foi publicado.
-            Publique para gerar um link único de acesso.
+            {{ $t('modals.publish.never_published', { itemName: itemName.toLowerCase() }) }}
           </p>
           <div class="actions-center">
-            <button class="btn-secondary" @click="$emit('close')" style="margin-right: 10px;">Cancelar</button>
-            <button class="btn-primary large" @click="handlePublishOrUpdate">Publicar</button>
+            <button class="btn-secondary" @click="$emit('close')" style="margin-right: 10px;">{{ $t('global.cancel') }}</button>
+            <button class="btn-primary large" @click="handlePublishOrUpdate">{{ $t('modals.publish.btn_publish') }}</button>
           </div>
         </div>
 
@@ -103,30 +102,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Rocket, Moon, AlertTriangle, Copy } from '@lucide/vue';
 import { useToast } from '../../ui/useToast';
+import { useI18n } from 'vue-i18n';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   projectsStore: any;
   itemName?: string;
-}>(), {
-  itemName: 'Projeto'
-});
+}>();
 
 const emit = defineEmits(['close']);
 const toast = useToast();
+
+const { t, locale } = useI18n();
+
+const itemName = computed(
+  () => props.itemName ?? t('global.project')
+);
 const error = props.projectsStore.error;
 
 const result = ref<any>(null);
 const loading = ref(true);
-const loadingText = ref('Verificando status...');
+const loadingKey = ref('modals.publish.checking');
 const isActive = ref(false);
 const exists = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
 
 onMounted(async () => {
-  loadingText.value = 'Verificando status...';
+  loadingKey.value = 'modals.publish.checking';
   loading.value = true;
   try {
     const status = await props.projectsStore.getPublishStatus();
@@ -144,12 +148,12 @@ onMounted(async () => {
 
 // Ação 1: Publicar Nova Versão (Salva + Sobrescreve)
 async function handlePublishOrUpdate() {
-  loadingText.value = 'Salvando e publicando...';
+  loadingKey.value = 'modals.publish.saving_publishing';
   loading.value = true;
   try {
     const saved = await props.projectsStore.saveProject();
     if (!saved) {
-      toast.error("Erro ao salvar.");
+      toast.error(t('global.error_saving'));
       loading.value = false;
       return;
     }
@@ -158,14 +162,14 @@ async function handlePublishOrUpdate() {
       result.value = res;
       isActive.value = true;
       exists.value = true;
-      toast.success(res.existing ? "Nova versão publicada!" : "Publicado!");
+      toast.success(res.existing ? t('modals.publish.success_new') : t('modals.publish.success_published'));
     }
   } catch (e) { console.error(e); } finally { loading.value = false; }
 }
 
 // Ação 2: Apenas Reativar (Não Salva, Não Sobrescreve)
 async function handleReactivateOnly() {
-  loadingText.value = 'Restaurando versão...';
+  loadingKey.value = 'modals.publish.restoring';
   loading.value = true;
   try {
     const res = await props.projectsStore.publishProject({ only_reactivate: true });
@@ -173,27 +177,27 @@ async function handleReactivateOnly() {
       result.value = res;
       isActive.value = true;
       exists.value = true;
-      toast.success("Versão anterior restaurada e online!");
+      toast.success(t('modals.publish.success_restored'));
     }
   } catch (e) { console.error(e); } finally { loading.value = false; }
 }
 
 async function handleUnpublish() {
-  if (!confirm("O link parará de funcionar. Continuar?")) return;
-  loadingText.value = 'Desativando...';
+  if (!confirm(t('modals.publish.warning_unpublish'))) return;
+  loadingKey.value = 'modals.publish.unpublishing';
   loading.value = true;
   try {
     const success = await props.projectsStore.unpublishProject();
     if (success) { 
       isActive.value = false; 
-      toast.success("Despublicado.");
+      toast.success(t('modals.publish.success_unpublished'));
     }
   } finally { loading.value = false; }
 }
 
 function handleInputClick() { if(isActive.value) inputRef.value?.select(); }
-function copyToClipboard() { if (result.value && isActive.value) { navigator.clipboard.writeText(result.value.publish_url); toast.success('Copiado!'); handleInputClick(); } }
-function formatDate(dateStr: string) { try { return new Date(dateStr).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); } catch { return dateStr; } }
+function copyToClipboard() { if (result.value && isActive.value) { navigator.clipboard.writeText(result.value.publish_url); toast.success(t('global.copied')); handleInputClick(); } }
+function formatDate(dateStr: string) { try { return new Date(dateStr).toLocaleString(locale.value, { dateStyle: 'short', timeStyle: 'short' }); } catch { return dateStr; } }
 </script>
 
 <style scoped>

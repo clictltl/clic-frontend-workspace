@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import imageCompression from 'browser-image-compression';
 import { fileTypeFromBlob } from 'file-type';
 import type { ClicAsset } from '../types/asset';
+import { i18n } from '../i18n';
 
 // --- REGISTRO EM MEMÓRIA (Global para a sessão atual) ---
 const blobRegistry = reactive<Record<string, string>>({});
@@ -58,13 +59,13 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
       if (typeInfo) {
         detectedMime = typeInfo.mime;
       } else if (file.size > 0) {
-        throw new Error('Formato de arquivo inválido ou não reconhecido por motivos de segurança.');
+        throw new Error(i18n.global.t('messages.invalid_file_format'));
       }
     }
 
     if (allowedMimes && allowedMimes.length > 0) {
       if (!allowedMimes.includes(detectedMime)) {
-        throw new Error(`Tipo de arquivo não permitido. Detectado: ${detectedMime}`);
+        throw new Error( i18n.global.t('messages.not_allowed_type',{ mime: detectedMime }));
       }
     }
 
@@ -108,13 +109,13 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
               lastModified: Date.now()
             });
           } else {
-            throw new Error(`O arquivo continua muito grande após compressão (${(compressedBlob.size/1024/1024).toFixed(1)}MB).`);
+            throw new Error( i18n.global.t('messages.compression_failed_size', { size: (compressedBlob.size/1024/1024).toFixed(1) }));
           }
         } catch (err: any) {
-          throw new Error(`Erro ao comprimir imagem: ${err.message}`);
+          throw new Error(i18n.global.t('messages.compression_error', { error: err.message }));
         }
       } else {
-        throw new Error(`Arquivo muito grande (${(file.size/1024/1024).toFixed(1)}MB). O limite é ${maxSizeMB}MB.`);
+        throw new Error(i18n.global.t('messages.file_too_large', { size: (file.size/1024/1024).toFixed(1), limit: maxSizeMB }));
       }
     }
 
@@ -259,7 +260,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
       if (asset.source !== 'remote' || !asset.url) return;
       try {
         const res = await fetch(asset.url);
-        if (!res.ok) throw new Error('Falha no download');
+        if (!res.ok) throw new Error(i18n.global.t('messages.download_failed'));
         const blob = await res.blob();
         registerBlob(id, blob);
         asset.source = 'local';
