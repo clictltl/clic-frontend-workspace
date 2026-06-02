@@ -9,7 +9,8 @@
     "install:all": "npm install",
     "dev:chatbot": "npm run dev -w apps/chatbot",
     "dev:graph": "npm run dev -w apps/graph-builder",
-    "build:all": "npm run build -w apps/chatbot && npm run build -w apps/graph-builder"
+    "dev:emoji": "npm run dev -w apps/emoji-coder",
+    "build:all": "npm run build -w apps/chatbot && npm run build -w apps/graph-builder && npm run build -w apps/emoji-coder"
   },
   "dependencies": {
     "@lucide/vue": "^1.16.0",

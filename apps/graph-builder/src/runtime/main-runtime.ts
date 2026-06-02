@@ -6,7 +6,7 @@ import { initMatomo, i18n } from '@clic/shared';
 const app = createApp(RuntimeApp);
 const pinia = createPinia();
 
-initMatomo({ app: 'Graph Builder', context: 'Editor' });
+initMatomo({ app: 'Graph Builder', context: 'Runtime' });
 
 app.use(pinia);
 app.use(i18n);

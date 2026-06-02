@@ -5,7 +5,17 @@ import en from './locales/en';
 // Feature Flag para exibir ou ocultar o seletor no Header na produção
 export const ENABLE_LANGUAGE_SWITCHER = false; // TODO: Mudar para true quando a tradução do 'en' estiver pronta
 
-// 1. A Fonte Única de Verdade (Adicione novos idiomas APENAS aqui!)
+// ==============================================================================
+// 1. A Fonte Única de Verdade
+// ==============================================================================
+// Adicione novos idiomas da plataforma APENAS neste objeto.
+//
+// ATENÇÃO - DEPENDÊNCIA EXTERNA (BLOCKLY):
+// Devido a limitações de compilação do Vite (Static Analysis), o aplicativo
+// Emoji Coder exige que os idiomas do Google Blockly sejam mapeados manualmente.
+// Ao adicionar um novo idioma aqui, é OBRIGATÓRIO adicionar o import estático dele no dicionário 'blocklyLocalesMap' no seguinte arquivo:
+// -> apps/emoji-coder/src/editor/components/BlockEditor.vue
+// ==============================================================================
 const localesConfig = {
   'pt-BR': { label: 'Português (Brasil)', prefix: 'pt', messages: ptBR },
   'en': { label: 'English', prefix: 'en', messages: en }

@@ -191,5 +191,32 @@ export default {
   },
   
   chatbot: {},
-  graphBuilder: {}
+  graphBuilder: {},
+  emojiCoder: {
+    setup: {
+      app_title: 'Emoji Coder',
+      prepare_env: 'Prepare o seu ambiente de programação:',
+      lib_level: 'Nível da Biblioteca de Blocos:',
+      grade_4: '4ª Série (Movimento Absoluto - Setas)',
+      grade_5: '5ª Série (Movimento Relativo - Girar)',
+      grid_size: 'Tamanho do Mundo (Grade):',
+      start_btn: 'Começar a Programar'
+    },
+    workspace: {
+      loaded_title: 'Ambiente de Código Carregado!',
+      active_lib: 'Biblioteca Ativa:',
+      grid_size: 'Tamanho do Grid:',
+      placeholder: '(O Blockly e o Canvas serão renderizados aqui)'
+    },
+    // --- NOVAS CHAVES DE TRADUÇÃO DOS BLOCOS ---
+    blocks: {
+      move_up: 'Mover para Cima',
+      move_down: 'Mover para Baixo',
+      move_left: 'Mover para Esquerda',
+      move_right: 'Mover para Direita'
+    },
+    toolbox: {
+      movement: 'Movimento'
+    }
+  }
 };

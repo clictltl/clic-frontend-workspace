@@ -1,0 +1,21 @@
+{
+  "name": "@clic/emoji-coder",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "build:github": "vue-tsc && vite build --mode github",
+    "deploy": "npm run build:github && touch dist/.nojekyll",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@clic/shared": "*",
+    "@vueuse/core": "^14.2.1",
+    "blockly": "^11.1.1"
+  },
+  "devDependencies": {
+    "@vue/tsconfig": "^0.8.1"
+  }
+}
