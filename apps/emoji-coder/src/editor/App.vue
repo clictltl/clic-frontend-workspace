@@ -170,8 +170,9 @@ html, body, #app {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: #f9fafb;
   color: #1f2937;
+  /* Essencial para Mobile: Impede pull-to-refresh e gestos nativos atrapalharem o Blockly */
+  overscroll-behavior-y: none; 
 }
-
 .app-root { display: flex; flex-direction: column; height: 100vh; position: relative; }
 .main-viewport { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 

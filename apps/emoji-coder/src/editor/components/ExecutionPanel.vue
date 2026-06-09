@@ -1,10 +1,8 @@
 <template>
   <div class="execution-panel">
-    <!-- O Palco (FUTURO: GridCanvas.vue) -->
     <div class="canvas-container">
-      <div class="grid-stub">
-        <p>🐢 Mundo {{ projectStore.project.config.gridWidth }}x{{ projectStore.project.config.gridHeight }}</p>
-      </div>
+      <!-- Passamos a instância da Engine pro Canvas saber onde a tartaruga está! -->
+      <GridCanvas :engine="engine" />
     </div>
 
     <!-- Controles de Execução -->
@@ -24,36 +22,55 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
+import { TurtleEngine } from '@/shared/engine/interpreter';
+import { loadLibrary } from '@/libraries';
+import GridCanvas from './canvas/GridCanvas.vue';
+
+const { t } = useI18n();
 const projectStore = useProjectStore();
 
-// [PREPARAÇÃO PARA TELEMETRIA / PESQUISA TLTL]
-// Wrappers que logarão a intenção do aluno antes de disparar a ação de fato.
-const handlePlay = () => {
-  // log.push({ action: 'EXECUTION_PLAY', time: Date.now() })
-  console.log('Motor: Executar o código');
+// Controle de velocidade gerido pela UI
+const executionSpeed = ref(3);
+const getSleepTime = () => [1500, 1000, 500, 250, 100][executionSpeed.value - 1] || 500;
+
+// Instanciamos o Motor passando apenas a forma de ler a velocidade atual
+const engine = new TurtleEngine(getSleepTime);
+
+const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+const activeLibrary = loadLibrary(libraryId, t as any);
+activeLibrary.registerEngineHandlers(engine);
+
+const handlePlay = async () => {
+  if (engine.state.isRunning) return;
+  
+  // Entrega a AST e o tamanho atual do mundo (lido da Store JSON) para o motor
+  engine.run(
+    projectStore.project.compiledAST, 
+    projectStore.project.config.gridWidth, 
+    projectStore.project.config.gridHeight
+  );
 };
 
 const handleStep = () => {
-  // log.push({ action: 'EXECUTION_STEP' })
-  console.log('Motor: Executar apenas um bloco');
+  handlePlay();
 };
 
 const handleStop = () => {
-  // log.push({ action: 'EXECUTION_STOP' })
-  console.log('Motor: Parar e resetar tartaruga');
+  engine.stop();
 };
 
 const handleSpeedChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
-  // log.push({ action: 'SPEED_CHANGE', value: target.value })
-  console.log('Motor: Velocidade alterada para', target.value);
+  executionSpeed.value = parseInt(target.value, 10);
 };
 </script>
 
 <style scoped>
 .execution-panel { display: flex; flex-direction: column; height: 100%; background: #fff; border-left: 1px solid #e5e7eb; }
-.canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #f3f4f6; padding: 1rem; overflow: hidden; }
+.canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #f3f4f6; padding: 1rem; overflow: hidden; min-height: 0; }
 .grid-stub { width: 100%; height: 100%; max-width: 400px; max-height: 400px; background: white; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; color: #64748b; font-size: 1.2rem; }
 .controls-container { padding: 1rem; border-top: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 1rem; background: white; }
 .buttons { display: flex; gap: 0.5rem; justify-content: center; }

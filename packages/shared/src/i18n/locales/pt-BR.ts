@@ -208,15 +208,19 @@ export default {
       grid_size: 'Tamanho do Grid:',
       placeholder: '(O Blockly e o Canvas serão renderizados aqui)'
     },
-    // --- NOVAS CHAVES DE TRADUÇÃO DOS BLOCOS ---
     blocks: {
-      move_up: 'Mover para Cima',
-      move_down: 'Mover para Baixo',
-      move_left: 'Mover para Esquerda',
-      move_right: 'Mover para Direita'
+      start: 'Quando iniciar',
+      paint: 'Pintar o chão',
+      move_up: 'Para cima',
+      move_down: 'Para baixo',
+      move_left: 'Para esquerda',
+      move_right: 'Para direita'
     },
     toolbox: {
-      movement: 'Movimento'
+      start: 'Início',
+      movement: 'Movimento',
+      actions: 'Ações',
+      loops: 'Repetição'
     }
   }
 };

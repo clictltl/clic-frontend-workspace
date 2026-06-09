@@ -59,4 +59,27 @@ defineProps<{
   border-left: none;
   box-shadow: 0 0 30px rgba(0,0,0,0.08); /* Destaque teatral */
 }
+
+/* --- SUPORTE A MOBILE E TABLET (TOUCHSCREEN) --- */
+@media (max-width: 768px) {
+  .workspace-layout {
+    flex-direction: column; /* Empilha verticalmente em telas menores */
+  }
+
+  .panel-execution {
+    width: 100%;
+    min-width: 0; /* Remove a trava de 350px que causava vazamento no celular */
+    max-width: none;
+    height: 45%; /* O Canvas ganha a parte de cima da tela */
+    border-left: none;
+    border-bottom: 2px solid #e5e7eb;
+    order: -1; /* Força o palco a ficar em cima dos blocos */
+  }
+
+  .panel-logic {
+    height: 55%; /* Blockly na parte de baixo */
+    width: 100%;
+    min-width: 0; 
+  }
+}
 </style>

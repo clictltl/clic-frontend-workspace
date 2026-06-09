@@ -1,50 +1,59 @@
-import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
+import { defineMovementBlocks, registerMovementParsers, registerMovementHandlers } from './blocks';
+import { defineStartBlock } from '../core-blocks/start';
+import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
+import { registerNativeParsers, registerNativeHandlers } from '../native-blocks/standard';
+import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleGrade4: BlockLibrary = {
   id: 'turtle-grade-4',
   name: '4ª Série - Movimento Absoluto',
   
-  // O XML agora é construído dinamicamente traduzido
   getToolboxXml: (t: TranslateFn) => `
     <xml>
-      <category name="${t('emojiCoder.toolbox.movement')}" colour="#4CAF50">
+      <category name="${t('emojiCoder.toolbox.start')}" colour="20">
+        <block type="start"></block>
+      </category>
+      
+      <category name="${t('emojiCoder.toolbox.movement')}" colour="230">
         <block type="move_up"></block>
         <block type="move_down"></block>
         <block type="move_left"></block>
         <block type="move_right"></block>
       </category>
+      
+      <category name="${t('emojiCoder.toolbox.actions')}" colour="290">
+        <block type="paint"></block>
+      </category>
+
+      <category name="${t('emojiCoder.toolbox.loops')}" colour="120">
+        <block type="controls_repeat_ext">
+          <!-- O "shadow" cria aquele número padrão encaixado para facilitar para a criança -->
+          <value name="TIMES">
+            <shadow type="math_number">
+              <field name="NUM">4</field>
+            </shadow>
+          </value>
+        </block>
+      </category>
     </xml>
   `,
   
   registerBlocks: (t: TranslateFn) => {
-    // A definição visual agora consome as chaves de tradução
-    const blocksDefinition = [
-      { type: "move_up", message0: t('emojiCoder.blocks.move_up'), previousStatement: null, nextStatement: null, colour: 230 },
-      { type: "move_down", message0: t('emojiCoder.blocks.move_down'), previousStatement: null, nextStatement: null, colour: 230 },
-      { type: "move_left", message0: t('emojiCoder.blocks.move_left'), previousStatement: null, nextStatement: null, colour: 230 },
-      { type: "move_right", message0: t('emojiCoder.blocks.move_right'), previousStatement: null, nextStatement: null, colour: 230 },
-    ];
-
-    blocksDefinition.forEach(def => {
-      // Remove o bloco caso já exista na memória (útil para troca de idioma)
-      if (Blockly.Blocks[def.type]) {
-        delete Blockly.Blocks[def.type];
-      }
-      Blockly.defineBlocksWithJsonArray([def]);
-    });
+    defineStartBlock(t);
+    definePaintBlock(t);
+    defineMovementBlocks(t);
   },
 
-  registerGenerators: (generator: any) => {
-    const createAction = (actionName: string) => {
-      return function(block: Blockly.Block) {
-        return JSON.stringify({ action: actionName, blockId: block.id }) + ',\n';
-      };
-    };
+  registerParsers: () => {
+    registerPaintParser();
+    registerMovementParsers();
+    registerNativeParsers();
+  },
 
-    generator.forBlock['move_up'] = createAction('MOVE_UP');
-    generator.forBlock['move_down'] = createAction('MOVE_DOWN');
-    generator.forBlock['move_left'] = createAction('MOVE_LEFT');
-    generator.forBlock['move_right'] = createAction('MOVE_RIGHT');
+  registerEngineHandlers: (engine: TurtleEngine) => {
+    registerPaintHandler(engine);
+    registerMovementHandlers(engine);
+    registerNativeHandlers(engine);
   }
 };
