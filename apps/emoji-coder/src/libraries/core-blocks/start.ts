@@ -12,5 +12,6 @@ export const defineStartBlock = (t: TranslateFn) => {
     ],
     nextStatement: null,
     colour: 20, 
+    deletable: false
   }]);
 };

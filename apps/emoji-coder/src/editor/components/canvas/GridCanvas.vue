@@ -12,7 +12,7 @@
         v-for="i in (cols * rows)" 
         :key="i" 
         class="grid-cell"
-        :class="{ 'is-painted': engine.state.paintedCells.includes(getCellPos(i)) }"
+        :style="{ backgroundColor: engine.state.paintedCells[getCellPos(i)] }"
       ></div>
       
       <!-- O Ator (Nossa Tartaruga em SVG nativo) -->
@@ -93,13 +93,10 @@ const getCellPos = (index: number) => {
   transition: background-color 0.3s ease; /* Animação suave ao pintar */
 }
 
-/* Linhas zebradas para contagem visual, mas que respeitam a pintura do aluno */
-.grid-cell:nth-child(even):not(.is-painted) {
+/* Linhas zebradas para facilitar a contagem visual das crianças */
+/* O estilo inline dinâmico (background-color) do Vue sempre terá prioridade sobre isso! */
+.grid-cell:nth-child(even) {
   background-color: #f8fafc;
-}
-
-.grid-cell.is-painted {
-  background-color: #fde047; /* Yellow-300: A cor da tinta no chão! */
 }
 
 /* O Ator */

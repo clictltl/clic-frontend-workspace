@@ -27,10 +27,9 @@ export const useProjectStore = defineStore('emoji-coder-project', {
   // --- INTEGRAÇÃO COM O PLUGIN DE HISTÓRICO ---
   history: {
     stateKey: 'project',
-    ignoreActions: ['markAsSaved', 'updateWorkspaceSilent'],
+    ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
-      setupEnvironment: 'Configuração do Ambiente',
       updateConfig: 'Alteração na Grade',
       // Não rastrearemos blocos aqui, pois o Blockly já tem seu próprio Undo/Redo nativo!
     }
@@ -41,6 +40,8 @@ export const useProjectStore = defineStore('emoji-coder-project', {
     return {
       project: initialProject,
       lastSavedState: JSON.stringify(initialProject),
+      // Variável volátil para a UI (O Histórico e o JSON ignoram isso)
+      activeBlockId: null as string | null
     };
   },
 

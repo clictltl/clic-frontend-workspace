@@ -1,16 +1,17 @@
 import * as Blockly from 'blockly/core';
 import type { TranslateFn } from '../types';
+import iconPaint from '@/assets/icons/paint.svg';
 import { registerASTParser } from '../ASTBuilder';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
-import iconPaint from '@/assets/icons/paint.svg';
 
 export const definePaintBlock = (t: TranslateFn) => {
   Blockly.defineBlocksWithJsonArray([{
     type: "paint",
-    message0: "%1 %2",
+    message0: "%1 %2 %3",
     args0: [
       { type: "field_image", src: iconPaint, width: 20, height: 20, alt: "Pintar" },
-      { type: "field_label", text: t('emojiCoder.blocks.paint') }
+      { type: "field_label", text: t('emojiCoder.blocks.paint') || 'Pintar o chão' },
+      { type: "field_colour", name: "COLOR", colour: "#fde047" } // Amarelo por padrão
     ],
     previousStatement: null,
     nextStatement: null,
@@ -21,16 +22,16 @@ export const definePaintBlock = (t: TranslateFn) => {
 export const registerPaintParser = () => {
   registerASTParser('paint', (block) => ({ 
     action: 'PAINT', 
+    color: block.getFieldValue('COLOR'), // Extrai a cor do bloco visual
     blockId: block.id 
   }));
 };
 
 export const registerPaintHandler = (engine: TurtleEngine) => {
-  engine.registerAction('PAINT', async (_node, eng) => {
+  engine.registerAction('PAINT', async (node, eng) => {
     const cellId = `${eng.state.turtleX},${eng.state.turtleY}`;
-    if (!eng.state.paintedCells.includes(cellId)) {
-      eng.state.paintedCells.push(cellId);
-    }
-    await eng.sleepTick();
+    // Salva no dicionário a cor especificada no JSON (AST)
+    eng.state.paintedCells[cellId] = node.color || '#fde047';
+    await eng.sleepTick(); 
   });
 };

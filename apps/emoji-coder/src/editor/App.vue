@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
-import { Turtle, Pencil, Eye } from '@lucide/vue';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
+import { Turtle } from '@lucide/vue';
 
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -19,9 +19,6 @@ const isPreview = ref(false);
 
 // Formulário temporário da tela de setup
 const form = ref({ libraryId: 'turtle-grade-4', gridSize: 8 });
-
-// Ativa os atalhos globais de Undo/Redo
-useHistoryShortcuts(store);
 
 const handleStart = () => {
   store.setupEnvironment(form.value.libraryId, form.value.gridSize, form.value.gridSize);
@@ -143,19 +140,13 @@ onUnmounted(() => {
       </div>
 
       <!-- Tela 2 e 3: O Ambiente do Blockly e Visualização -->
-      <BlockWorkspace v-else :is-preview="isPreview" />
+      <BlockWorkspace 
+        v-else 
+        :is-preview="isPreview" 
+        @toggle-preview="isPreview = !isPreview" 
+      />
 
     </main>
-
-    <!-- BOTÃO FLUTUANTE (FAB) -->
-    <button 
-      class="fab-preview" 
-      :class="{ active: isPreview }" 
-      @click="isPreview = !isPreview"
-    >
-      <component :is="isPreview ? Pencil : Eye" class="icon-fab" />
-      <span class="label">{{ isPreview ? 'Editar' : 'Visualizar' }}</span>
-    </button>
 
     <ToastContainer />
     <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Projeto" @close="showInvalidShareModal = false" />

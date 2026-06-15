@@ -1,85 +1,107 @@
 <template>
-  <div class="workspace-layout" :class="{ 'is-preview': isPreview }">
+  <div 
+    class="workspace-layout" 
+    :class="{ 'is-preview': isPreview }"
+    :style="{ '--logic-w': logicWidth + '%' }"
+  >
     
-    <!-- Painel Esquerdo: Lógica (Oculto via CSS no modo preview) -->
+    <!-- Painel Esquerdo: Lógica -->
     <div class="panel-logic" v-show="!isPreview">
       <BlockEditor />
     </div>
 
-    <!-- Painel Direito: Execução (Ganha 100% do espaço no modo preview) -->
+    <!-- O Divisor Arrastável -->
+    <div 
+      class="resizer" 
+      v-show="!isPreview" 
+      @mousedown="startDrag"
+      title="Arrastar para redimensionar"
+    ></div>
+
+    <!-- Painel Direito: Execução -->
     <div class="panel-execution">
-      <ExecutionPanel />
+      <ExecutionPanel 
+        :is-preview="isPreview" 
+        @toggle-preview="$emit('toggle-preview')" 
+      />
     </div>
 
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import BlockEditor from './BlockEditor.vue';
 import ExecutionPanel from './ExecutionPanel.vue';
 
-defineProps<{
-  isPreview?: boolean;
-}>();
+defineProps<{ isPreview?: boolean }>();
+defineEmits(['toggle-preview']);
+
+// Controle da largura dos painéis (60% para blocos por padrão)
+const logicWidth = ref(60);
+let isDragging = false;
+
+const startDrag = () => {
+  isDragging = true;
+  document.body.style.cursor = 'col-resize';
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', stopDrag);
+};
+
+const onDrag = (e: MouseEvent) => {
+  if (!isDragging) return;
+  const newWidth = (e.clientX / window.innerWidth) * 100;
+  if (newWidth > 20 && newWidth < 80) {
+    logicWidth.value = newWidth;
+    
+    // Avisa o Blockly (e outros componentes na tela) que a área disponível mudou!
+    window.dispatchEvent(new Event('resize'));
+  }
+};
+
+const stopDrag = () => {
+  isDragging = false;
+  document.body.style.cursor = '';
+  window.removeEventListener('mousemove', onDrag);
+  window.removeEventListener('mouseup', stopDrag);
+};
 </script>
 
 <style scoped>
 .workspace-layout {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  background-color: #f9fafb;
+  display: flex; width: 100%; height: 100%; overflow: hidden; background-color: #f9fafb;
 }
 
-.panel-logic {
-  flex: 1; /* Ocupa o espaço restante (aprox 60%) */
-  min-width: 0; /* Evita vazamento no flexbox */
-  height: 100%;
+/* No Desktop, a largura é controlada pela variável reativa do Vue */
+.panel-logic { width: var(--logic-w); height: 100%; min-width: 0; }
+.panel-execution { width: calc(100% - var(--logic-w) - 6px); height: 100%; min-width: 0; }
+
+/* Modo Visualização esconde a lógica e o Canvas toma 100% */
+.workspace-layout.is-preview .panel-execution { width: 100%; }
+
+/* A Barra Arrastável */
+.resizer {
+  width: 6px;
+  background-color: #e5e7eb;
+  cursor: col-resize;
+  transition: background-color 0.2s;
+  z-index: 10;
 }
+.resizer:hover, .resizer:active { background-color: #3b82f6; }
 
-.panel-execution {
-  width: 40%;
-  min-width: 350px;
-  max-width: 600px;
-  height: 100%;
-  transition: all 0.3s ease;
-  box-shadow: -4px 0 15px rgba(0,0,0,0.03); /* Leve sombra para separar do Blockly */
-}
+.workspace-layout.is-preview { justify-content: center; }
 
-/* --- MODO PREVIEW: Esconde o Blockly e centraliza o Canvas --- */
-.workspace-layout.is-preview {
-  justify-content: center;
-}
-
-.workspace-layout.is-preview .panel-execution {
-  width: 100%;
-  max-width: 800px; /* Expande o palco no modo de apresentação */
-  border-left: none;
-  box-shadow: 0 0 30px rgba(0,0,0,0.08); /* Destaque teatral */
-}
-
-/* --- SUPORTE A MOBILE E TABLET (TOUCHSCREEN) --- */
-@media (max-width: 768px) {
-  .workspace-layout {
-    flex-direction: column; /* Empilha verticalmente em telas menores */
-  }
-
-  .panel-execution {
-    width: 100%;
-    min-width: 0; /* Remove a trava de 350px que causava vazamento no celular */
-    max-width: none;
-    height: 45%; /* O Canvas ganha a parte de cima da tela */
-    border-left: none;
-    border-bottom: 2px solid #e5e7eb;
-    order: -1; /* Força o palco a ficar em cima dos blocos */
-  }
-
-  .panel-logic {
-    height: 55%; /* Blockly na parte de baixo */
-    width: 100%;
-    min-width: 0; 
-  }
+/* --- SUPORTE A MOBILE E TABLET (APENAS TELA EM PÉ) --- */
+@media (max-width: 768px) and (orientation: portrait) {
+  .workspace-layout { flex-direction: column; }
+  
+  /* Anulamos a largura do Desktop com !important e dividimos o espaço na ALTURA */
+  .panel-logic, .panel-execution { width: 100% !important; }
+  
+  .panel-execution { height: 45%; border-bottom: 2px solid #e5e7eb; order: -1; }
+  .panel-logic { height: 55%; }
+  
+  /* Esconde o resizer no celular em pé */
+  .resizer { display: none; }
 }
 </style>

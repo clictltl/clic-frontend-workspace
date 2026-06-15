@@ -9,7 +9,8 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import * as Blockly from 'blockly/core';
-import 'blockly/blocks'; 
+import 'blockly/blocks';
+import { registerFieldColour } from '@blockly/field-colour';
 
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { loadLibrary, compileWorkspaceToAST } from '@/libraries';
@@ -69,6 +70,9 @@ onMounted(async () => {
   // 1. Aguarda o carregamento dinâmico do idioma nativo do Blockly ANTES de injetar
   await loadBlocklyLocale(locale.value);
 
+  // Registra os plugins adicionais do Blockly (como o Seletor de Cores)
+  registerFieldColour();
+
   // 2. Carrega a biblioteca dinâmica usando a função de tradução (t) do @clic/shared
   const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
   const activeLibrary = loadLibrary(libraryId, t as any);
@@ -86,6 +90,17 @@ onMounted(async () => {
     Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
   }
 
+  // 3.6 Fixa o bloco de 'Início' no Workspace caso a tela esteja vazia (Novo Projeto)
+  if (!workspace.getTopBlocks(true).some(b => b.type === 'start')) {
+    const startBlock = workspace.newBlock('start');
+    startBlock.initSvg();
+    startBlock.render();
+    startBlock.moveBy(40, 40); // Dá uma margem bonita do topo-esquerdo
+  }
+
+  // Limpa a memória de Ctrl+Z inicial para o aluno não conseguir apagar o Início
+  workspace.clearUndo();
+
   // 4. Compilação do AST em tempo real
   workspace.addChangeListener((event) => {
     if (event.isUiEvent) return;
@@ -102,14 +117,25 @@ onUnmounted(() => {
   if (workspace) workspace.dispose();
 });
 
-// --- REATIVIDADE DE IMPORTAÇÃO DE ARQUIVO ---
-// Força o Blockly a re-renderizar se o usuário importar um novo projeto (.emjc)
+// --- REATIVIDADE DE IMPORTAÇÃO E NOVO ARQUIVO ---
 watch(() => projectStore.project.meta.id, () => {
   if (!workspace) return;
+  
   workspace.clear();
+  
   if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
+    // 1. Carrega o projeto importado
     Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
+  } else {
+    // 2. Se for um "Novo Projeto" (JSON vazio), cria o bloco Início do zero
+    const startBlock = workspace.newBlock('start');
+    startBlock.initSvg();
+    startBlock.render();
+    startBlock.moveBy(40, 40);
   }
+
+  // Define este exato momento como o "Marco Zero" do Histórico
+  workspace.clearUndo();
 });
 
 // --- REATIVIDADE DE IDIOMA ---
@@ -131,6 +157,13 @@ watch(locale, async (newLocale) => {
   const state = Blockly.serialization.workspaces.save(workspace);
   workspace.clear();
   Blockly.serialization.workspaces.load(state, workspace);
+});
+
+// --- HIGHLIGHT DE EXECUÇÃO (DEBUGGER VISUAL) ---
+watch(() => projectStore.activeBlockId, (newId) => {
+  if (!workspace) return;
+  // O Blockly aceita um ID válido para brilhar, ou 'null' para limpar a tela
+  workspace.highlightBlock(newId);
 });
 </script>
 

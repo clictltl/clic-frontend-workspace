@@ -11,31 +11,25 @@ export const turtleGrade4: BlockLibrary = {
   
   getToolboxXml: (t: TranslateFn) => `
     <xml>
-      <category name="${t('emojiCoder.toolbox.start')}" colour="20">
-        <block type="start"></block>
-      </category>
+      <label text="${t('emojiCoder.toolbox.movement')}"></label>
+      <block type="move_up"></block>
+      <block type="move_down"></block>
+      <block type="move_left"></block>
+      <block type="move_right"></block>
+      <sep gap="24"></sep>
       
-      <category name="${t('emojiCoder.toolbox.movement')}" colour="230">
-        <block type="move_up"></block>
-        <block type="move_down"></block>
-        <block type="move_left"></block>
-        <block type="move_right"></block>
-      </category>
-      
-      <category name="${t('emojiCoder.toolbox.actions')}" colour="290">
-        <block type="paint"></block>
-      </category>
+      <label text="${t('emojiCoder.toolbox.actions')}"></label>
+      <block type="paint"></block>
+      <sep gap="24"></sep>
 
-      <category name="${t('emojiCoder.toolbox.loops')}" colour="120">
-        <block type="controls_repeat_ext">
-          <!-- O "shadow" cria aquele número padrão encaixado para facilitar para a criança -->
-          <value name="TIMES">
-            <shadow type="math_number">
-              <field name="NUM">4</field>
-            </shadow>
-          </value>
-        </block>
-      </category>
+      <label text="${t('emojiCoder.toolbox.loops')}"></label>
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">4</field>
+          </shadow>
+        </value>
+      </block>
     </xml>
   `,
   

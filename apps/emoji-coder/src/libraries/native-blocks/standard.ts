@@ -12,7 +12,8 @@ export const registerNativeParsers = () => {
     const bodyBlock = block.getInputTargetBlock('DO');
     const body = walkChildren(bodyBlock);
 
-    return { action: 'REPEAT', count, body, blockId: block.id };
+    // A flag isControl para o motor não contar isso como um passo físico!
+    return { action: 'REPEAT', count, body, blockId: block.id, isControl: true };
   });
 };
 
@@ -20,11 +21,10 @@ export const registerNativeHandlers = (engine: TurtleEngine) => {
   engine.registerAction('REPEAT', async (node, eng) => {
     for (let i = 0; i < node.count; i++) {
       for (const childNode of node.body) {
-        // Pede pro motor executar o bloco filho de forma recursiva
         await eng.executeNode(childNode);
-        if (!eng.state.isRunning) return; 
+        // Usa o getter nativo do motor para saber se o usuário apertou Stop
+        if (eng.isAborted) return; 
       }
     }
-    // REPEAT é pura lógica, então ele não chama `await eng.sleepTick()`.
   });
 };
