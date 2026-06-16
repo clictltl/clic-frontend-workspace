@@ -1,35 +1,50 @@
 <template>
-  <div class="canvas-wrapper">
+  <div class="canvas-wrapper" ref="wrapperRef">
+    <!-- Container Pai que agrupa a Grade + Réguas -->
     <div 
-      class="grid-board" 
+      class="board-wrapper" 
+      :class="{ 'hide-labels': !showLabels }"
       :style="{ 
         '--cols': cols, 
         '--rows': rows 
       }"
     >
-      <!-- Células do fundo (O Tabuleiro) -->
-      <div 
-        v-for="i in (cols * rows)" 
-        :key="i" 
-        class="grid-cell"
-        :style="{ backgroundColor: engine.state.paintedCells[getCellPos(i)] }"
-      ></div>
+      <!-- Etiquetas de Coluna (Letras no Topo) -->
+      <div class="col-labels">
+        <span v-for="c in cols" :key="'col-' + c" class="label">{{ getColumnLetter(c - 1) }}</span>
+      </div>
+
+      <!-- Etiquetas de Linha (Números na Esquerda) -->
+      <div class="row-labels">
+        <span v-for="r in rows" :key="'row-' + r" class="label">{{ r }}</span>
+      </div>
+
+      <div class="grid-board">
+        <!-- Células do fundo (O Tabuleiro) -->
+        <div 
+          v-for="i in (cols * rows)" 
+          :key="i" 
+          class="grid-cell"
+          :style="{ backgroundColor: engine.state.paintedCells[getCellPos(i)] }"
+        ></div>
+        
+        <!-- O Ator (Nossa Tartaruga em SVG nativo) -->
+        <div 
+          class="actor" 
+          :style="{ 
+            transform: `translate(calc(${engine.state.turtleX} * 100%), calc(${engine.state.turtleY} * 100%)) rotate(${engine.state.turtleRotation}deg)` 
+          }"
+        >
+          <img :src="turtleSvg" class="actor-icon" alt="Tartaruga" draggable="false" />
+        </div>
       
-      <!-- O Ator (Nossa Tartaruga em SVG nativo) -->
-      <div 
-        class="actor" 
-        :style="{ 
-          transform: `translate(calc(${engine.state.turtleX} * 100%), calc(${engine.state.turtleY} * 100%)) rotate(${engine.state.turtleRotation}deg)` 
-        }"
-      >
-        <img :src="turtleSvg" class="actor-icon" alt="Tartaruga" draggable="false" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 import turtleSvg from '@/assets/turtle.svg';
@@ -43,11 +58,58 @@ const store = useProjectStore();
 const cols = computed(() => store.project.config.gridWidth);
 const rows = computed(() => store.project.config.gridHeight);
 
+// --- LÓGICA DE RESPONSIVIDADE POR DENSIDADE DA CÉLULA ---
+const wrapperRef = ref<HTMLElement | null>(null);
+const wrapperWidth = ref(0);
+const wrapperHeight = ref(0);
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  if (wrapperRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        wrapperWidth.value = entries[0].contentRect.width;
+        wrapperHeight.value = entries[0].contentRect.height;
+      }
+    });
+    resizeObserver.observe(wrapperRef.value);
+  }
+});
+
+onUnmounted(() => {
+  if (resizeObserver) resizeObserver.disconnect();
+});
+
+const showLabels = computed(() => {
+  if (!wrapperWidth.value || !wrapperHeight.value) return true;
+  
+  const lblSpace = 36; // 2.25rem em pixels
+  // Simulando a fórmula do CSS: descobre o tamanho que sobrará para 1 célula
+  const cellSizeByWidth = (wrapperWidth.value - lblSpace) / cols.value;
+  const cellSizeByHeight = (wrapperHeight.value - lblSpace) / rows.value;
+  const realCellSize = Math.min(cellSizeByWidth, cellSizeByHeight);
+  
+  // Só mostra as legendas se a célula tiver 24px ou mais!
+  return realCellSize >= 24; 
+});
+// --- FIM DA LÓGICA DE DENSIDADE ---
+
 // Descobre a coordenada X e Y da célula no grid bidimensional
 const getCellPos = (index: number) => {
   const x = (index - 1) % cols.value;
   const y = Math.floor((index - 1) / cols.value);
   return `${x},${y}`;
+};
+
+// Função auxiliar: Converte índice de coluna em letra (0=A, 1=B, ..., 26=AA)
+const getColumnLetter = (index: number) => {
+  let letter = '';
+  let temp = index;
+  while (temp >= 0) {
+    letter = String.fromCharCode((temp % 26) + 65) + letter;
+    temp = Math.floor(temp / 26) - 1;
+  }
+  return letter;
 };
 </script>
 
@@ -65,24 +127,89 @@ const getCellPos = (index: number) => {
   container-type: size;
 }
 
+/* Container que agrupa a grade e as réguas de coordenadas */
+.board-wrapper {
+  position: relative;
+  
+  /* Reserva espaço (aprox 36px) para os rótulos não cortarem na tela */
+  --lbl-space: 2.25rem;
+  
+  /* A Fórmula ajustada (- var(--lbl-space)): */
+  width: min(calc(100cqw - var(--lbl-space)), calc((100cqh - var(--lbl-space)) * var(--cols) / var(--rows)));
+  aspect-ratio: var(--cols) / var(--rows);
+  
+  /* Centraliza visualmente compensando as réguas da esquerda e do topo */
+  margin-top: calc(var(--lbl-space) / 2);
+  margin-left: calc(var(--lbl-space) / 2);
+  
+  /* Suavidade: Anima o recálculo de largura e margens */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* O Tabuleiro */
 .grid-board {
   position: relative;
+  width: 100%;
+  height: 100%;
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
   grid-template-rows: repeat(var(--rows), 1fr);
-  
-  /* 2. A Fórmula Perfeita de Resolução:
-     Pega o MENOR valor entre a largura total disponível (100cqw) 
-     e a altura total (100cqh) ajustada para a proporção da grade. */
-  width: min(100cqw, calc(100cqh * var(--cols) / var(--rows)));
-  aspect-ratio: var(--cols) / var(--rows);
   
   background-color: #ffffff;
   border: 4px solid #334155;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* --- ESTILOS DAS RÉGUAS DE COORDENADAS --- */
+.col-labels {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  height: var(--lbl-space);
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  transition: opacity 0.2s ease, height 0.3s ease;
+}
+
+.row-labels {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  height: 100%;
+  width: var(--lbl-space);
+  display: grid;
+  grid-template-rows: repeat(var(--rows), 1fr);
+  transition: opacity 0.2s ease, width 0.3s ease;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+/* --- RESPONSIVIDADE CONTEXTUAL (VIA DENSIDADE JS) --- */
+.board-wrapper.hide-labels {
+  --lbl-space: 0px;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+/* Fantasminhas: as réguas ficam transparentes e não clicáveis */
+.board-wrapper.hide-labels .col-labels,
+.board-wrapper.hide-labels .row-labels {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* As Células */
