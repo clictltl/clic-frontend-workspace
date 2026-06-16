@@ -197,8 +197,9 @@ export default {
       app_title: 'Emoji Coder',
       prepare_env: 'Prepare o seu ambiente de programação:',
       lib_level: 'Nível da Biblioteca de Blocos:',
-      grade_4: '4ª Série (Movimento Absoluto - Setas)',
-      grade_5: '5ª Série (Movimento Relativo - Girar)',
+      grade_4: '4° Ano (Movimento Absoluto - Setas)',
+      grade_4_advanced: '4° Ano - Avançado (Funções)',
+      grade_5: '5° Ano (Movimento Relativo - Girar)',
       grid_size: 'Tamanho do Mundo (Grade):',
       start_btn: 'Começar a Programar'
     },
@@ -214,13 +215,17 @@ export default {
       move_up: 'Para cima',
       move_down: 'Para baixo',
       move_left: 'Para esquerda',
-      move_right: 'Para direita'
+      move_right: 'Para direita',
+      define: 'Definir',
+      call: 'Chamar',
+      defaultFuncName: 'minha função'
     },
     toolbox: {
       start: 'Início',
       movement: 'Movimento',
       actions: 'Ações',
-      loops: 'Repetição'
+      loops: 'Repetição',
+      functions: 'Funções'
     }
   }
 };

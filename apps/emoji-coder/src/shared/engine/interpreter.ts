@@ -10,6 +10,7 @@ export class TurtleEngine {
     turtleY: 0,
     turtleRotation: 90,
     paintedCells: {} as Record<string, string>,
+    functions: {} as Record<string, any[]>,
     gridWidth: 8,
     gridHeight: 8,
     currentStep: 0,
@@ -33,11 +34,25 @@ export class TurtleEngine {
     return this.abortFlag;
   }
 
-  // Cálculo Agnóstico: Lê a árvore sem precisar saber que 'REPEAT' existe!
+  private extractFunctions(ast: any[]) {
+    const funcs: Record<string, any[]> = {};
+    for (const node of ast) {
+      if (node.isDefinition && node.definitionName) {
+        funcs[node.definitionName] = node.body || [];
+      }
+    }
+    this.state.functions = funcs;
+  }
+
   private calculateTotalSteps(ast: any[]): number {
     let total = 0;
     for (const node of ast) {
-      if (node.isControl && node.body) {
+      if (node.isDefinition) continue; 
+      
+      if (node.isCall && node.callTarget) {
+        const body = this.state.functions[node.callTarget] || [];
+        total += this.calculateTotalSteps(body);
+      } else if (node.isControl && node.body) {
         total += (node.count || 1) * this.calculateTotalSteps(node.body);
       } else if (!node.isControl) {
         total += 1; // Apenas ações físicas contam
@@ -47,6 +62,9 @@ export class TurtleEngine {
   }
 
   public registerAction(actionName: string, handler: ActionHandler) {
+    if (this.actionHandlers[actionName]) {
+      console.warn(`[TurtleEngine] Atenção: A ação '${actionName}' foi registrada novamente e sobrescreveu a anterior!`);
+    }
     this.actionHandlers[actionName] = handler;
   }
 
@@ -110,7 +128,8 @@ export class TurtleEngine {
     }
 
     this.resetWorld();
-    this.state.totalSteps = this.calculateTotalSteps(ast); // <-- Agora sim, calcula os passos!
+    this.extractFunctions(ast);
+    this.state.totalSteps = this.calculateTotalSteps(ast);
     this.state.gridWidth = gridWidth;
     this.state.gridHeight = gridHeight;
     this.state.status = 'RUNNING';
@@ -144,7 +163,8 @@ export class TurtleEngine {
 
   private async playFromStep(ast: any[], gridWidth: number, gridHeight: number) {
     this.resetWorld();
-    this.state.totalSteps = this.calculateTotalSteps(ast); // <-- Também calcula aqui!
+    this.extractFunctions(ast);
+    this.state.totalSteps = this.calculateTotalSteps(ast);
     this.state.gridWidth = gridWidth;
     this.state.gridHeight = gridHeight;
     

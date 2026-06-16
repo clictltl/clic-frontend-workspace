@@ -62,6 +62,11 @@ const loadBlocklyLocale = async (vueLocale: string) => {
       }
     }
   }
+
+  // --- OVERRIDES CUSTOMIZADOS DA PLATAFORMA CLIC ---
+  // Substitui os textos padrões do Blockly pelos termos educacionais solicitados,
+  // mantendo compatibilidade com o sistema i18n caso você cadastre essas chaves depois.
+  Blockly.Msg['PROCEDURES_DEFNORETURN_TITLE'] = (t('emojiCoder.blocks.define') as string);
 };
 
 onMounted(async () => {
@@ -101,11 +106,27 @@ onMounted(async () => {
   // Limpa a memória de Ctrl+Z inicial para o aluno não conseguir apagar o Início
   workspace.clearUndo();
 
-  // 4. Compilação do AST em tempo real
+  // 3.7 Atualiza o Toolbox inicial caso o projeto recém-carregado já tenha funções
+  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+
+  // 4. Compilação do AST e Reatividade de Funções
+  let previousFunctions = '';
   workspace.addChangeListener((event) => {
     if (event.isUiEvent) return;
 
     if (workspace) {
+      // Toolbox: Injeta as chamadas das funções dinamicamente sem usar Pastas
+      const functionNames = workspace.getTopBlocks(false)
+        .filter(b => b.type === 'procedures_defnoreturn')
+        .map(b => b.getFieldValue('NAME'))
+        .sort()
+        .join(',');
+
+      if (functionNames !== previousFunctions) {
+        previousFunctions = functionNames;
+        workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+      }
+
       const workspaceJson = Blockly.serialization.workspaces.save(workspace);
       const ast = compileWorkspaceToAST(workspace);
       projectStore.updateWorkspaceSilent(workspaceJson, ast);
@@ -151,7 +172,7 @@ watch(locale, async (newLocale) => {
   const activeLibrary = loadLibrary(libraryId, t as any);
 
   // 3. Atualiza o Menu Lateral (Toolbox)
-  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any));
+  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
 
   // 4. "Recarrega" os blocos que já estão no quadro para forçar a tradução visual
   const state = Blockly.serialization.workspaces.save(workspace);

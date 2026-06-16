@@ -3,9 +3,11 @@ import type { BlockLibrary, TranslateFn } from './types';
 import { walkAST } from './ASTBuilder';
 
 import { turtleGrade4 } from './turtle-grade-4';
+import { turtleGrade4Advanced } from './turtle-grade-4-advanced';
 
 const libraries: Record<string, BlockLibrary> = {
-  'turtle-grade-4': turtleGrade4
+  'turtle-grade-4': turtleGrade4,
+  'turtle-grade-4-advanced': turtleGrade4Advanced
 };
 
 export function loadLibrary(libraryId: string, t: TranslateFn): BlockLibrary {
@@ -19,11 +21,25 @@ export function loadLibrary(libraryId: string, t: TranslateFn): BlockLibrary {
 }
 
 export function compileWorkspaceToAST(workspace: Blockly.Workspace): any[] {
-  const startBlock = workspace.getTopBlocks(true).find(b => b.type === 'start');
-  if (!startBlock) return [];
-  
-  const firstActionBlock = startBlock.getNextBlock();
-  if (!firstActionBlock) return [];
+  const topBlocks = workspace.getTopBlocks(true);
+  const ast: any[] = [];
 
-  return walkAST(firstActionBlock);
+  // 1. Extrai todas as Funções primeiro (Ficam no topo do AST JSON)
+  const defBlocks = topBlocks.filter(b => b.type === 'procedures_defnoreturn');
+  for (const block of defBlocks) {
+    const nodes = walkAST(block);
+    ast.push(...nodes); 
+  }
+
+  // 2. Extrai o Fluxo Principal do Start
+  const startBlock = topBlocks.find(b => b.type === 'start');
+  if (startBlock) {
+    const firstActionBlock = startBlock.getNextBlock();
+    if (firstActionBlock) {
+      const nodes = walkAST(firstActionBlock);
+      ast.push(...nodes);
+    }
+  }
+
+  return ast;
 }

@@ -2,7 +2,7 @@ import type { BlockLibrary, TranslateFn } from '../types';
 import { defineMovementBlocks, registerMovementParsers, registerMovementHandlers } from './blocks';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerNativeParsers, registerNativeHandlers } from '../native-blocks/standard';
+import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleGrade4: BlockLibrary = {
@@ -42,12 +42,12 @@ export const turtleGrade4: BlockLibrary = {
   registerParsers: () => {
     registerPaintParser();
     registerMovementParsers();
-    registerNativeParsers();
+    registerLoopParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
     registerMovementHandlers(engine);
-    registerNativeHandlers(engine);
+    registerLoopHandlers(engine);
   }
 };

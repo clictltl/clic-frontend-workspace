@@ -122,7 +122,7 @@ onUnmounted(() => {
             <label>{{ t('emojiCoder.setup.lib_level') }}</label>
             <select v-model="form.libraryId">
               <option value="turtle-grade-4">{{ t('emojiCoder.setup.grade_4') }}</option>
-              <option value="turtle-grade-5">{{ t('emojiCoder.setup.grade_5') }}</option>
+              <option value="turtle-grade-4-advanced">{{ t('emojiCoder.setup.grade_4_advanced') }}</option>
             </select>
           </div>
 
