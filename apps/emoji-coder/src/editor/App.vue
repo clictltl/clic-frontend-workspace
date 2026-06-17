@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
-import { Turtle } from '@lucide/vue';
+import { Turtle, BookOpen, Play, Lock, Compass, Eye, LayoutGrid } from '@lucide/vue';
 import appLogo from '@/assets/emojer_logo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -17,11 +17,11 @@ const projects = useProjects();
 const showInvalidShareModal = ref(false);
 const isPreview = ref(false);
 
-// Formulário temporário da tela de setup
-const form = ref({ libraryId: 'turtle-grade-4', gridSize: 8 });
+// Controle de tamanho da grade exclusivo para o 5º Ano
+const grade5GridSize = ref(8);
 
-const handleStart = () => {
-  store.setupEnvironment(form.value.libraryId, form.value.gridSize, form.value.gridSize);
+const handleStartProject = (libraryId: string, gridSize: number) => {
+  store.setupEnvironment(libraryId, gridSize, gridSize);
 };
 
 async function handleLoginSuccess() {
@@ -109,34 +109,113 @@ onUnmounted(() => {
     <!-- ÁREA PRINCIPAL -->
     <main class="main-viewport">
       
-      <!-- Tela 1: Setup Inicial -->
-      <div v-if="!store.isConfigured && !isPreview" class="setup-screen">
-        <div class="setup-card">
-          <h1 class="title-with-icon">
-            <Turtle :size="32" class="text-icon" />
-            {{ t('emojiCoder.setup.app_title') }}
-          </h1>
-          <p>{{ t('emojiCoder.setup.prepare_env') }}</p>
+      <!-- Tela 1: Hub Educacional (Dashboard) -->
+      <div v-if="!store.isConfigured && !isPreview" class="dashboard-screen">
+        <div class="dashboard-content">
           
-          <div class="form-group">
-            <label>{{ t('emojiCoder.setup.lib_level') }}</label>
-            <select v-model="form.libraryId">
-              <option value="turtle-grade-4">{{ t('emojiCoder.setup.grade_4') }}</option>
-              <option value="turtle-grade-4-advanced">{{ t('emojiCoder.setup.grade_4_advanced') }}</option>
-              <option value="turtle-grade-5">{{ t('emojiCoder.setup.grade_5') }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>{{ t('emojiCoder.setup.grid_size') }}</label>
-            <div class="grid-inputs">
-              <input type="number" v-model="form.gridSize" min="4" max="20" />
-              <span>x</span>
-              <input type="number" :value="form.gridSize" disabled />
+          <!-- SEÇÃO: 4º ANO -->
+          <section class="grade-section">
+            <div class="section-title">
+              <Compass :size="24" class="section-icon" />
+              <div>
+                <h2>{{ t('emojiCoder.setup.grade_4_title') }}</h2>
+                <p>{{ t('emojiCoder.setup.grade_4_desc') }}</p>
+              </div>
             </div>
-          </div>
 
-          <button class="start-btn" @click="handleStart">{{ t('emojiCoder.setup.start_btn') }}</button>
+            <div class="cards-grid">
+              <!-- Tutorial (Ativo) -->
+              <div class="activity-card">
+                <div class="card-icon highlight-blue"><BookOpen :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.tutorial_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.tutorial_desc') }}</p>
+                
+                <button class="start-btn blue-btn" @click="handleStartProject('turtle-tutorial-4', 8)">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </button>
+              </div>
+
+              <!-- Sandbox Básico -->
+              <div class="activity-card">
+                <div class="card-icon highlight"><Turtle :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.sandbox_basic_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.sandbox_basic_desc') }}</p>
+                
+                <div class="card-options">
+                  <span class="fixed-grid-label"><LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_fixed') }}</span>
+                </div>
+
+                <button class="start-btn" @click="handleStartProject('turtle-grade-4', 8)">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </button>
+              </div>
+
+              <!-- Sandbox Funções -->
+              <div class="activity-card">
+                <div class="card-icon highlight-purple"><LayoutGrid :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.sandbox_adv_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.sandbox_adv_desc') }}</p>
+                
+                <div class="card-options">
+                  <span class="fixed-grid-label"><LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_fixed') }}</span>
+                </div>
+
+                <button class="start-btn purple-btn" @click="handleStartProject('turtle-grade-4-advanced', 8)">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <hr class="section-divider" />
+
+          <!-- SEÇÃO: 5º ANO -->
+          <section class="grade-section">
+            <div class="section-title">
+              <Eye :size="24" class="section-icon orange" />
+              <div>
+                <h2>{{ t('emojiCoder.setup.grade_5_title') }}</h2>
+                <p>{{ t('emojiCoder.setup.grade_5_desc') }}</p>
+              </div>
+            </div>
+
+            <div class="cards-grid">
+              <!-- Tutorial (Em breve) -->
+              <div class="activity-card disabled">
+                <div class="card-icon"><BookOpen :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.tutorial_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.tutorial_desc') }}</p>
+                <div class="card-footer">
+                  <span class="badge"><Lock :size="14"/> {{ t('emojiCoder.setup.coming_soon') }}</span>
+                </div>
+              </div>
+
+              <!-- Sandbox Relativo -->
+              <div class="activity-card">
+                <div class="card-icon highlight-orange"><Compass :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.sandbox_rel_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.sandbox_rel_desc') }}</p>
+                
+                <!-- Selector de Grid Ativo -->
+                <div class="card-options">
+                  <label class="grid-select-label">
+                    <LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_size') }}
+                  </label>
+                  <select v-model="grade5GridSize" class="grid-select">
+                    <option :value="6">6x6 (Pequeno)</option>
+                    <option :value="8">8x8 (Médio)</option>
+                    <option :value="12">12x12 (Grande)</option>
+                    <option :value="16">16x16 (Desafio)</option>
+                  </select>
+                </div>
+
+                <button class="start-btn orange-btn" @click="handleStartProject('turtle-grade-5', grade5GridSize)">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </button>
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
 
@@ -154,7 +233,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<!-- ESTILOS GLOBAIS (Iguais ao Graph Builder) -->
+<!-- ESTILOS GLOBAIS -->
 <style>
 /* CSS Global Reset */
 html, body, #app {
@@ -162,7 +241,6 @@ html, body, #app {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: #f9fafb;
   color: #1f2937;
-  /* Essencial para Mobile: Impede pull-to-refresh e gestos nativos atrapalharem o Blockly */
   overscroll-behavior-y: none; 
 }
 .app-root { display: flex; flex-direction: column; height: 100vh; position: relative; }
@@ -176,17 +254,141 @@ html, body, #app {
 .icon-fab { width: 18px; height: 18px; }
 </style>
 
-<!-- ESTILOS LOCAIS DA TELA DE SETUP EMOJI CODER -->
+<!-- ESTILOS LOCAIS DA TELA HUB -->
 <style scoped>
-.setup-screen { display: flex; align-items: center; justify-content: center; height: 100%; }
-.setup-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-.title-with-icon { display: flex; align-items: center; gap: 0.5rem; margin-top: 0; }
-.text-icon { color: #4CAF50; }
-.form-group { margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
-.grid-inputs { display: flex; align-items: center; gap: 0.5rem; }
-.grid-inputs input { width: 80px; padding: 0.5rem; }
-select, input { padding: 0.5rem; border-radius: 6px; border: 1px solid #ccc; }
-.start-btn { width: 100%; padding: 0.75rem; background-color: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
-.start-btn:hover { background-color: #45a049; }
-.preview-mode { padding: 2rem; text-align: center; }
+.dashboard-screen {
+  height: 100%;
+  overflow-y: auto;
+  background-color: #f1f5f9;
+  padding: 3rem 1rem;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.dashboard-header .text-icon {
+  color: #22c55e;
+  margin-bottom: 0.5rem;
+}
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: #0f172a;
+}
+.dashboard-header p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.dashboard-content {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.section-divider {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.1), rgba(0,0,0,0));
+  margin: 3rem 0;
+}
+
+.grade-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.section-icon {
+  color: #3b82f6; /* Azul base */
+}
+.section-icon.orange { color: #f97316; }
+.section-title h2 { margin: 0; font-size: 1.5rem; color: #1e293b; }
+.section-title p { margin: 0; color: #64748b; font-size: 0.95rem; }
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* O Card de Atividade */
+.activity-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+}
+.activity-card:hover:not(.disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+.activity-card.disabled {
+  opacity: 0.7;
+  background-color: #f8fafc;
+  cursor: not-allowed;
+}
+
+.card-icon {
+  width: 56px; height: 56px;
+  border-radius: 12px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+}
+.card-icon.highlight { background-color: #dcfce7; color: #22c55e; }
+.card-icon.highlight-purple { background-color: #f3e8ff; color: #a855f7; }
+.card-icon.highlight-orange { background-color: #ffedd5; color: #f97316; }
+
+.activity-card h3 { margin: 0 0 0.5rem 0; font-size: 1.15rem; color: #0f172a; }
+.activity-card p { margin: 0 0 1.5rem 0; color: #64748b; font-size: 0.9rem; line-height: 1.4; flex-grow: 1; }
+
+.card-options {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.fixed-grid-label, .grid-select-label {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.85rem; font-weight: 600; color: #475569;
+}
+.grid-select {
+  padding: 0.5rem; border-radius: 6px; border: 1px solid #cbd5e1;
+  background: white; color: #1e293b; font-size: 0.9rem; outline: none; cursor: pointer;
+}
+.grid-select:focus { border-color: #3b82f6; }
+
+.card-footer { display: flex; align-items: center; margin-top: auto; }
+.badge { display: flex; align-items: center; gap: 4px; background: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+
+.start-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%; padding: 0.75rem; border: none; border-radius: 8px;
+  font-size: 1rem; font-weight: bold; cursor: pointer;
+  background-color: #22c55e; color: white; transition: background-color 0.2s;
+  margin-top: auto;
+}
+.start-btn:hover { background-color: #16a34a; }
+
+.purple-btn { background-color: #a855f7; }
+.purple-btn:hover { background-color: #9333ea; }
+
+.orange-btn { background-color: #f97316; }
+.orange-btn:hover { background-color: #ea580c; }
+
+.card-icon.highlight-blue { background-color: #dbeafe; color: #3b82f6; }
+.blue-btn { background-color: #3b82f6; }
+.blue-btn:hover { background-color: #2563eb; }
 </style>

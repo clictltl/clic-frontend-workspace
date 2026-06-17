@@ -91,7 +91,10 @@ onMounted(async () => {
   });
 
   // 3.5 Hidratação Inicial: Carrega blocos salvos do projeto
-  if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
+  if (projectStore.isTutorialMode && projectStore.project.config.tutorialSavedWorkspaces?.[projectStore.activeChallengeIndex]) {
+    // Se for tutorial e tiver código salvo para a fase atual, carrega ele
+    Blockly.serialization.workspaces.load(projectStore.project.config.tutorialSavedWorkspaces[projectStore.activeChallengeIndex], workspace);
+  } else if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
     Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
   }
 
@@ -189,6 +192,35 @@ watch(() => projectStore.activeBlockId, (newId) => {
   if (!workspace) return;
   // O Blockly aceita um ID válido para brilhar, ou 'null' para limpar a tela
   workspace.highlightBlock(newId);
+});
+
+// --- REATIVIDADE DE TUTORIAIS (MUDANÇA DE DESAFIO) ---
+watch(() => projectStore.activeChallengeIndex, (newIndex) => {
+  if (!workspace) return;
+  
+  // 1. Atualiza a toolbox para exibir apenas os blocos do novo desafio
+  const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+  const activeLibrary = loadLibrary(libraryId, t as any);
+  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+  
+  // 2. Limpa o quadro atual
+  workspace.clear();
+  
+  // 3. Verifica se já existe código salvo para o desafio de destino
+  const savedState = projectStore.project.config.tutorialSavedWorkspaces?.[newIndex];
+  
+  if (savedState && Object.keys(savedState).length > 0) {
+    // Restaura o código que o aluno tinha feito antes!
+    Blockly.serialization.workspaces.load(savedState, workspace);
+  } else {
+    // Se for a primeira vez neste desafio, recria o bloco de início vazio
+    const startBlock = workspace.newBlock('start');
+    startBlock.initSvg();
+    startBlock.render();
+    startBlock.moveBy(40, 40);
+  }
+
+  workspace.clearUndo();
 });
 </script>
 

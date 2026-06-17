@@ -8,6 +8,10 @@ export interface ProjectConfig {
   libraryId: string | null;
   gridWidth: number;
   gridHeight: number;
+  startX?: number;
+  startY?: number;
+  targetCells?: Record<string, string>;
+  tutorialSavedWorkspaces?: Record<number, any>;
 }
 
 /**

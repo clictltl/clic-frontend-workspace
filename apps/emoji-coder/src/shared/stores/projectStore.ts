@@ -16,7 +16,10 @@ const createEmptyProject = (): EmojiProject => ({
   config: {
     libraryId: null,
     gridWidth: 8,
-    gridHeight: 8
+    gridHeight: 8,
+    startX: 0,
+    startY: 0,
+    targetCells: {}
   },
   blocksWorkspace: {},
   compiledAST: [],
@@ -40,14 +43,16 @@ export const useProjectStore = defineStore('emoji-coder-project', {
     return {
       project: initialProject,
       lastSavedState: JSON.stringify(initialProject),
-      // Variável volátil para a UI (O Histórico e o JSON ignoram isso)
-      activeBlockId: null as string | null
+      // Variáveis voláteis para a UI e Motor
+      activeBlockId: null as string | null,
+      activeChallengeIndex: 0 // Controle de qual passo do tutorial estamos
     };
   },
 
   getters: {
     hasUnsavedChanges: (state) => JSON.stringify(state.project) !== state.lastSavedState,
     isConfigured: (state) => state.project.config.libraryId !== null,
+    isTutorialMode: (state) => state.project.config.libraryId?.includes('tutorial') || false,
   },
 
   actions: {
@@ -92,10 +97,27 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       this.project.config.gridHeight = height;
     },
 
+    loadChallenge(index: number, challengeDef: any) {
+      this.activeChallengeIndex = index;
+      this.project.config.gridWidth = challengeDef.grid.cols;
+      this.project.config.gridHeight = challengeDef.grid.rows;
+      this.project.config.startX = challengeDef.startPos.x;
+      this.project.config.startY = challengeDef.startPos.y;
+      this.project.config.targetCells = challengeDef.targetCells || {};
+    },
+
     // Ação silenciosa para sincronizar o workspace do Blockly com o Vue sem poluir o histórico
     updateWorkspaceSilent(workspaceJson: any, ast: any[]) {
       this.project.blocksWorkspace = workspaceJson;
       this.project.compiledAST = ast;
+
+      // Se for tutorial, salva o state no slot do desafio atual:
+      if (this.isTutorialMode && this.activeChallengeIndex !== undefined) {
+        if (!this.project.config.tutorialSavedWorkspaces) {
+          this.project.config.tutorialSavedWorkspaces = {};
+        }
+        this.project.config.tutorialSavedWorkspaces[this.activeChallengeIndex] = workspaceJson;
+      }
     }
   }
 });

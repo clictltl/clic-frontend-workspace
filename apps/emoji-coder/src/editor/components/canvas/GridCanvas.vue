@@ -25,7 +25,7 @@
           v-for="i in (cols * rows)" 
           :key="i" 
           class="grid-cell"
-          :style="{ backgroundColor: engine.state.paintedCells[getCellPos(i)] }"
+          :style="{ backgroundColor: engine.state.paintedCells[getCellPos(i)] || store.project.config.targetCells?.[getCellPos(i)] }"
         ></div>
         
         <!-- O Ator (Nossa Tartaruga em SVG nativo) -->

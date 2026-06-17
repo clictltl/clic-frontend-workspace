@@ -24,6 +24,7 @@ export class TurtleEngine {
   private abortFlag = false;
 
   public onHighlight: (blockId: string | null) => void = () => {};
+  public onExecutionComplete: () => void = () => {};
 
   constructor(getSleepTime: SpeedFn) {
     this.getSleepTime = getSleepTime;
@@ -120,14 +121,14 @@ export class TurtleEngine {
   }
 
   // BOTÃO: PLAY 
-  public async play(ast: any[], gridWidth: number, gridHeight: number) {
+  public async play(ast: any[], gridWidth: number, gridHeight: number, startX: number = 0, startY: number = 0) {
     if (this.state.status === 'PAUSED') {
       this.state.status = 'RUNNING';
       if (this.resolveStep) this.resolveStep(); 
       return;
     }
 
-    this.resetWorld();
+    this.resetWorld(startX, startY);
     this.extractFunctions(ast);
     this.state.totalSteps = this.calculateTotalSteps(ast);
     this.state.gridWidth = gridWidth;
@@ -143,6 +144,7 @@ export class TurtleEngine {
     if (!this.abortFlag) {
       this.state.status = 'IDLE';
       this.onHighlight(null);
+      this.onExecutionComplete();
     }
   }
 
@@ -150,19 +152,19 @@ export class TurtleEngine {
     if (this.state.status === 'RUNNING') this.state.status = 'PAUSED';
   }
 
-  public async step(ast: any[], gridWidth: number, gridHeight: number) {
+  public async step(ast: any[], gridWidth: number, gridHeight: number, startX: number = 0, startY: number = 0) {
     if (this.state.status === 'IDLE') {
       this.state.status = 'PAUSED';
       this.abortFlag = false;
-      this.playFromStep(ast, gridWidth, gridHeight);
+      this.playFromStep(ast, gridWidth, gridHeight, startX, startY);
       setTimeout(() => { if (this.resolveStep) this.resolveStep(); }, 0);
     } else if (this.state.status === 'PAUSED') {
       if (this.resolveStep) this.resolveStep();
     }
   }
 
-  private async playFromStep(ast: any[], gridWidth: number, gridHeight: number) {
-    this.resetWorld();
+  private async playFromStep(ast: any[], gridWidth: number, gridHeight: number, startX: number = 0, startY: number = 0) {
+    this.resetWorld(startX, startY);
     this.extractFunctions(ast);
     this.state.totalSteps = this.calculateTotalSteps(ast);
     this.state.gridWidth = gridWidth;
@@ -176,20 +178,21 @@ export class TurtleEngine {
     if (!this.abortFlag) {
       this.state.status = 'IDLE';
       this.onHighlight(null);
+      this.onExecutionComplete();
     }
   }
 
-  public reset() {
+  public reset(startX: number = 0, startY: number = 0) {
     this.abortFlag = true;
     this.state.status = 'IDLE';
     this.onHighlight(null);
     if (this.resolveStep) this.resolveStep(); 
-    this.resetWorld();
+    this.resetWorld(startX, startY);
   }
 
-  private resetWorld() {
-    this.state.turtleX = 0;
-    this.state.turtleY = 0;
+  private resetWorld(startX: number = 0, startY: number = 0) {
+    this.state.turtleX = startX;
+    this.state.turtleY = startY;
     this.state.turtleRotation = 90;
     this.state.paintedCells = {};
     this.state.currentStep = 0;
