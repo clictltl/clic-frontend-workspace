@@ -38,7 +38,7 @@
         <h3 class="mission-title">{{ currentChallenge.title }}</h3>
         <p class="mission-desc">{{ currentChallenge.description }}</p>
         <div class="mission-tip" v-if="currentChallenge.tip">
-          <strong>💡 Dica:</strong> {{ currentChallenge.tip }}
+          <strong><Lightbulb :size="16" class="inline-icon" /> Dica:</strong> {{ currentChallenge.tip }}
         </div>
       </div>
     </div>
@@ -50,10 +50,28 @@
       <!-- OVERLAY DE SUCESSO DO TUTORIAL -->
       <div v-if="showSuccess" class="success-overlay">
         <div class="success-card">
-          <h2>🎉 Sucesso!</h2>
+          <h2 class="title-with-icon"><PartyPopper :size="28" /> Sucesso!</h2>
           <p>{{ currentChallenge?.successMsg }}</p>
           <button class="next-challenge-btn" @click="handleNextChallenge">
             {{ isLastChallenge ? 'Finalizar Tutorial' : 'Próximo Desafio →' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- OVERLAY DE CONCLUSÃO DO TUTORIAL -->
+      <div v-if="showTutorialComplete" class="success-overlay final-overlay">
+        <div class="success-card final-card">
+          <h2 class="title-with-icon"><Trophy :size="32" /> Tutorial Concluído!</h2>
+          <p>Você completou todos os desafios com excelência. Você já é um(a) mestre da Tartaruga e está pronto(a) para criar seus próprios projetos livres!</p>
+          
+          <!-- Dica pedagógica de salvamento -->
+          <div class="save-tip">
+            <Lightbulb :size="18" class="inline-icon-top" /> 
+            <span>Lembre-se de usar o menu <strong>Arquivo &gt; Salvar</strong> para guardar suas soluções antes de sair!</span>
+          </div>
+
+          <button class="next-challenge-btn btn-home" @click="goHome">
+            Voltar ao Início
           </button>
         </div>
       </div>
@@ -116,9 +134,9 @@ import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { TurtleEngine } from '@/shared/engine/interpreter';
 import { loadLibrary } from '@/libraries';
-import { challengesGrade4 } from '@/tutorials/tutorialGrade4';
+import { getTutorialChallenges } from '@/tutorials';
 import GridCanvas from './canvas/GridCanvas.vue';
-import { Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp } from '@lucide/vue';
+import { Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
 
 defineProps<{ isPreview?: boolean }>();
@@ -146,16 +164,23 @@ const toggleMission = () => {
 // ----------------------------------------
 
 // --- LÓGICA DE TUTORIAL ---
-const totalChallenges = challengesGrade4.length;
 const showSuccess = ref(false);
+const showTutorialComplete = ref(false);
+
+const activeChallengeList = computed(() => {
+  if (!projectStore.isTutorialMode) return [];
+  return getTutorialChallenges(projectStore.project.config.libraryId);
+});
+
+const totalChallenges = computed(() => activeChallengeList.value.length);
 
 const currentChallenge = computed(() => {
   if (!projectStore.isTutorialMode) return null;
-  return challengesGrade4[projectStore.activeChallengeIndex] || challengesGrade4[0];
+  return activeChallengeList.value[projectStore.activeChallengeIndex] || activeChallengeList.value[0];
 });
 
 const isLastChallenge = computed(() => {
-  return projectStore.activeChallengeIndex >= totalChallenges - 1;
+  return projectStore.activeChallengeIndex >= totalChallenges.value - 1;
 });
 
 onMounted(() => {
@@ -172,10 +197,10 @@ onUnmounted(() => {
 
 const goToChallenge = (index: number) => {
   if (index === projectStore.activeChallengeIndex) return; // Ignora se for o atual
-  if (index < 0 || index >= totalChallenges) return;
+  if (index < 0 || index >= totalChallenges.value) return;
 
   showSuccess.value = false;
-  const targetChal = challengesGrade4[index];
+  const targetChal = activeChallengeList.value[index];
   
   if (targetChal) {
     projectStore.loadChallenge(index, targetChal);
@@ -184,12 +209,18 @@ const goToChallenge = (index: number) => {
 };
 
 const handleNextChallenge = () => {
+  showSuccess.value = false;
   if (!isLastChallenge.value) {
     goToChallenge(projectStore.activeChallengeIndex + 1);
     if (isMobile.value) isMissionCollapsed.value = true;
   } else {
-    alert("Parabéns, você completou o tutorial!");
+    showTutorialComplete.value = true;
   }
+};
+
+const goHome = () => {
+  // O recarregamento limpo da rota volta diretamente para o Dashboard inicial
+  window.location.href = window.location.pathname;
 };
 // --------------------------
 
@@ -307,6 +338,28 @@ const handleReset = () => {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+/* === MODAL FINAL DOURADO === */
+.final-overlay {
+  z-index: 60; /* Fica acima de tudo */
+  background: rgba(255, 255, 255, 0.95);
+}
+.final-card {
+  border: 3px solid #eab308; /* Amarelo/Dourado */
+  box-shadow: 0 15px 35px rgba(234, 179, 8, 0.25);
+}
+.final-card h2 {
+  color: #eab308;
+  font-size: 2rem;
+}
+.btn-home {
+  background: #eab308;
+  margin-top: 1rem;
+}
+.btn-home:hover {
+  background: #ca8a04;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+}
+
 /* === O RODAPÉ === */
 .control-board { display: flex; flex-direction: column; border-top: 1px solid #e5e7eb; }
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background-color: #f8fafc; border-bottom: 1px solid #f1f5f9; }
@@ -333,6 +386,37 @@ input[type="range"] { max-width: 120px; cursor: pointer; accent-color: #3b82f6; 
 .pause-btn { background-color: #f59e0b; color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
 .pause-btn:hover:not(:disabled) { background-color: #d97706; transform: scale(1.05); }
 .svg-icon { width: 26px; height: 26px; }
+
+/* === ÍCONES LUCIDE === */
+.inline-icon {
+  vertical-align: text-bottom;
+  margin-right: 4px;
+}
+.title-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* === ALERTA DE SALVAMENTO === */
+.save-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background-color: #fef9c3; /* Fundo amarelo claro */
+  color: #854d0e; /* Texto amarelo escuro/marrom */
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: left;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+.inline-icon-top {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
 
 /* === OTIMIZAÇÃO MOBILE (CSS Media Queries) === */
 @media (max-width: 768px) {

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
-import { Turtle, BookOpen, Play, Lock, Compass, Eye, LayoutGrid } from '@lucide/vue';
+import { Turtle, BookOpen, Play, Compass, Eye, LayoutGrid } from '@lucide/vue';
 import appLogo from '@/assets/emojer_logo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -180,14 +180,15 @@ onUnmounted(() => {
             </div>
 
             <div class="cards-grid">
-              <!-- Tutorial (Em breve) -->
-              <div class="activity-card disabled">
-                <div class="card-icon"><BookOpen :size="32" /></div>
+              <!-- Tutorial (Ativo) -->
+              <div class="activity-card">
+                <div class="card-icon highlight-orange"><BookOpen :size="32" /></div>
                 <h3>{{ t('emojiCoder.setup.tutorial_title') }}</h3>
                 <p>{{ t('emojiCoder.setup.tutorial_desc') }}</p>
-                <div class="card-footer">
-                  <span class="badge"><Lock :size="14"/> {{ t('emojiCoder.setup.coming_soon') }}</span>
-                </div>
+                
+                <button class="start-btn orange-btn" @click="handleStartProject('turtle-tutorial-5', 8)">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </button>
               </div>
 
               <!-- Sandbox Relativo -->

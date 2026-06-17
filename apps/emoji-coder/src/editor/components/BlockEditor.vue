@@ -151,8 +151,14 @@ watch(() => projectStore.project.meta.id, () => {
   
   workspace.clear();
   
-  if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
-    // 1. Carrega o projeto importado
+  const isTutorial = projectStore.isTutorialMode;
+  const currentIdx = projectStore.activeChallengeIndex;
+  const savedTutorialState = projectStore.project.config.tutorialSavedWorkspaces?.[currentIdx];
+
+  // 1. Verifica de onde restaurar os blocos (Do histórico do tutorial ou do workspace principal)
+  if (isTutorial && savedTutorialState && Object.keys(savedTutorialState).length > 0) {
+    Blockly.serialization.workspaces.load(savedTutorialState, workspace);
+  } else if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
     Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
   } else {
     // 2. Se for um "Novo Projeto" (JSON vazio), cria o bloco Início do zero
@@ -162,8 +168,14 @@ watch(() => projectStore.project.meta.id, () => {
     startBlock.moveBy(40, 40);
   }
 
-  // Define este exato momento como o "Marco Zero" do Histórico
   workspace.clearUndo();
+
+  // 3. Se for tutorial importado, garante que a aba de blocos carregue apenas as ferramentas do desafio atual
+  if (isTutorial) {
+    const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+    const activeLibrary = loadLibrary(libraryId, t as any);
+    workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+  }
 });
 
 // --- REATIVIDADE DE IDIOMA ---

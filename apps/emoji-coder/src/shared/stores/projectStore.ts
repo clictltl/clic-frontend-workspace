@@ -19,7 +19,9 @@ const createEmptyProject = (): EmojiProject => ({
     gridHeight: 8,
     startX: 0,
     startY: 0,
-    targetCells: {}
+    targetCells: {},
+    activeChallengeIndex: 0,
+    tutorialSavedWorkspaces: {}
   },
   blocksWorkspace: {},
   compiledAST: [],
@@ -76,7 +78,12 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       json.compiledAST = Array.isArray(json.compiledAST) ? [] : (json.compiledAST || []);
       json.assets = Array.isArray(json.assets) ? {} : (json.assets || {});
       
+      if (!json.config.tutorialSavedWorkspaces) json.config.tutorialSavedWorkspaces = {};
+      
       this.project = json;
+
+      // Sincroniza a variável de memória da UI com a do arquivo importado!
+      this.activeChallengeIndex = this.project.config.activeChallengeIndex || 0;
 
       if (markAsUnsaved) {
         this.lastSavedState = 'FORCED_UNSAVED';
@@ -99,6 +106,7 @@ export const useProjectStore = defineStore('emoji-coder-project', {
 
     loadChallenge(index: number, challengeDef: any) {
       this.activeChallengeIndex = index;
+      this.project.config.activeChallengeIndex = index;
       this.project.config.gridWidth = challengeDef.grid.cols;
       this.project.config.gridHeight = challengeDef.grid.rows;
       this.project.config.startX = challengeDef.startPos.x;
