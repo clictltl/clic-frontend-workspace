@@ -26,11 +26,17 @@ export function compileWorkspaceToAST(workspace: Blockly.Workspace): any[] {
   const topBlocks = workspace.getTopBlocks(true);
   const ast: any[] = [];
 
-  // 1. Extrai todas as Funções primeiro (Ficam no topo do AST JSON)
-  const defBlocks = topBlocks.filter(b => b.type === 'procedures_defnoreturn');
-  for (const block of defBlocks) {
+  // 1. Extrai todas as árvores soltas que NÃO são o fluxo principal
+  const floatingBlocks = topBlocks.filter(b => b.type !== 'start');
+  
+  for (const block of floatingBlocks) {
     const nodes = walkAST(block);
-    ast.push(...nodes); 
+    // Delegação de Responsabilidade: O Blockly não sabe o que é função. O AST sabe!
+    // Se o nó raiz resultante for uma definição, nós salvamos.
+    // Blocos de ação soltos no quadro (lixo) serão sumariamente ignorados.
+    if (nodes.length > 0 && nodes[0].isDefinition) {
+      ast.push(...nodes); 
+    }
   }
 
   // 2. Extrai o Fluxo Principal do Start

@@ -65,6 +65,26 @@ export const registerProcedureParsers = () => {
       isCall: true, callTarget: name
     };
   });
+
+  // --- PARSERS DOS BLOCOS 100% VISUAIS (Grade 4 Adv) ---
+  registerASTParser('turtle_visual_def', (block, walkChildren) => {
+    const name = block.getFieldValue('FRUIT_ID');
+    const bodyBlock = block.getInputTargetBlock('STACK'); 
+    const body = walkChildren(bodyBlock);
+
+    return { 
+      action: 'DEFINE_FUNCTION', blockId: block.id, isControl: true,
+      isDefinition: true, definitionName: name, body
+    };
+  });
+
+  registerASTParser('turtle_visual_call', (block) => {
+    const name = block.getFieldValue('FRUIT_ID'); 
+    return { 
+      action: 'CALL_FUNCTION', blockId: block.id, isControl: true,
+      isCall: true, callTarget: name
+    };
+  });
 };
 
 export const registerProcedureHandlers = (engine: TurtleEngine) => {

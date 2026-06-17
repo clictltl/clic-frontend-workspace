@@ -1,5 +1,5 @@
 import type { BlockLibrary, TranslateFn } from '../types';
-import { defineMovementBlocks, registerMovementParsers, registerMovementHandlers } from './blocks';
+import { defineMovementBlocks, defineVisualLoopBlock, registerMovementParsers, registerMovementHandlers } from './blocks';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
 import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
@@ -23,20 +23,15 @@ export const turtleGrade4: BlockLibrary = {
       <sep gap="24"></sep>
 
       <label text="${t('emojiCoder.toolbox.loops')}"></label>
-      <block type="controls_repeat_ext">
-        <value name="TIMES">
-          <shadow type="math_number">
-            <field name="NUM">4</field>
-          </shadow>
-        </value>
-      </block>
+      <block type="turtle_repeat"></block>
     </xml>
   `,
   
   registerBlocks: (t: TranslateFn) => {
-    defineStartBlock(t);
-    definePaintBlock(t);
+    defineStartBlock(t, { iconOnly: true });
+    definePaintBlock(t, { iconOnly: true });
     defineMovementBlocks(t);
+    defineVisualLoopBlock(t);
   },
 
   registerParsers: () => {

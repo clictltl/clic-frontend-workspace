@@ -7,6 +7,7 @@ import type { TurtleEngine } from '@/shared/engine/interpreter';
 export interface BlockLibrary {
   id: string;
   name: string;
+  isToolboxDynamic?: boolean;
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => string;
   registerBlocks: (t: TranslateFn) => void;
   registerParsers: () => void;

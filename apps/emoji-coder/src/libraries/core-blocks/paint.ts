@@ -4,18 +4,25 @@ import iconPaint from '@/assets/icons/paint.svg';
 import { registerASTParser } from '../ASTBuilder';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-export const definePaintBlock = (t: TranslateFn) => {
+export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean }) => {
+  const isIcon = options?.iconOnly;
   Blockly.defineBlocksWithJsonArray([{
     type: "paint",
-    message0: "%1 %2 %3",
-    args0: [
-      { type: "field_image", src: iconPaint, width: 20, height: 20, alt: "Pintar" },
-      { type: "field_label", text: t('emojiCoder.blocks.paint') || 'Pintar o chão' },
-      { type: "field_colour", name: "COLOR", colour: "#fde047" } // Amarelo por padrão
-    ],
+    message0: isIcon ? "%1 %2" : "%1 %2 %3", // Removemos 1 slot se for iconOnly (o field_label)
+    args0: isIcon 
+      ? [
+          { type: "field_image", src: iconPaint, width: 28, height: 28, alt: "Pintar" },
+          { type: "field_colour", name: "COLOR", colour: "#fde047" }
+        ]
+      : [
+          { type: "field_image", src: iconPaint, width: 20, height: 20, alt: "Pintar" },
+          { type: "field_label", text: t('emojiCoder.blocks.paint') || 'Pintar o chão' },
+          { type: "field_colour", name: "COLOR", colour: "#fde047" }
+        ],
     previousStatement: null,
     nextStatement: null,
     colour: 290,
+    tooltip: isIcon ? (t('emojiCoder.blocks.paint') || 'Pintar o chão') : ""
   }]);
 };
 

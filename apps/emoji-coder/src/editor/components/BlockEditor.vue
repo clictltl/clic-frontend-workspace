@@ -115,20 +115,24 @@ onMounted(async () => {
     if (event.isUiEvent) return;
 
     if (workspace) {
-      // Toolbox: Injeta as chamadas das funções dinamicamente sem usar Pastas
-      const functionNames = workspace.getTopBlocks(false)
-        .filter(b => b.type === 'procedures_defnoreturn')
-        .map(b => b.getFieldValue('NAME'))
-        .sort()
-        .join(',');
+      // 1. Gera o AST limpo e unificado
+      const ast = compileWorkspaceToAST(workspace);
 
-      if (functionNames !== previousFunctions) {
-        previousFunctions = functionNames;
-        workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+      // 2. Se a biblioteca exigir um menu dinâmico (Ex: Grade 5), atualiza a Toolbox
+      if (activeLibrary.isToolboxDynamic) {
+        // Pega qualquer função que o AST tenha lido
+        const definedFunctions = Array.from(new Set(
+          ast.filter(node => node.isDefinition).map(node => node.definitionName).filter(Boolean)
+        )).sort().join(',');
+
+        if (definedFunctions !== previousFunctions) {
+          previousFunctions = definedFunctions;
+          workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+        }
       }
 
+      // 3. Salva no estado silencioso
       const workspaceJson = Blockly.serialization.workspaces.save(workspace);
-      const ast = compileWorkspaceToAST(workspace);
       projectStore.updateWorkspaceSilent(workspaceJson, ast);
     }
   });

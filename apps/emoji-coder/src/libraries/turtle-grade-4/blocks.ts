@@ -7,18 +7,19 @@ import iconUp from '@/assets/icons/arrow-up.svg';
 import iconDown from '@/assets/icons/arrow-down.svg';
 import iconLeft from '@/assets/icons/arrow-left.svg';
 import iconRight from '@/assets/icons/arrow-right.svg';
+import iconRepeat from '@/assets/icons/repeat.svg';
 
 export const defineMovementBlocks = (t: TranslateFn) => {
   const buildDef = (type: string, src: string, label: string) => ({
     type,
-    message0: "%1 %2",
+    message0: "%1",
     args0: [
-      { type: "field_image", src, width: 18, height: 18, alt: "*" },
-      { type: "field_label", text: label }
+      { type: "field_image", src, width: 28, height: 28, alt: label }
     ],
     previousStatement: null,
     nextStatement: null,
-    colour: 230
+    colour: 230,
+    tooltip: label
   });
 
   const blocksDefinition = [
@@ -32,6 +33,26 @@ export const defineMovementBlocks = (t: TranslateFn) => {
     if (Blockly.Blocks[def.type]) delete Blockly.Blocks[def.type];
     Blockly.defineBlocksWithJsonArray([def]);
   });
+};
+
+export const defineVisualLoopBlock = (t: TranslateFn) => {
+  if (Blockly.Blocks['turtle_repeat']) delete Blockly.Blocks['turtle_repeat'];
+  Blockly.defineBlocksWithJsonArray([{
+    type: "turtle_repeat",
+    message0: "%1 %2",
+    args0: [
+      { type: "field_image", src: iconRepeat, width: 28, height: 28, alt: "Repetir" },
+      { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 }
+    ],
+    message1: "%1",
+    args1: [
+      { type: "input_statement", name: "DO" }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 120, // Verde do Blockly original para laços
+    tooltip: t('emojiCoder.toolbox.loops')
+  }]);
 };
 
 export const registerMovementParsers = () => {

@@ -10,6 +10,7 @@ import type { TurtleEngine } from '@/shared/engine/interpreter';
 export const turtleGrade5: BlockLibrary = {
   id: 'turtle-grade-5',
   name: '5ª Série - Movimento Relativo e Funções',
+  isToolboxDynamic: true,
   
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
     let callBlocks = '';
