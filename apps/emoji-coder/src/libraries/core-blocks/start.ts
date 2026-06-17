@@ -11,7 +11,7 @@ export const defineStartBlock = (t: TranslateFn) => {
       { type: "field_label", text: t('emojiCoder.blocks.start') }
     ],
     nextStatement: null,
-    colour: 20, 
+    colour: "#22c55e", 
     deletable: false
   }]);
 };

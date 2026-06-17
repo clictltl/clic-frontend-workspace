@@ -211,14 +211,18 @@ export default {
     },
     blocks: {
       start: 'Quando iniciar',
-      paint: 'Pintar o chão',
+      paint: 'Pintar',
       move_up: 'Para cima',
       move_down: 'Para baixo',
       move_left: 'Para esquerda',
       move_right: 'Para direita',
       define: 'Definir',
       call: 'Chamar',
-      defaultFuncName: 'minha função'
+      defaultFuncName: 'minha função',
+      move_forward: 'Avançar',
+      move_backward: 'Recuar',
+      turn_left: 'Girar à Esquerda',
+      turn_right: 'Girar à Direita'
     },
     toolbox: {
       start: 'Início',

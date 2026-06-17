@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
 import { Turtle } from '@lucide/vue';
-
+import appLogo from '@/assets/emojer_logo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
@@ -91,7 +91,7 @@ onUnmounted(() => {
 <template>
   <div class="app-root">
     <!-- HEADER DO ECOSSISTEMA -->
-    <AppHeader :title="t('emojiCoder.setup.app_title')">
+    <AppHeader :title="t('emojiCoder.setup.app_title')" :app-logo="appLogo">
       <FileMenu 
         item-name="Emoji Coder"
         file-extension=".emjc"
@@ -123,6 +123,7 @@ onUnmounted(() => {
             <select v-model="form.libraryId">
               <option value="turtle-grade-4">{{ t('emojiCoder.setup.grade_4') }}</option>
               <option value="turtle-grade-4-advanced">{{ t('emojiCoder.setup.grade_4_advanced') }}</option>
+              <option value="turtle-grade-5">{{ t('emojiCoder.setup.grade_5') }}</option>
             </select>
           </div>
 

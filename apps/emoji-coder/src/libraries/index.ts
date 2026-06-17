@@ -4,10 +4,12 @@ import { walkAST } from './ASTBuilder';
 
 import { turtleGrade4 } from './turtle-grade-4';
 import { turtleGrade4Advanced } from './turtle-grade-4-advanced';
+import { turtleGrade5 } from './turtle-grade-5';
 
 const libraries: Record<string, BlockLibrary> = {
   'turtle-grade-4': turtleGrade4,
-  'turtle-grade-4-advanced': turtleGrade4Advanced
+  'turtle-grade-4-advanced': turtleGrade4Advanced,
+  'turtle-grade-5': turtleGrade5
 };
 
 export function loadLibrary(libraryId: string, t: TranslateFn): BlockLibrary {
