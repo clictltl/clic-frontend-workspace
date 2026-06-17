@@ -45,7 +45,7 @@
 
     <!-- O Palco Principal -->
     <div class="canvas-container">
-      <GridCanvas :engine="engine" />
+      <GridCanvas :engine="engine" :speed-ms="currentSpeedMs" />
       
       <!-- OVERLAY DE SUCESSO DO TUTORIAL -->
       <div v-if="showSuccess" class="success-overlay">
@@ -225,7 +225,8 @@ const goHome = () => {
 // --------------------------
 
 const executionSpeed = ref(3);
-const getSleepTime = () => [1500, 1000, 500, 250, 100][executionSpeed.value - 1] || 500;
+const currentSpeedMs = computed(() => [800, 500, 250, 100, 30][executionSpeed.value - 1] || 250);
+const getSleepTime = () => currentSpeedMs.value;
 
 const engine = new TurtleEngine(getSleepTime);
 

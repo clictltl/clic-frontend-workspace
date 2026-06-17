@@ -6,7 +6,8 @@
       :class="{ 'hide-labels': !showLabels }"
       :style="{ 
         '--cols': cols, 
-        '--rows': rows 
+        '--rows': rows,
+        '--anim-duration': `${(speedMs || 250) * 0.8}ms`
       }"
     >
       <!-- Etiquetas de Coluna (Letras no Topo) -->
@@ -51,6 +52,7 @@ import turtleSvg from '@/assets/turtle.svg';
 
 const props = defineProps<{
   engine: TurtleEngine;
+  speedMs?: number;
 }>();
 
 const store = useProjectStore();
@@ -240,8 +242,8 @@ const getColumnLetter = (index: number) => {
   align-items: center;
   justify-content: center;
   
-  /* Transição suave usando GPU-Acceleration */
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Transição suave Sincronizada com o Motor via GPU */
+  transition: transform var(--anim-duration, 0.2s) cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
 }
 
