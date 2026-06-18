@@ -105,11 +105,19 @@
         </div>
 
         <div class="action-group center">
-          <button class="btn icon-btn play-btn" v-if="engine.state.status !== 'RUNNING'" title="Executar" @click="handlePlay" :disabled="showSuccess">
-            <img :src="iconStart" alt="Play" class="svg-icon" />
+          <!-- 1. Estado Parado (Início) -->
+          <button class="btn icon-btn play-btn" v-if="engine.state.status === 'IDLE'" title="Executar Código" @click="handlePlay" :disabled="showSuccess">
+            <img :src="iconStart" alt="Start" class="svg-icon" />
           </button>
+          
+          <!-- 2. Estado Pausado (Continuar) -->
+          <button class="btn icon-btn resume-btn" v-else-if="engine.state.status === 'PAUSED'" title="Continuar Execução" @click="handlePlay" :disabled="showSuccess">
+            <Play :size="26" />
+          </button>
+
+          <!-- 3. Estado Rodando (Pausar) -->
           <button class="btn icon-btn pause-btn" v-else title="Pausar" @click="handlePause" :disabled="showSuccess">
-            <Pause :size="24" />
+            <Pause :size="26" />
           </button>
 
           <button class="btn icon-btn step-btn" title="Passo a Passo" @click="handleStep" :disabled="engine.state.status === 'RUNNING' || showSuccess">
@@ -129,14 +137,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { TurtleEngine } from '@/shared/engine/interpreter';
 import { loadLibrary } from '@/libraries';
 import { getTutorialChallenges } from '@/tutorials';
 import GridCanvas from './canvas/GridCanvas.vue';
-import { Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
+import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
 
 defineProps<{ isPreview?: boolean }>();
@@ -243,6 +251,24 @@ engine.onExecutionComplete = () => {
     }
   }
 };
+
+// --- RESET AUTOMÁTICO AO EDITAR O CÓDIGO ---
+watch(
+  () => projectStore.project.compiledAST,
+  () => {
+    // 1. Esconde a tela de sucesso se o aluno mexer nos blocos depois de ganhar
+    if (showSuccess.value) {
+      showSuccess.value = false;
+    }
+    
+    // 2. Se o motor estava rodando ou pausado (Step), reseta imediatamente
+    if (engine.state.status !== 'IDLE') {
+      const c = projectStore.project.config;
+      engine.reset(c.startX, c.startY);
+    }
+  },
+  { deep: true }
+);
 
 const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
 const activeLibrary = loadLibrary(libraryId, t as any);
@@ -384,6 +410,8 @@ input[type="range"] { max-width: 120px; cursor: pointer; accent-color: #3b82f6; 
 .play-btn, .pause-btn { width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3); }
 .play-btn { background-color: #22c55e; color: white; }
 .play-btn:hover:not(:disabled) { background-color: #16a34a; transform: scale(1.05); }
+.resume-btn { width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); background-color: #3b82f6; color: white; padding-left: 4px; /* Ajuste óptico da seta */ }
+.resume-btn:hover:not(:disabled) { background-color: #2563eb; transform: scale(1.05); }
 .pause-btn { background-color: #f59e0b; color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
 .pause-btn:hover:not(:disabled) { background-color: #d97706; transform: scale(1.05); }
 .svg-icon { width: 26px; height: 26px; }
