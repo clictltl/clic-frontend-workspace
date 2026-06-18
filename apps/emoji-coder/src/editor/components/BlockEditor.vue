@@ -20,12 +20,7 @@ const projectStore = useProjectStore();
 const blocklyDiv = ref<HTMLElement | null>(null);
 let workspace: Blockly.WorkspaceSvg | null = null;
 
-// Função que carrega dinamicamente o arquivo de tradução nativo do Blockly
 const loadBlocklyLocale = async (vueLocale: string) => {
-  
-  // Mapa de Lazy Loading Estático exigido pelo Vite/Rollup.
-  // Como o Blockly é uma dependência local do Emoji Coder, mapeamos as chaves do @clic/shared 
-  // diretamente para os chunks estáticos do Blockly que o Vite precisa empacotar para Produção.
   const blocklyLocalesMap: Record<string, () => Promise<any>> = {
     'pt-br': () => import('blockly/msg/pt-br'),
     'en': () => import('blockly/msg/en')
@@ -34,7 +29,6 @@ const loadBlocklyLocale = async (vueLocale: string) => {
   const tryLoad = async (langPath: string) => {
     const loader = blocklyLocalesMap[langPath];
     if (!loader) throw new Error(`[Emoji Coder] Idioma '${langPath}' não mapeado no blocklyLocalesMap.`);
-    
     const msgModule = await loader();
     Blockly.setLocale(msgModule.default || msgModule);
   };
@@ -42,88 +36,103 @@ const loadBlocklyLocale = async (vueLocale: string) => {
   const lowerLocale = vueLocale.toLowerCase();
 
   try {
-    // 1. Tenta a tradução exata do idioma atual (ex: 'pt-br', 'es-es')
     await tryLoad(lowerLocale);
   } catch (error) {
     try {
-      // 2. Tenta apenas o prefixo (ex: converte 'es-ar' para 'es')
       const prefix = lowerLocale.split('-')[0];
       if (!prefix) throw new Error('Prefixo de idioma inválido');
-      
       await tryLoad(prefix);
     } catch (fallbackError) {
-      // 3. Fallback dinâmico usando a Fonte de Verdade da Plataforma (@clic/shared)
       try {
         const fallback = (fallbackLocale.value as string).toLowerCase();
         await tryLoad(fallback);
-        console.warn(`[Emoji Coder] Blockly não possui tradução nativa para '${vueLocale}'. Usando fallback da plataforma: '${fallback}'.`);
       } catch (criticalError) {
         console.error(`[Emoji Coder] Falha crítica ao carregar idiomas do Blockly.`, criticalError);
       }
     }
   }
 
-  // --- OVERRIDES CUSTOMIZADOS DA PLATAFORMA CLIC ---
-  // Substitui os textos padrões do Blockly pelos termos educacionais solicitados,
-  // mantendo compatibilidade com o sistema i18n caso você cadastre essas chaves depois.
   Blockly.Msg['PROCEDURES_DEFNORETURN_TITLE'] = (t('emojiCoder.blocks.define') as string);
+};
+
+// --- FUNÇÃO BLINDADA DE RECARREGAMENTO DO WORKSPACE ---
+const reloadWorkspace = () => {
+  if (!workspace) return;
+
+  const wasClean = !projectStore.hasUnsavedChanges;
+
+  // 1. Pausa o ChangeListener para não sobrescrever a Store enquanto desenhamos os blocos
+  Blockly.Events.disable();
+
+  try {
+    const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+    const activeLibrary = loadLibrary(libraryId, t as any);
+
+    workspace.clear();
+
+    const isTutorial = projectStore.isTutorialMode;
+    const currentIdx = projectStore.activeChallengeIndex;
+    
+    let stateToLoad = null;
+    if (isTutorial) {
+      stateToLoad = projectStore.project.config.tutorialSavedWorkspaces?.[currentIdx];
+    } else {
+      stateToLoad = projectStore.project.blocksWorkspace;
+    }
+
+    if (stateToLoad && Object.keys(stateToLoad).length > 0) {
+      Blockly.serialization.workspaces.load(stateToLoad, workspace);
+    } else {
+      const startBlock = workspace.newBlock('start');
+      startBlock.initSvg();
+      startBlock.render();
+      startBlock.moveBy(40, 40);
+    }
+
+    workspace.clearUndo();
+    
+    // Atualiza a Toolbox por último, pois ela pode precisar ler as funções recém desenhadas
+    workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
+  } finally {
+    // 2. Reativa os eventos e compila o estado inicial correto
+    Blockly.Events.enable();
+    
+    // Forçamos uma compilação inicial silenciosa para garantir que a Store reflita a tela exata
+    const ast = compileWorkspaceToAST(workspace);
+    const workspaceJson = Blockly.serialization.workspaces.save(workspace);
+    projectStore.updateWorkspaceSilent(workspaceJson, ast);
+
+    if (wasClean) {
+      projectStore.markAsSaved();
+    }
+  }
 };
 
 onMounted(async () => {
   if (!blocklyDiv.value) return;
 
-  // 1. Aguarda o carregamento dinâmico do idioma nativo do Blockly ANTES de injetar
   await loadBlocklyLocale(locale.value);
-
-  // Registra os plugins adicionais do Blockly (como o Seletor de Cores)
   registerFieldColour();
 
-  // 2. Carrega a biblioteca dinâmica usando a função de tradução (t) do @clic/shared
-  const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-  const activeLibrary = loadLibrary(libraryId, t as any);
-
-  // 3. Injeta o Google Blockly na div
+  // Injeta o Blockly inicialmente VAZIO e Genérico
   workspace = Blockly.inject(blocklyDiv.value, {
-    toolbox: activeLibrary.getToolboxXml(t as any),
+    toolbox: '<xml></xml>',
     scrollbars: true,
     trashcan: true,
     theme: Blockly.Themes.Zelos,
   });
 
-  // 3.5 Hidratação Inicial: Carrega blocos salvos do projeto
-  if (projectStore.isTutorialMode && projectStore.project.config.tutorialSavedWorkspaces?.[projectStore.activeChallengeIndex]) {
-    // Se for tutorial e tiver código salvo para a fase atual, carrega ele
-    Blockly.serialization.workspaces.load(projectStore.project.config.tutorialSavedWorkspaces[projectStore.activeChallengeIndex], workspace);
-  } else if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
-    Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
-  }
-
-  // 3.6 Fixa o bloco de 'Início' no Workspace caso a tela esteja vazia (Novo Projeto)
-  if (!workspace.getTopBlocks(true).some(b => b.type === 'start')) {
-    const startBlock = workspace.newBlock('start');
-    startBlock.initSvg();
-    startBlock.render();
-    startBlock.moveBy(40, 40); // Dá uma margem bonita do topo-esquerdo
-  }
-
-  // Limpa a memória de Ctrl+Z inicial para o aluno não conseguir apagar o Início
-  workspace.clearUndo();
-
-  // 3.7 Atualiza o Toolbox inicial caso o projeto recém-carregado já tenha funções
-  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
-
-  // 4. Compilação do AST e Reatividade de Funções
+  // O Change Listener fica restrito apenas às interações MANUAIS do usuário
   let previousFunctions = '';
   workspace.addChangeListener((event) => {
-    if (event.isUiEvent) return;
+    if (event.isUiEvent || event.type === Blockly.Events.FINISHED_LOADING) return;
 
     if (workspace) {
-      // 1. Gera o AST limpo e unificado
       const ast = compileWorkspaceToAST(workspace);
+      const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+      const activeLibrary = loadLibrary(libraryId, t as any);
 
-      // 2. Se a biblioteca exigir um menu dinâmico (Ex: Grade 5), atualiza a Toolbox
       if (activeLibrary.isToolboxDynamic) {
-        // Pega qualquer função que o AST tenha lido
         const definedFunctions = Array.from(new Set(
           ast.filter(node => node.isDefinition).map(node => node.definitionName).filter(Boolean)
         )).sort().join(',');
@@ -134,105 +143,39 @@ onMounted(async () => {
         }
       }
 
-      // 3. Salva no estado silencioso
       const workspaceJson = Blockly.serialization.workspaces.save(workspace);
       projectStore.updateWorkspaceSilent(workspaceJson, ast);
     }
   });
+
+  // Dispara o carregamento blindado na montagem
+  reloadWorkspace();
 });
 
 onUnmounted(() => {
   if (workspace) workspace.dispose();
 });
 
-// --- REATIVIDADE DE IMPORTAÇÃO E NOVO ARQUIVO ---
-watch(() => projectStore.project.meta.id, () => {
-  if (!workspace) return;
-  
-  workspace.clear();
-  
-  const isTutorial = projectStore.isTutorialMode;
-  const currentIdx = projectStore.activeChallengeIndex;
-  const savedTutorialState = projectStore.project.config.tutorialSavedWorkspaces?.[currentIdx];
-
-  // 1. Verifica de onde restaurar os blocos (Do histórico do tutorial ou do workspace principal)
-  if (isTutorial && savedTutorialState && Object.keys(savedTutorialState).length > 0) {
-    Blockly.serialization.workspaces.load(savedTutorialState, workspace);
-  } else if (projectStore.project.blocksWorkspace && Object.keys(projectStore.project.blocksWorkspace).length > 0) {
-    Blockly.serialization.workspaces.load(projectStore.project.blocksWorkspace, workspace);
-  } else {
-    // 2. Se for um "Novo Projeto" (JSON vazio), cria o bloco Início do zero
-    const startBlock = workspace.newBlock('start');
-    startBlock.initSvg();
-    startBlock.render();
-    startBlock.moveBy(40, 40);
+// --- REATIVIDADE COMBINADA DE ROTAS E DESAFIOS ---
+// Observamos tanto o ID do projeto quanto o índice do desafio num lugar só!
+watch(
+  () => [projectStore.project.meta.id, projectStore.activeChallengeIndex],
+  () => {
+    reloadWorkspace();
   }
-
-  workspace.clearUndo();
-
-  // 3. Se for tutorial importado, garante que a aba de blocos carregue apenas as ferramentas do desafio atual
-  if (isTutorial) {
-    const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-    const activeLibrary = loadLibrary(libraryId, t as any);
-    workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
-  }
-});
+);
 
 // --- REATIVIDADE DE IDIOMA ---
-// Escuta as mudanças no seletor de idioma do Header
 watch(locale, async (newLocale) => {
   if (!workspace) return;
-
-  // 1. Baixa o dicionário nativo do Blockly para o novo idioma
   await loadBlocklyLocale(newLocale);
-
-  // 2. Recarrega a biblioteca para pegar os novos textos do i18n
-  const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-  const activeLibrary = loadLibrary(libraryId, t as any);
-
-  // 3. Atualiza o Menu Lateral (Toolbox)
-  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
-
-  // 4. "Recarrega" os blocos que já estão no quadro para forçar a tradução visual
-  const state = Blockly.serialization.workspaces.save(workspace);
-  workspace.clear();
-  Blockly.serialization.workspaces.load(state, workspace);
+  reloadWorkspace(); // Reutilizamos a lógica blindada para trocar de idioma também!
 });
 
 // --- HIGHLIGHT DE EXECUÇÃO (DEBUGGER VISUAL) ---
 watch(() => projectStore.activeBlockId, (newId) => {
   if (!workspace) return;
-  // O Blockly aceita um ID válido para brilhar, ou 'null' para limpar a tela
   workspace.highlightBlock(newId);
-});
-
-// --- REATIVIDADE DE TUTORIAIS (MUDANÇA DE DESAFIO) ---
-watch(() => projectStore.activeChallengeIndex, (newIndex) => {
-  if (!workspace) return;
-  
-  // 1. Atualiza a toolbox para exibir apenas os blocos do novo desafio
-  const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-  const activeLibrary = loadLibrary(libraryId, t as any);
-  workspace.updateToolbox(activeLibrary.getToolboxXml(t as any, workspace));
-  
-  // 2. Limpa o quadro atual
-  workspace.clear();
-  
-  // 3. Verifica se já existe código salvo para o desafio de destino
-  const savedState = projectStore.project.config.tutorialSavedWorkspaces?.[newIndex];
-  
-  if (savedState && Object.keys(savedState).length > 0) {
-    // Restaura o código que o aluno tinha feito antes!
-    Blockly.serialization.workspaces.load(savedState, workspace);
-  } else {
-    // Se for a primeira vez neste desafio, recria o bloco de início vazio
-    const startBlock = workspace.newBlock('start');
-    startBlock.initSvg();
-    startBlock.render();
-    startBlock.moveBy(40, 40);
-  }
-
-  workspace.clearUndo();
 });
 </script>
 

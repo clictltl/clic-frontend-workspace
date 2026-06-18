@@ -195,7 +195,11 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
   
   if (projectStore.isTutorialMode && currentChallenge.value) {
+    const wasClean = !projectStore.hasUnsavedChanges;
     projectStore.loadChallenge(projectStore.activeChallengeIndex, currentChallenge.value);
+    if (wasClean) {
+      projectStore.markAsSaved();
+    }
   }
 });
 
@@ -204,8 +208,10 @@ onUnmounted(() => {
 });
 
 const goToChallenge = (index: number) => {
-  if (index === projectStore.activeChallengeIndex) return; // Ignora se for o atual
+  if (index === projectStore.activeChallengeIndex) return;
   if (index < 0 || index >= totalChallenges.value) return;
+
+  const wasClean = !projectStore.hasUnsavedChanges;
 
   showSuccess.value = false;
   const targetChal = activeChallengeList.value[index];
@@ -213,6 +219,10 @@ const goToChallenge = (index: number) => {
   if (targetChal) {
     projectStore.loadChallenge(index, targetChal);
     engine.reset(targetChal.startPos.x, targetChal.startPos.y);
+  }
+
+  if (wasClean) {
+    projectStore.markAsSaved();
   }
 };
 

@@ -66,6 +66,8 @@ export const useProjectStore = defineStore('emoji-coder-project', {
 
     createNew() {
       this.project = createEmptyProject();
+      this.activeChallengeIndex = 0;
+      this.activeBlockId = null;
       this.markAsSaved();
     },
 

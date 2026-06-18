@@ -22,6 +22,7 @@ const grade5GridSize = ref(8);
 
 const handleStartProject = (libraryId: string, gridSize: number) => {
   store.setupEnvironment(libraryId, gridSize, gridSize);
+  store.markAsSaved(); // Define essa configuração inicial como o "marco zero" limpo
 };
 
 async function handleLoginSuccess() {
@@ -237,6 +238,10 @@ onUnmounted(() => {
 <!-- ESTILOS GLOBAIS -->
 <style>
 /* CSS Global Reset */
+* {
+  box-sizing: border-box;
+}
+
 html, body, #app {
   margin: 0; padding: 0; width: 100%; height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
