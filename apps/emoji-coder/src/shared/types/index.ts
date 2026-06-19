@@ -12,6 +12,7 @@ export interface ProjectConfig {
   startY?: number;
   targetCells?: Record<string, string>;
   tutorialSavedWorkspaces?: Record<number, any>;
+  tutorialSavedASTs?: Record<number, any[]>;
   activeChallengeIndex?: number;
 }
 

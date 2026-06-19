@@ -13,7 +13,7 @@ import 'blockly/blocks';
 import { registerFieldColour } from '@blockly/field-colour';
 
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { loadLibrary, compileWorkspaceToAST } from '@/libraries';
+import { getLibrary, compileWorkspaceToAST } from '@/libraries';
 
 const { t, locale, fallbackLocale } = useI18n(); 
 const projectStore = useProjectStore();
@@ -66,7 +66,9 @@ const reloadWorkspace = () => {
 
   try {
     const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-    const activeLibrary = loadLibrary(libraryId, t as any);
+    const activeLibrary = getLibrary(libraryId);
+    activeLibrary.registerBlocks(t as any);
+    activeLibrary.registerParsers();
 
     workspace.clear();
 
@@ -130,7 +132,9 @@ onMounted(async () => {
     if (workspace) {
       const ast = compileWorkspaceToAST(workspace);
       const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-      const activeLibrary = loadLibrary(libraryId, t as any);
+      const activeLibrary = getLibrary(libraryId);
+      activeLibrary.registerBlocks(t as any);
+      activeLibrary.registerParsers();
 
       if (activeLibrary.isToolboxDynamic) {
         const definedFunctions = Array.from(new Set(

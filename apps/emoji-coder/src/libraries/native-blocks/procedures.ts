@@ -3,11 +3,16 @@ import { registerASTParser } from '../ASTBuilder';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 import type { TranslateFn } from '../types';
 
-// Guarda as funções originais intactas na memória
-const originalCallInit = Blockly.Blocks['procedures_callnoreturn'].init;
-const originalDefInit = Blockly.Blocks['procedures_defnoreturn'].init;
+// Guarda as funções originais intactas na memória (Lazy Load)
+let originalCallInit: any = null;
+let originalDefInit: any = null;
 
 export const patchProcedureBlocks = (t: TranslateFn) => {
+  // Blindagem: Se o Blockly não carregou esses blocos (ex: Runtime), aborta.
+  if (!Blockly.Blocks['procedures_callnoreturn']) return;
+
+  if (!originalCallInit) originalCallInit = Blockly.Blocks['procedures_callnoreturn'].init;
+  if (!originalDefInit) originalDefInit = Blockly.Blocks['procedures_defnoreturn'].init;
   
   // Patch 1: Bloco de Chamada (Injeta o texto traduzido)
   Blockly.Blocks['procedures_callnoreturn'].init = function(this: Blockly.Block) {

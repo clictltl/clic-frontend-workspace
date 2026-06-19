@@ -77,10 +77,11 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       
       // Garante que o PHP não corrompeu os objetos do Blockly
       json.blocksWorkspace = Array.isArray(json.blocksWorkspace) ? {} : (json.blocksWorkspace || {});
-      json.compiledAST = Array.isArray(json.compiledAST) ? [] : (json.compiledAST || []);
+      json.compiledAST = Array.isArray(json.compiledAST) ? json.compiledAST : [];
       json.assets = Array.isArray(json.assets) ? {} : (json.assets || {});
       
       if (!json.config.tutorialSavedWorkspaces) json.config.tutorialSavedWorkspaces = {};
+      if (!json.config.tutorialSavedASTs) json.config.tutorialSavedASTs = {};
       
       this.project = json;
 
@@ -126,7 +127,12 @@ export const useProjectStore = defineStore('emoji-coder-project', {
         if (!this.project.config.tutorialSavedWorkspaces) {
           this.project.config.tutorialSavedWorkspaces = {};
         }
+        if (!this.project.config.tutorialSavedASTs) {
+          this.project.config.tutorialSavedASTs = {};
+        }
+        
         this.project.config.tutorialSavedWorkspaces[this.activeChallengeIndex] = workspaceJson;
+        this.project.config.tutorialSavedASTs[this.activeChallengeIndex] = ast;
       }
     }
   }
