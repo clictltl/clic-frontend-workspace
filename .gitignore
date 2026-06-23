@@ -11,6 +11,7 @@ npm-debug.log*
 # ==========================================
 dist
 dist-ssr
+dist-offline
 _site         # Pasta temporária que criamos no GitHub Actions
 
 # ==========================================

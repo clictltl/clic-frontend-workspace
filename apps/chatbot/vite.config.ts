@@ -1,23 +1,28 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Detecta o target pelo argumento --mode
   const isGithub = mode === 'github'
+  const isOffline = mode === 'offline'
   
   // Define o base path baseado no target
   const getBasePath = () => {
     if (isGithub) {
       return '/clic-frontend-workspace/chatbot/'
     }
-    // WordPress - usa path vazio em produção
-    return mode === 'production' ? '' : './'
+    // WordPress ou Offline
+    return (mode === 'production' || isOffline) ? '' : './'
   }
 
   return {
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      ...(isOffline ? [viteSingleFile()] : [])
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -25,12 +30,12 @@ export default defineConfig(({ mode }) => {
     },
     base: getBasePath(),
     build: {
-      outDir: 'dist',
+      outDir: isOffline ? 'dist-offline' : 'dist',
       assetsDir: 'assets',
       sourcemap: false,
-      manifest: true,
+      manifest: !isOffline,
       chunkSizeWarningLimit: 1000,
-      rolldownOptions: {
+      rolldownOptions: isOffline ? undefined : {
         input: {
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
           editor: fileURLToPath(new URL('./src/editor/main-editor.ts', import.meta.url)),

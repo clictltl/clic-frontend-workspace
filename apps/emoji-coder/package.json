@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "build:github": "vue-tsc && vite build --mode github",
+    "build:offline": "vite build --mode offline",
     "deploy": "npm run build:github && touch dist/.nojekyll",
     "preview": "vite preview"
   },
