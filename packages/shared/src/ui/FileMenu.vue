@@ -504,4 +504,53 @@ async function saveToComputer() {
 /* Transitions */
 .fade-slide-enter-active, .fade-slide-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-8px); }
+
+@media (max-width: 768px) {
+  .filemenu-container {
+    width: 100%;
+    display: block;
+  }
+  
+  .trigger-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  /* Botão Arquivo encorpado */
+  .menu-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+  }
+  
+  .separator-vertical { display: none; }
+  
+  /* Nome do Projeto vai para baixo do botão Arquivo */
+  .project-info {
+    padding-left: 12px;
+    width: 100%;
+  }
+
+  .project-info .name {
+    max-width: none;
+    white-space: normal; /* Permite quebrar linha se o nome for gigante */
+  }
+
+  /* Transforma o dropdown num "Acordeão" fixo no menu lateral */
+  .dropdown-menu {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border: none;
+    border-left: 3px solid #e5e7eb;
+    border-radius: 0;
+    margin-top: 8px;
+    padding: 0 0 0 12px;
+    min-width: 0;
+  }
+}
 </style>

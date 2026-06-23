@@ -361,4 +361,34 @@ function logout() {
 
 .fade-slide-enter-active, .fade-slide-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-8px); }
+
+@media (max-width: 768px) {
+  .auth-menu-container {
+    width: 100%;
+  }
+  
+  .user-profile-wrapper, .btn-login {
+    width: 100%;
+  }
+
+  .btn-login, .user-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+
+  .user-dropdown {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border: none;
+    border-left: 3px solid #e5e7eb;
+    border-radius: 0;
+    margin-top: 8px;
+    padding: 0 0 0 12px;
+  }
+}
 </style>

@@ -1,50 +1,87 @@
 <template>
   <header class="toolbar">
+    <!-- ESQUERDA (Desktop e Mobile) -->
     <div class="toolbar-left">
       <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
       <h1 v-else class="toolbar-title">{{ title }}</h1>
       
-      <span class="made-by-text">{{ $t('header.made_by') }}</span>
-      
-      <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
-        <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
-      </a>
+      <div class="made-by-container hide-mobile">
+        <span class="made-by-text">{{ $t('header.made_by') }}</span>
+        <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
+          <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
+        </a>
+      </div>
     </div>
 
-    <div class="toolbar-right">
-      <!-- Menu de Idiomas -->
-      <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper">
+    <!-- BOTÃO HAMBURGER (Apenas Mobile) -->
+    <button class="hamburger-btn show-mobile" @click="isMobileMenuOpen = true">
+      <Menu :size="24" />
+    </button>
+
+    <!-- OVERLAY DO MENU MOBILE -->
+    <div v-if="isMobileMenuOpen" class="drawer-overlay show-mobile" @click="isMobileMenuOpen = false"></div>
+
+    <!-- DIREITA (Desktop) / DRAWER (Mobile) -->
+    <div class="toolbar-right" :class="{ 'drawer-open': isMobileMenuOpen }">
+      
+      <button class="drawer-close-btn show-mobile" @click="isMobileMenuOpen = false">
+        <X :size="24" />
+      </button>
+
+      <!-- 1. Menu de Idiomas -->
+      <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper drawer-item" style="--mobile-order: 3">
         <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" :title="t('header.language')">
           <Languages :size="20" />
+          <span class="btn-text show-mobile">{{ $t('header.language') }}</span>
         </button>
         
         <!-- Overlay invisível para fechar ao clicar fora -->
         <div v-if="isLangMenuOpen" class="lang-overlay" @click="isLangMenuOpen = false"></div>
-
+        
         <div v-if="isLangMenuOpen" class="lang-dropdown-menu">
-          <button 
-            v-for="lang in availableLocales" 
+          <button
+            v-for="lang in availableLocales"
             :key="lang.code"
             class="lang-option"
             :class="{ active: currentLocale === lang.code }"
             @click="changeLanguage(lang.code)"
-          >
+            >
             {{ lang.label }}
           </button>
         </div>
       </div>
 
-      <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn" rel="noopener noreferrer">
+      <!-- 2. Guia -->
+      <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 4" rel="noopener noreferrer">
         <BookOpen :size="16" />
-        {{ $t('header.guide') }}
+        <span class="btn-text show-mobile">{{ $t('header.guide') }}</span>
+        <span class="hide-mobile">{{ $t('header.guide') }}</span>
       </a>
       
-      <button class="info-btn" @click="isInfoModalOpen = true" :title="t('header.info_contact')">
+      <!-- 3. Info -->
+      <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 5" :title="t('header.info_contact')">
         <Info :size="20" />
+        <span class="btn-text show-mobile">{{ $t('header.info_contact') }}</span>
       </button>
 
-      <!-- O slot permite que o App pai injete o FileMenu, AuthMenu, etc. -->
-      <slot></slot>
+      <!-- 4. File Menu (Slot) - Vai pro final no Desktop, pro topo no Mobile -->
+      <div class="drawer-slot" style="--mobile-order: 1">
+        <slot name="file-menu"></slot>
+      </div>
+
+      <!-- 5. Auth Menu (Slot) -->
+      <div class="drawer-slot" style="--mobile-order: 2">
+        <slot name="auth-menu"></slot>
+      </div>
+
+      <!-- Créditos no rodapé do Menu (Apenas Mobile) -->
+      <div class="drawer-footer show-mobile" style="--mobile-order: 6">
+        <span class="made-by-text">{{ $t('header.made_by') }}</span>
+        <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
+          <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
+        </a>
+      </div>
+
     </div>
   </header>
 
@@ -81,7 +118,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
-import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages } from '@lucide/vue';
+import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
 import { useI18n } from 'vue-i18n';
 import { setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER, type SupportedLocales } from '../i18n';
@@ -106,6 +143,7 @@ const logoUrl = computed(() => {
 // Lógica de i18n
 const { locale: currentLocale, t } = useI18n();
 const isLangMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false);
 
 function changeLanguage(code: SupportedLocales) {
   setLocale(code);
@@ -125,9 +163,11 @@ function changeLanguage(code: SupportedLocales) {
   gap: 24px;
 }
 
+.drawer-slot { display: flex; align-items: center; }
+
 .toolbar-left {
   display: flex;
-  align-items: flex-end; /* Alinha todos os itens pela base inferior */
+  align-items: flex-end;
   gap: 12px;
 }
 
@@ -343,5 +383,74 @@ function changeLanguage(code: SupportedLocales) {
   right: 0;
   bottom: 0;
   z-index: 40; /* Fica atrás do menu, mas à frente do resto da tela */
+}
+
+.show-mobile { display: none !important; }
+
+/* Wrapper dos botões de crédito na versão Desktop */
+.made-by-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: flex !important; }
+  
+  .toolbar {
+    padding: 6px 16px;
+    gap: 12px;
+  }
+
+  /* Força a redução drástica das logos no mobile */
+  .app-logo {
+    height: 24px !important;
+    width: auto !important;
+  }
+  .toolbar-title {
+    font-size: 18px !important;
+  }
+
+  .hamburger-btn {
+    background: transparent; border: none; color: #374151; padding: 4px; cursor: pointer;
+  }
+
+  .drawer-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5); z-index: 999;
+  }
+
+  /* A Div Direita Vira o Menu Lateral */
+  .toolbar-right {
+    position: fixed; top: 0; right: -300px; width: 280px; height: 100vh;
+    background: white; flex-direction: column; align-items: stretch;
+    padding: 20px; box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 1000;
+    transition: right 0.3s ease; gap: 12px;
+    overflow-y: auto; /* Permite rolar se a tela for pequena */
+  }
+
+  .toolbar-right.drawer-open { right: 0; }
+
+  .drawer-close-btn {
+    align-self: flex-end; background: transparent; border: none;
+    color: #6b7280; padding: 4px; cursor: pointer; margin-bottom: 10px;
+  }
+
+  /* Magia da Reordenação: Usa as variáveis inline (--mobile-order) */
+  .drawer-item, .drawer-slot, .drawer-footer {
+    width: 100%; display: flex; order: var(--mobile-order);
+  }
+
+  .guide-btn, .info-btn {
+    width: 100%; justify-content: flex-start; gap: 12px;
+    padding: 12px; font-size: 15px; border-radius: 8px;
+    background: #f9fafb; color: #374151; border: none;
+  }
+  
+  .drawer-footer {
+    margin-top: 20px; flex-direction: column; align-items: flex-start;
+    gap: 12px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex !important;
+  }
 }
 </style>

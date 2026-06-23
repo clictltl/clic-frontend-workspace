@@ -334,18 +334,22 @@ async function handleLoginSuccess() {
   <div class="app">
     <!-- Toolbar superior com controles principais -->
     <AppHeader title="Novelo" :app-logo="appLogo" guide-url="https://docs.google.com/presentation/d/12zqJqZYmpS43mbEpfiKqOnS-Pu9QiwUcCj9ydMrnBJ8/edit?usp=sharing">
-      <FileMenu 
-        item-name="Chatbot"
-        file-extension=".cnv"
-        file-accept=".cnv"
-        :projectsStore="projects"
-        :assetStore="assetStore"
-        :hasUnsavedChanges="store.hasUnsavedChanges"
-        :getProjectData="store.getProjectData"
-        @new-project="store.resetProjectData"
-        @import-project="store.setProjectData"
-      />
-      <AuthMenu @login-success="handleLoginSuccess" />
+      <template #file-menu>
+        <FileMenu 
+          item-name="Chatbot"
+          file-extension=".cnv"
+          file-accept=".cnv"
+          :projectsStore="projects"
+          :assetStore="assetStore"
+          :hasUnsavedChanges="store.hasUnsavedChanges"
+          :getProjectData="store.getProjectData"
+          @new-project="store.resetProjectData"
+          @import-project="store.setProjectData"
+        />
+      </template>
+      <template #auth-menu>
+        <AuthMenu @login-success="handleLoginSuccess" />
+      </template>
     </AppHeader>
 
     <!-- Área principal com canvas e painel lateral -->

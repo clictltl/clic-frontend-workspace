@@ -103,18 +103,22 @@ onUnmounted(() => {
     
     <!-- HEADER -->
     <AppHeader title="Grafite">
-      <FileMenu 
-        item-name="Grafo"
-        file-extension=".cgr"
-        file-accept=".cgr"
-        :projectsStore="projects"
-        :assetStore="assetStore"
-        :has-unsaved-changes="store.hasUnsavedChanges"
-        :getProjectData="() => store.project"
-        @new-project="store.createNew"
-        @import-project="store.loadProject"
-      />
-      <AuthMenu @login-success="handleLoginSuccess" />
+      <template #file-menu>
+        <FileMenu 
+          item-name="Grafo"
+          file-extension=".cgr"
+          file-accept=".cgr"
+          :projectsStore="projects"
+          :assetStore="assetStore"
+          :has-unsaved-changes="store.hasUnsavedChanges"
+          :getProjectData="() => store.project"
+          @new-project="store.createNew"
+          @import-project="store.loadProject"
+        />
+      </template>
+      <template #auth-menu>
+        <AuthMenu @login-success="handleLoginSuccess" />
+      </template>
     </AppHeader>
 
     <!-- ÁREA PRINCIPAL -->
