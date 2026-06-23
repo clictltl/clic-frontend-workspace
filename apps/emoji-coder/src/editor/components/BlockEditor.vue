@@ -122,6 +122,10 @@ onMounted(async () => {
     scrollbars: true,
     trashcan: true,
     theme: Blockly.Themes.Zelos,
+    zoom: {
+      controls: true,
+      wheel: true,
+    }
   });
 
   // O Change Listener fica restrito apenas às interações MANUAIS do usuário

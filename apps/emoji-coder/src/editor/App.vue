@@ -253,7 +253,7 @@ html, body, #app {
   color: #1f2937;
   overscroll-behavior-y: none; 
 }
-.app-root { display: flex; flex-direction: column; height: 100vh; position: relative; }
+.app-root { display: flex; flex-direction: column; height: 100vh; height: 100dvh; position: relative; }
 .main-viewport { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
 /* FAB (Floating Action Button) */

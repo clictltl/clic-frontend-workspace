@@ -96,7 +96,7 @@ html, body, #app {
   overscroll-behavior-y: none;
 }
 
-.runtime-root { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.runtime-root { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
 .feedback-screen {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
