@@ -1,15 +1,4 @@
-export interface TutorialChallenge {
-  id: number;
-  title: string;
-  description: string;
-  tip: string;
-  grid: { cols: number; rows: number };
-  startPos: { x: number; y: number };
-  blocks: string[];
-  targetCells: Record<string, string>;
-  validate: (engineState: any) => boolean;
-  successMsg: string;
-}
+import type { TutorialChallenge } from './index';
 
 export const challengesGrade4: TutorialChallenge[] = [
   {

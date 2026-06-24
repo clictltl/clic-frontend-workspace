@@ -245,7 +245,7 @@ engine.onHighlight = (blockId) => {
 
 engine.onExecutionComplete = () => {
   if (projectStore.isTutorialMode && currentChallenge.value) {
-    const passed = currentChallenge.value.validate(engine.state);
+    const passed = currentChallenge.value.validate(engine.state, getActiveAST());
     if (passed) showSuccess.value = true;
   }
 };

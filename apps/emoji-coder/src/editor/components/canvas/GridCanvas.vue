@@ -7,7 +7,8 @@
       :style="{ 
         '--cols': cols, 
         '--rows': rows,
-        '--anim-duration': `${(speedMs || 250) * 0.8}ms`
+        '--anim-duration': `${(speedMs || 250) * 0.8}ms`,
+        ...fallbackStyles
       }"
     >
       <!-- Etiquetas de Coluna (Letras no Topo) -->
@@ -65,8 +66,15 @@ const wrapperRef = ref<HTMLElement | null>(null);
 const wrapperWidth = ref(0);
 const wrapperHeight = ref(0);
 let resizeObserver: ResizeObserver | null = null;
+const needsFallback = ref(false);
 
 onMounted(() => {
+  // Detecção de compatibilidade com CSS Moderno (Para iPads velhos)
+  const supportsModernCSS = typeof CSS !== 'undefined' && 
+                            CSS.supports('container-type', 'size') && 
+                            CSS.supports('aspect-ratio', '1/1');
+  needsFallback.value = !supportsModernCSS;
+
   if (wrapperRef.value) {
     resizeObserver = new ResizeObserver((entries) => {
       if (entries[0]) {
@@ -93,6 +101,30 @@ const showLabels = computed(() => {
   
   // Só mostra as legendas se a célula tiver 24px ou mais!
   return realCellSize >= 24; 
+});
+
+// A Rede de Segurança: Calcula os pixels exatos apenas se o CSS falhar
+const fallbackStyles = computed(() => {
+  if (!needsFallback.value || !wrapperWidth.value || !wrapperHeight.value) return {};
+
+  const lblSpace = showLabels.value ? 36 : 0; // 36px equivale a 2.25rem
+  const availableWidth = wrapperWidth.value - lblSpace;
+  const availableHeight = wrapperHeight.value - lblSpace;
+  const ratio = cols.value / rows.value;
+
+  let finalWidth, finalHeight;
+  if (availableWidth / ratio <= availableHeight) {
+    finalWidth = availableWidth;
+    finalHeight = availableWidth / ratio;
+  } else {
+    finalHeight = availableHeight;
+    finalWidth = availableHeight * ratio;
+  }
+
+  return {
+    width: `${finalWidth}px`,
+    height: `${finalHeight}px`
+  };
 });
 // --- FIM DA LÓGICA DE DENSIDADE ---
 

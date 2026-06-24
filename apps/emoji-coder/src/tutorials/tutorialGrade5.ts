@@ -1,4 +1,4 @@
-import type { TutorialChallenge } from './tutorialGrade4';
+import type { TutorialChallenge } from './index';
 
 export const challengesGrade5: TutorialChallenge[] = [
   {
@@ -52,11 +52,17 @@ export const challengesGrade5: TutorialChallenge[] = [
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {},
-    validate: (state) => {
+    validate: (state, ast) => {
+      // 1. Validação visual (O chão foi pintado?)
+      let paintedAll = true;
       for (let y = 0; y < 2; y++) {
-        for (let x = 0; x < 4; x++) if (!state.paintedCells[`${x},${y}`]) return false;
+        for (let x = 0; x < 4; x++) if (!state.paintedCells[`${x},${y}`]) paintedAll = false;
       }
-      return true;
+      
+      // 2. Validação estrutural super simples (Usou o bloco de chamada?)
+      const usedProcedureCall = JSON.stringify(ast).includes('"isCall":true');
+      
+      return paintedAll && usedProcedureCall;
     },
     successMsg: 'Excelente! Funções permitem reutilizar código — defina uma vez, use quantas quiser!'
   },
