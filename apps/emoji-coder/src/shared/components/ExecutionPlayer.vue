@@ -256,7 +256,16 @@ const handleNextChallenge = () => {
 };
 
 const goHome = () => {
-  window.location.href = window.location.pathname;
+  if (projectStore.hasUnsavedChanges) {
+    if (!window.confirm("Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?")) {
+      return; 
+    }
+  }
+
+  projectStore.createNew(); 
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 };
 
 const executionSpeed = ref(3);

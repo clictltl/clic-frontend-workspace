@@ -13,75 +13,84 @@
       </div>
     </div>
 
-    <!-- BOTÃO HAMBURGER (Apenas Mobile) -->
-    <button class="hamburger-btn show-mobile" @click="isMobileMenuOpen = true">
-      <Menu :size="24" />
-    </button>
-
-    <!-- OVERLAY DO MENU MOBILE -->
-    <div v-if="isMobileMenuOpen" class="drawer-overlay show-mobile" @click="isMobileMenuOpen = false"></div>
-
-    <!-- DIREITA (Desktop) / DRAWER (Mobile) -->
-    <div class="toolbar-right" :class="{ 'drawer-open': isMobileMenuOpen }">
+    <!-- AÇÕES GLOBAIS (Desktop e Mobile) -->
+    <div class="toolbar-actions">
       
-      <button class="drawer-close-btn show-mobile" @click="isMobileMenuOpen = false">
-        <X :size="24" />
+      <!-- BOTÃO VOLTAR (Home) -->
+      <button v-if="showHome" class="home-btn" @click="$emit('home-click')" title="Voltar ao Início">
+        <Home :size="20" />
       </button>
 
-      <!-- 1. Menu de Idiomas -->
-      <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper drawer-item" style="--mobile-order: 3">
-        <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" :title="t('header.language')">
-          <Languages :size="20" />
-          <span class="btn-text show-mobile">{{ $t('header.language') }}</span>
+      <!-- BOTÃO HAMBURGER (Apenas Mobile) -->
+      <button class="hamburger-btn show-mobile" @click="isMobileMenuOpen = true">
+        <Menu :size="24" />
+      </button>
+
+      <!-- OVERLAY DO MENU MOBILE -->
+      <div v-if="isMobileMenuOpen" class="drawer-overlay show-mobile" @click="isMobileMenuOpen = false"></div>
+
+      <!-- DIREITA (Desktop) / DRAWER (Mobile) -->
+      <div class="toolbar-right" :class="{ 'drawer-open': isMobileMenuOpen }">
+        
+        <button class="drawer-close-btn show-mobile" @click="isMobileMenuOpen = false">
+          <X :size="24" />
         </button>
-        
-        <!-- Overlay invisível para fechar ao clicar fora -->
-        <div v-if="isLangMenuOpen" class="lang-overlay" @click="isLangMenuOpen = false"></div>
-        
-        <div v-if="isLangMenuOpen" class="lang-dropdown-menu">
-          <button
-            v-for="lang in availableLocales"
-            :key="lang.code"
-            class="lang-option"
-            :class="{ active: currentLocale === lang.code }"
-            @click="changeLanguage(lang.code)"
-            >
-            {{ lang.label }}
+
+        <!-- 1. Menu de Idiomas -->
+        <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper drawer-item" style="--mobile-order: 3">
+          <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" :title="t('header.language')">
+            <Languages :size="20" />
+            <span class="btn-text show-mobile">{{ $t('header.language') }}</span>
           </button>
+          
+          <!-- Overlay invisível para fechar ao clicar fora -->
+          <div v-if="isLangMenuOpen" class="lang-overlay" @click="isLangMenuOpen = false"></div>
+          
+          <div v-if="isLangMenuOpen" class="lang-dropdown-menu">
+            <button
+              v-for="lang in availableLocales"
+              :key="lang.code"
+              class="lang-option"
+              :class="{ active: currentLocale === lang.code }"
+              @click="changeLanguage(lang.code)"
+              >
+              {{ lang.label }}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- 2. Guia -->
-      <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 4" rel="noopener noreferrer">
-        <BookOpen :size="16" />
-        <span class="btn-text show-mobile">{{ $t('header.guide') }}</span>
-        <span class="hide-mobile">{{ $t('header.guide') }}</span>
-      </a>
-      
-      <!-- 3. Info -->
-      <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 5" :title="t('header.info_contact')">
-        <Info :size="20" />
-        <span class="btn-text show-mobile">{{ $t('header.info_contact') }}</span>
-      </button>
-
-      <!-- 4. File Menu (Slot) - Vai pro final no Desktop, pro topo no Mobile -->
-      <div class="drawer-slot" style="--mobile-order: 1">
-        <slot name="file-menu"></slot>
-      </div>
-
-      <!-- 5. Auth Menu (Slot) -->
-      <div class="drawer-slot" style="--mobile-order: 2">
-        <slot name="auth-menu"></slot>
-      </div>
-
-      <!-- Créditos no rodapé do Menu (Apenas Mobile) -->
-      <div class="drawer-footer show-mobile" style="--mobile-order: 6">
-        <span class="made-by-text">{{ $t('header.made_by') }}</span>
-        <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
-          <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
+        <!-- 2. Guia -->
+        <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 4" rel="noopener noreferrer">
+          <BookOpen :size="16" />
+          <span class="btn-text show-mobile">{{ $t('header.guide') }}</span>
+          <span class="hide-mobile">{{ $t('header.guide') }}</span>
         </a>
-      </div>
+        
+        <!-- 3. Info -->
+        <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 5" :title="t('header.info_contact')">
+          <Info :size="20" />
+          <span class="btn-text show-mobile">{{ $t('header.info_contact') }}</span>
+        </button>
 
+        <!-- 4. File Menu (Slot) -->
+        <div class="drawer-slot" style="--mobile-order: 1">
+          <slot name="file-menu"></slot>
+        </div>
+
+        <!-- 5. Auth Menu (Slot) -->
+        <div class="drawer-slot" style="--mobile-order: 2">
+          <slot name="auth-menu"></slot>
+        </div>
+
+        <!-- Créditos no rodapé do Menu (Apenas Mobile) -->
+        <div class="drawer-footer show-mobile" style="--mobile-order: 6">
+          <span class="made-by-text">{{ $t('header.made_by') }}</span>
+          <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
+            <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
+          </a>
+        </div>
+
+      </div>
     </div>
   </header>
 
@@ -118,7 +127,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
-import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu } from '@lucide/vue';
+import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu, Home } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
 import { useI18n } from 'vue-i18n';
 import { setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER, type SupportedLocales } from '../i18n';
@@ -127,7 +136,10 @@ defineProps<{
   title: string;
   appLogo?: string;
   guideUrl?: string;
+  showHome?: boolean;
 }>();
+
+defineEmits(['home-click']);
 
 const auth = useAuth();
 const isLoggedIn = computed(() => auth.state.ready && auth.state.loggedIn);
@@ -208,6 +220,31 @@ function changeLanguage(code: SupportedLocales) {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.home-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+  border-color: #d1d5db;
 }
 
 /* --- Novos Estilos: Botões e Modal --- */

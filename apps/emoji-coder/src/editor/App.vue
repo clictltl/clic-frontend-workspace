@@ -25,6 +25,19 @@ const handleStartProject = (libraryId: string, gridSize: number) => {
   store.markAsSaved(); // Define essa configuração inicial como o "marco zero" limpo
 };
 
+const handleHomeClick = () => {
+  if (store.hasUnsavedChanges) {
+    if (!window.confirm("Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?")) {
+      return;
+    }
+  }
+  
+  store.createNew(); 
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+};
+
 async function handleLoginSuccess() {
   await assetStore.persistToDisk(); 
   
@@ -92,7 +105,12 @@ onUnmounted(() => {
 <template>
   <div class="app-root">
     <!-- HEADER DO ECOSSISTEMA -->
-    <AppHeader title="Caramelo" :app-logo="appLogo">
+    <AppHeader 
+      :title="t('emojiCoder.setup.app_title')" 
+      :app-logo="appLogo"
+      :show-home="store.isConfigured"
+      @home-click="handleHomeClick"
+    >
       <template #file-menu>
         <FileMenu 
           item-name="Emoji Coder"
