@@ -194,7 +194,6 @@ export default {
   graphBuilder: {},
   emojiCoder: {
     setup: {
-      app_title: 'Emoji Coder',
       prepare_env: 'Escolha uma atividade para começar',
       
       grade_4_title: '4º Ano: Explorando o Mundo',

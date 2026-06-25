@@ -10,7 +10,7 @@ export interface TutorialChallenge {
   startPos: { x: number; y: number };
   blocks: string[];
   targetCells: Record<string, string>;
-  // Agora o validate recebe o estado do motor e a árvore de código (AST)
+  initialWorkspace?: any;
   validate: (engineState: any, ast: any[]) => boolean;
   successMsg: string;
 }

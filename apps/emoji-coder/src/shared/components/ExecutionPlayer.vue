@@ -13,15 +13,33 @@
           <span class="mission-title-inline" v-show="isMissionCollapsed">{{ currentChallenge.title }}</span>
         </div>
 
-        <div class="mission-dots" v-show="!isMissionCollapsed">
-          <span 
-            v-for="(_, i) in totalChallenges" 
-            :key="i" 
-            class="dot" 
-            :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }"
-            @click.stop="goToChallenge(i)"
-            title="Ir para este desafio"
-          ></span>
+        <div class="mission-navigation" v-show="!isMissionCollapsed">
+          <div class="nav-arrows">
+            <button 
+              class="nav-arrow" 
+              :disabled="projectStore.activeChallengeIndex === 0"
+              @click.stop="goToChallenge(projectStore.activeChallengeIndex - 1)"
+            >
+              <ChevronLeft :size="18" />
+            </button>
+            <button 
+              class="nav-arrow" 
+              :disabled="isLastChallenge"
+              @click.stop="goToChallenge(projectStore.activeChallengeIndex + 1)"
+            >
+              <ChevronRight :size="18" />
+            </button>
+          </div>
+          <div class="mission-dots">
+            <span 
+              v-for="(_, i) in totalChallenges" 
+              :key="i" 
+              class="dot" 
+              :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }"
+              @click.stop="goToChallenge(i)"
+              title="Ir para este desafio"
+            ></span>
+          </div>
         </div>
 
         <button class="toggle-btn" v-show="isMobile">
@@ -33,8 +51,14 @@
       <div class="mission-body" v-show="!isMissionCollapsed">
         <h3 class="mission-title">{{ currentChallenge.title }}</h3>
         <p class="mission-desc">{{ currentChallenge.description }}</p>
-        <div class="mission-tip" v-if="currentChallenge.tip">
-          <strong><Lightbulb :size="16" class="inline-icon" /> Dica:</strong> {{ currentChallenge.tip }}
+        
+        <div class="mission-tip-container" v-if="currentChallenge.tip">
+          <button v-if="!showTip" class="reveal-tip-btn" @click.stop="showTip = true">
+            <Lightbulb :size="16" class="inline-icon" /> Precisa de uma dica?
+          </button>
+          <div v-else class="mission-tip">
+            <strong><Lightbulb :size="16" class="inline-icon" /> Dica:</strong> {{ currentChallenge.tip }}
+          </div>
         </div>
       </div>
     </div>
@@ -137,7 +161,7 @@ import { getLibrary } from '@/libraries';
 import { getTutorialChallenges } from '@/tutorials';
 import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
 
-import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
+import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
 
 const props = defineProps<{ isPreview?: boolean; isRuntime?: boolean }>();
@@ -172,6 +196,7 @@ const toggleMission = () => {
 
 const showSuccess = ref(false);
 const showTutorialComplete = ref(false);
+const showTip = ref(false);
 
 const activeChallengeList = computed(() => {
   if (!projectStore.isTutorialMode) return [];
@@ -209,6 +234,7 @@ const goToChallenge = (index: number) => {
 
   const wasClean = !projectStore.hasUnsavedChanges;
   showSuccess.value = false;
+  showTip.value = false;
   const targetChal = activeChallengeList.value[index];
   
   if (targetChal) {
@@ -302,6 +328,11 @@ const handleReset = () => {
 .mission-progress { font-size: 0.75rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.05em; }
 .mission-title-inline { font-size: 0.9rem; font-weight: 600; color: #14532d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
 .toggle-btn { background: none; border: none; color: #16a34a; display: flex; align-items: center; padding: 0; }
+.mission-navigation { display: flex; align-items: center; gap: 10px; }
+.nav-arrows { display: flex; align-items: center; gap: 2px; }
+.nav-arrow { background: none; border: none; padding: 2px; display: flex; align-items: center; justify-content: center; color: #15803d; cursor: pointer; border-radius: 4px; transition: background-color 0.2s, opacity 0.2s; }
+.nav-arrow:hover:not(:disabled) { background-color: #dcfce7; }
+.nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
 .mission-dots { display: flex; gap: 4px; }
 .mission-dots .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #dcfce7; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s; }
 .mission-dots .dot:hover { transform: scale(1.4); }
@@ -309,7 +340,10 @@ const handleReset = () => {
 .mission-dots .dot.active { background-color: #16a34a; transform: scale(1.2); }
 .mission-title { margin: 0 0 0.25rem 0; font-size: 1.1rem; color: #14532d; }
 .mission-desc { margin: 0; font-size: 0.9rem; color: #166534; line-height: 1.4; }
-.mission-tip { margin-top: 0.75rem; padding: 0.5rem; background-color: #dcfce7; border-radius: 6px; font-size: 0.85rem; color: #15803d; border-left: 3px solid #22c55e; }
+.mission-tip-container { margin-top: 0.75rem; }
+.reveal-tip-btn { display: inline-flex; align-items: center; background: none; border: 1px dashed #86efac; color: #15803d; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+.reveal-tip-btn:hover { background-color: #dcfce7; border-color: #22c55e; }
+.mission-tip { padding: 0.5rem; background-color: #dcfce7; border-radius: 6px; font-size: 0.85rem; color: #15803d; border-left: 3px solid #22c55e; animation: fadeIn 0.3s ease; }
 
 /* === PALCO === */
 .canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #f3f4f6; padding: 1rem; overflow: hidden; min-height: 0; position: relative; }

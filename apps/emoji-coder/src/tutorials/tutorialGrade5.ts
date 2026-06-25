@@ -1,5 +1,65 @@
 import type { TutorialChallenge } from './index';
 
+// --- CÓDIGOS INICIAIS PRÉ-POPULADOS ---
+const initialWorkspaceChallenge4 = {
+  blocks: {
+    languageVersion: 0,
+    blocks: [
+      {
+        type: "start",
+        id: "q_VNCC*Ynx7HvaHIa0Vg",
+        x: 40,
+        y: 40,
+        deletable: false,
+        next: {
+          block: {
+            type: "procedures_callnoreturn",
+            id: "aFAtj~P2(Bk5Fo8zu~9)",
+            extraState: { name: "pintar linha" }
+          }
+        }
+      },
+      {
+        type: "procedures_defnoreturn",
+        id: "+V.d7T,I3H?jfB{c3$SM",
+        x: 332,
+        y: 47,
+        fields: { NAME: "pintar linha" },
+        inputs: {
+          STACK: {
+            block: {
+              type: "controls_repeat_ext",
+              id: "vzA-===9XEE/#}x+f@gN",
+              inputs: {
+                TIMES: {
+                  shadow: {
+                    type: "math_number",
+                    id: "%sep,*N=[Ku~rwW2.[B+",
+                    fields: { NUM: 4 }
+                  }
+                },
+                DO: {
+                  block: {
+                    type: "paint",
+                    id: "]w{![R,GQvcE/s{}bq-s",
+                    fields: { COLOR: "#fde047" },
+                    next: {
+                      block: {
+                        type: "move_forward",
+                        id: "u+5[/5|iqU=jc|w(pwSm"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+};
+
 export const challengesGrade5: TutorialChallenge[] = [
   {
     id: 1,
@@ -45,13 +105,14 @@ export const challengesGrade5: TutorialChallenge[] = [
   },
   {
     id: 4,
-    title: 'Crie uma função!',
-    description: 'Defina uma função que pinte uma linha inteira e chame-a duas vezes — uma por linha!',
-    tip: 'Crie uma função com Repita 4×(Pintar + Avançar). Depois navegue até a próxima linha e chame a função de novo.',
+    title: 'Utilize uma função!',
+    description: 'Utilize a função que pinta uma linha inteira. Chame-a novamente para pintar a segunda linha!',
+    tip: 'Navegue até a próxima linha e chame a função de novo.',
     grid: { cols: 4, rows: 2 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {},
+    initialWorkspace: initialWorkspaceChallenge4,
     validate: (state, ast) => {
       // 1. Validação visual (O chão foi pintado?)
       let paintedAll = true;

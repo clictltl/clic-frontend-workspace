@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
 import { Turtle, BookOpen, Play, Compass, Eye, LayoutGrid } from '@lucide/vue';
-import appLogo from '@/assets/emojer_logo.svg';
+import appLogo from '@/assets/caramelo_logo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
@@ -92,7 +92,7 @@ onUnmounted(() => {
 <template>
   <div class="app-root">
     <!-- HEADER DO ECOSSISTEMA -->
-    <AppHeader :title="t('emojiCoder.setup.app_title')" :app-logo="appLogo">
+    <AppHeader title="Caramelo" :app-logo="appLogo">
       <template #file-menu>
         <FileMenu 
           item-name="Emoji Coder"

@@ -115,6 +115,17 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       this.project.config.startX = challengeDef.startPos.x;
       this.project.config.startY = challengeDef.startPos.y;
       this.project.config.targetCells = challengeDef.targetCells || {};
+
+      // INJEÇÃO DO CÓDIGO INICIAL SE ESTIVER VAZIO!
+      if (challengeDef.initialWorkspace) {
+        if (!this.project.config.tutorialSavedWorkspaces) {
+          this.project.config.tutorialSavedWorkspaces = {};
+        }
+        // Se o usuário ainda não salvou NADA neste desafio, damos a ele o código inicial!
+        if (!this.project.config.tutorialSavedWorkspaces[index]) {
+          this.project.config.tutorialSavedWorkspaces[index] = challengeDef.initialWorkspace;
+        }
+      }
     },
 
     // Ação silenciosa para sincronizar o workspace do Blockly com o Vue sem poluir o histórico
