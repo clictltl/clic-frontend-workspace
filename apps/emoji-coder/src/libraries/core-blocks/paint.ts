@@ -12,12 +12,12 @@ export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean 
     args0: isIcon 
       ? [
           { type: "field_image", src: iconPaint, width: 28, height: 28, alt: "Pintar" },
-          { type: "field_colour", name: "COLOR", colour: "#fde047" }
+          { type: "field_colour", name: "COLOR", colour: "#3b82f6" }
         ]
       : [
           { type: "field_image", src: iconPaint, width: 20, height: 20, alt: "Pintar" },
           { type: "field_label", text: t('emojiCoder.blocks.paint') || 'Pintar o chão' },
-          { type: "field_colour", name: "COLOR", colour: "#fde047" }
+          { type: "field_colour", name: "COLOR", colour: "#3b82f6" }
         ],
     previousStatement: null,
     nextStatement: null,
@@ -38,7 +38,7 @@ export const registerPaintHandler = (engine: TurtleEngine) => {
   engine.registerAction('PAINT', async (node, eng) => {
     const cellId = `${eng.state.turtleX},${eng.state.turtleY}`;
     // Salva no dicionário a cor especificada no JSON (AST)
-    eng.state.paintedCells[cellId] = node.color || '#fde047';
+    eng.state.paintedCells[cellId] = node.color || '#3b82f6';
     await eng.sleepTick(); 
   });
 };
