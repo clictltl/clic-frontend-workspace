@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
-import { Turtle, BookOpen, Play, Compass, Eye, LayoutGrid } from '@lucide/vue';
+import { Turtle, BookOpen, Play, Compass, LayoutGrid, Leaf, Rocket } from '@lucide/vue';
 import appLogo from '@/assets/caramelo_logo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -17,8 +17,8 @@ const projects = useProjects();
 const showInvalidShareModal = ref(false);
 const isPreview = ref(false);
 
-// Controle de tamanho da grade exclusivo para o 5º Ano
-const grade5GridSize = ref(8);
+// Controle de tamanho da grade exclusivo para o nível Avançado
+const advancedGridSize = ref(8);
 
 const handleStartProject = (libraryId: string, gridSize: number) => {
   store.setupEnvironment(libraryId, gridSize, gridSize);
@@ -136,30 +136,30 @@ onUnmounted(() => {
       <div v-if="!store.isConfigured && !isPreview" class="dashboard-screen">
         <div class="dashboard-content">
           
-          <!-- SEÇÃO: 4º ANO -->
+          <!-- SEÇÃO: BÁSICO -->
           <section class="grade-section">
             <div class="section-title">
-              <Compass :size="24" class="section-icon" />
+              <Leaf :size="24" class="section-icon" style="color: #16a34a" />
               <div>
-                <h2>{{ t('emojiCoder.setup.grade_4_title') }}</h2>
-                <p>{{ t('emojiCoder.setup.grade_4_desc') }}</p>
+                <h2>{{ t('emojiCoder.setup.basic_title') }}</h2>
+                <p>{{ t('emojiCoder.setup.basic_desc') }}</p>
               </div>
             </div>
 
             <div class="cards-grid">
-              <!-- Tutorial (Ativo) -->
-              <div class="activity-card">
-                <div class="card-icon highlight-blue"><BookOpen :size="32" /></div>
+              <!-- Tutorial Básico -->
+              <div class="activity-card clickable" @click="handleStartProject('turtle-tutorial-4', 8)">
+                <div class="card-icon highlight"><BookOpen :size="32" /></div>
                 <h3>{{ t('emojiCoder.setup.tutorial_title') }}</h3>
-                <p>{{ t('emojiCoder.setup.tutorial_desc') }}</p>
+                <p>{{ t('emojiCoder.setup.tutorial_basic_desc') }}</p>
                 
-                <button class="start-btn blue-btn" @click="handleStartProject('turtle-tutorial-4', 8)">
+                <div class="start-btn">
                   <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
-                </button>
+                </div>
               </div>
 
               <!-- Sandbox Básico -->
-              <div class="activity-card">
+              <div class="activity-card clickable" @click="handleStartProject('turtle-grade-4-advanced', 8)">
                 <div class="card-icon highlight"><Turtle :size="32" /></div>
                 <h3>{{ t('emojiCoder.setup.sandbox_basic_title') }}</h3>
                 <p>{{ t('emojiCoder.setup.sandbox_basic_desc') }}</p>
@@ -168,74 +168,89 @@ onUnmounted(() => {
                   <span class="fixed-grid-label"><LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_fixed') }}</span>
                 </div>
 
-                <button class="start-btn" @click="handleStartProject('turtle-grade-4', 8)">
+                <div class="start-btn">
                   <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
-                </button>
-              </div>
-
-              <!-- Sandbox Funções -->
-              <div class="activity-card">
-                <div class="card-icon highlight-purple"><LayoutGrid :size="32" /></div>
-                <h3>{{ t('emojiCoder.setup.sandbox_adv_title') }}</h3>
-                <p>{{ t('emojiCoder.setup.sandbox_adv_desc') }}</p>
-                
-                <div class="card-options">
-                  <span class="fixed-grid-label"><LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_fixed') }}</span>
                 </div>
-
-                <button class="start-btn purple-btn" @click="handleStartProject('turtle-grade-4-advanced', 8)">
-                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
-                </button>
               </div>
             </div>
           </section>
 
           <hr class="section-divider" />
 
-          <!-- SEÇÃO: 5º ANO -->
+          <!-- SEÇÃO: INTERMEDIÁRIO -->
           <section class="grade-section">
             <div class="section-title">
-              <Eye :size="24" class="section-icon orange" />
+              <Compass :size="24" class="section-icon orange" />
               <div>
-                <h2>{{ t('emojiCoder.setup.grade_5_title') }}</h2>
-                <p>{{ t('emojiCoder.setup.grade_5_desc') }}</p>
+                <h2>{{ t('emojiCoder.setup.intermediate_title') }}</h2>
+                <p>{{ t('emojiCoder.setup.intermediate_desc') }}</p>
               </div>
             </div>
 
             <div class="cards-grid">
-              <!-- Tutorial (Ativo) -->
-              <div class="activity-card">
+              <!-- Tutorial Intermediário -->
+              <div class="activity-card clickable" @click="handleStartProject('turtle-tutorial-5', 8)">
                 <div class="card-icon highlight-orange"><BookOpen :size="32" /></div>
                 <h3>{{ t('emojiCoder.setup.tutorial_title') }}</h3>
-                <p>{{ t('emojiCoder.setup.tutorial_desc') }}</p>
+                <p>{{ t('emojiCoder.setup.tutorial_inter_desc') }}</p>
                 
-                <button class="start-btn orange-btn" @click="handleStartProject('turtle-tutorial-5', 8)">
+                <div class="start-btn orange-btn">
                   <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
-                </button>
+                </div>
               </div>
 
-              <!-- Sandbox Relativo -->
-              <div class="activity-card">
-                <div class="card-icon highlight-orange"><Compass :size="32" /></div>
-                <h3>{{ t('emojiCoder.setup.sandbox_rel_title') }}</h3>
-                <p>{{ t('emojiCoder.setup.sandbox_rel_desc') }}</p>
+              <!-- Sandbox Intermediário -->
+              <div class="activity-card clickable" @click="handleStartProject('turtle-grade-5', 8)">
+                <div class="card-icon highlight-orange"><LayoutGrid :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.sandbox_inter_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.sandbox_inter_desc') }}</p>
                 
-                <!-- Selector de Grid Ativo -->
+                <div class="card-options">
+                  <span class="fixed-grid-label"><LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_fixed') }}</span>
+                </div>
+
+                <div class="start-btn orange-btn">
+                  <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <hr class="section-divider" />
+
+          <!-- SEÇÃO: AVANÇADO -->
+          <section class="grade-section">
+            <div class="section-title">
+              <Rocket :size="24" class="section-icon" style="color: #ef4444" />
+              <div>
+                <h2>{{ t('emojiCoder.setup.advanced_title') }}</h2>
+                <p>{{ t('emojiCoder.setup.advanced_desc') }}</p>
+              </div>
+            </div>
+
+            <div class="cards-grid">
+              <!-- Sandbox Mestre (Avançado) -->
+              <div class="activity-card clickable" @click="handleStartProject('turtle-advanced', advancedGridSize)">
+                <div class="card-icon highlight-red" style="background-color: #fee2e2; color: #ef4444;"><Rocket :size="32" /></div>
+                <h3>{{ t('emojiCoder.setup.sandbox_adv_title') }}</h3>
+                <p>{{ t('emojiCoder.setup.sandbox_adv_desc') }}</p>
+                
+                <!-- Selector de Grid Ativo-->
                 <div class="card-options">
                   <label class="grid-select-label">
                     <LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_size') }}
                   </label>
-                  <select v-model="grade5GridSize" class="grid-select">
+                  <select v-model="advancedGridSize" class="grid-select" @click.stop>
                     <option :value="6">6x6 (Pequeno)</option>
                     <option :value="8">8x8 (Médio)</option>
                     <option :value="12">12x12 (Grande)</option>
-                    <option :value="16">16x16 (Desafio)</option>
+                    <option :value="16">16x16 (Desafio Máximo)</option>
                   </select>
                 </div>
 
-                <button class="start-btn orange-btn" @click="handleStartProject('turtle-grade-5', grade5GridSize)">
+                <div class="start-btn red-btn">
                   <Play :size="18" /> {{ t('emojiCoder.setup.start_btn') }}
-                </button>
+                </div>
               </div>
             </div>
           </section>
@@ -341,8 +356,18 @@ html, body, #app {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+  justify-content: center;
+  gap: 2rem;
+}
+
+/* Adiciona o efeito visual de clique no card inteiro */
+.activity-card.clickable {
+  cursor: pointer;
+}
+.activity-card.clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* O Card de Atividade */
@@ -419,4 +444,10 @@ html, body, #app {
 .card-icon.highlight-blue { background-color: #dbeafe; color: #3b82f6; }
 .blue-btn { background-color: #3b82f6; }
 .blue-btn:hover { background-color: #2563eb; }
+
+.card-icon.highlight-red { background-color: #fee2e2; color: #ef4444; }
+.red-btn { background-color: #ef4444; }
+.red-btn:hover { background-color: #dc2626; }
+
+.start-btn { pointer-events: none; }
 </style>

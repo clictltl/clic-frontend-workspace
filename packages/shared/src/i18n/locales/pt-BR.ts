@@ -196,25 +196,27 @@ export default {
     setup: {
       prepare_env: 'Escolha uma atividade para começar',
       
-      grade_4_title: '4º Ano: Explorando o Mundo',
-      grade_4_desc: 'Aprenda a mover a tartaruga usando direções absolutas.',
-      grade_5_title: '5º Ano: O Ponto de Vista',
-      grade_5_desc: 'Aprenda a se colocar no lugar da tartaruga usando movimentos relativos.',
+      basic_title: 'Nível Básico',
+      basic_desc: 'Aprenda a mover o caramelo usando direções absolutas.',
+      intermediate_title: 'Nível Intermediário',
+      intermediate_desc: 'Aprenda a se colocar no lugar do caramelo usando movimentos relativos.',
+      advanced_title: 'Nível Avançado',
+      advanced_desc: 'Acesso total aos blocos, funções avançadas e grades customizadas.',
       
       tutorial_title: 'Tutorial Interativo',
-      tutorial_desc: 'Aprenda os conceitos básicos passo a passo.',
-      coming_soon: 'Em breve',
+      tutorial_basic_desc: 'Aprenda a mover o caramelo e pintar o chão passo a passo.',
+      tutorial_inter_desc: 'Aprenda a navegar pela perspectiva do caramelo (Avançar/Girar).',
       
       sandbox_basic_title: 'Caixa de Areia (Básico)',
       sandbox_basic_desc: 'Crie desenhos livres usando os blocos de movimento.',
-      sandbox_adv_title: 'Caixa de Areia (Funções)',
-      sandbox_adv_desc: 'Crie e use pacotes de código com ícones de frutas.',
-      sandbox_rel_title: 'Caixa de Areia (Relativo)',
-      sandbox_rel_desc: 'Programe movimentos de Frente, Trás e Giros.',
+      sandbox_inter_title: 'Caixa de Areia (Relativo)',
+      sandbox_inter_desc: 'Programe movimentos de Avançar, Recuar e Giros.',
+      sandbox_adv_title: 'Caixa de Areia (Mestre)',
+      sandbox_adv_desc: 'Mescle movimento absoluto e relativo no mesmo projeto. Crie desafios enormes!',
       
       grid_fixed: 'Tamanho: 8x8 (Fixo)',
       grid_size: 'Tamanho do Tabuleiro:',
-      start_btn: 'Iniciar Projeto'
+      start_btn: 'Começar'
     },
     workspace: {
       loaded_title: 'Ambiente de Código Carregado!',
@@ -240,6 +242,8 @@ export default {
     toolbox: {
       start: 'Início',
       movement: 'Movimento',
+      movement_absolute: 'Movimeno Absoluto',
+      movement_relative: 'Movimento Relativo',
       actions: 'Ações',
       loops: 'Repetição',
       functions: 'Funções'

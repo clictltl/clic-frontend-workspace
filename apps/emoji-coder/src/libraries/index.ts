@@ -7,13 +7,15 @@ import { turtleGrade4Advanced } from './turtle-grade-4-advanced';
 import { turtleGrade5 } from './turtle-grade-5';
 import { turtleTutorial4 } from './turtle-tutorial-4';
 import { turtleTutorial5 } from './turtle-tutorial-5';
+import { turtleAdvanced } from './turtle-advanced';
 
 const libraries: Record<string, BlockLibrary> = {
   'turtle-grade-4': turtleGrade4,
   'turtle-grade-4-advanced': turtleGrade4Advanced,
   'turtle-grade-5': turtleGrade5,
   'turtle-tutorial-4': turtleTutorial4,
-  'turtle-tutorial-5': turtleTutorial5
+  'turtle-tutorial-5': turtleTutorial5,
+  'turtle-advanced': turtleAdvanced
 };
 
 export function getLibrary(libraryId: string): BlockLibrary {
