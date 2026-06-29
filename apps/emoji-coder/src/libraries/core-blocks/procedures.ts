@@ -22,6 +22,7 @@ export const patchProcedureBlocks = (t: TranslateFn) => {
     if (topRow) {
       topRow.insertFieldAt(0, new Blockly.FieldLabel(t('emojiCoder.blocks.call')));
     }
+    this.setColour('#97989B');
   };
 
   // Patch 2: Bloco de Definição (Remove a engrenagem interceptando sua criação)
@@ -48,6 +49,8 @@ export const patchProcedureBlocks = (t: TranslateFn) => {
     // 4. Devolve as funções originais para não corromper o bloco futuramente
     if (originalSetMutator) (this as any).setMutator = originalSetMutator;
     if (originalAddIcon) (this as any).addIcon = originalAddIcon;
+
+    this.setColour('#97989B');
   };
 };
 

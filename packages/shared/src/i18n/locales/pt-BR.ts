@@ -237,7 +237,8 @@ export default {
       move_forward: 'Avançar',
       move_backward: 'Recuar',
       turn_left: 'Girar à Esquerda',
-      turn_right: 'Girar à Direita'
+      turn_right: 'Girar à Direita',
+      repeat: 'Repita'
     },
     toolbox: {
       start: 'Início',

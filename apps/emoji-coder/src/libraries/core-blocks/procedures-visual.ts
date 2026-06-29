@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly/core';
 import type { TranslateFn } from '../types';
+import { registerASTParser } from '../ASTBuilder';
 
 import iconApple from '@/assets/icons/fruits/apple.svg';
 import iconBanana from '@/assets/icons/fruits/banana.svg';
@@ -28,19 +29,31 @@ export const defineVisualProcedureBlocks = (t: TranslateFn) => {
       ],
       message1: "%1",
       args1: [{ type: "input_statement", name: "STACK" }],
-      colour: 290,
+      colour: "#97989B",
       tooltip: t('emojiCoder.blocks.define') || 'Criar um pacote de ações'
     },
     {
       type: "turtle_visual_call",
       message0: "%1", 
-      args0: [
-        { type: "field_dropdown", name: "FRUIT_ID", options: fruitOptions }
-      ],
+      args0: [{ type: "field_dropdown", name: "FRUIT_ID", options: fruitOptions }],
       previousStatement: null,
       nextStatement: null,
-      colour: 290,
+      colour: "#97989B",
       tooltip: 'Chamar este pacote'
     }
   ]);
+};
+
+export const registerVisualProcedureParsers = () => {
+  registerASTParser('turtle_visual_def', (block, walkChildren) => {
+    const name = block.getFieldValue('FRUIT_ID');
+    const bodyBlock = block.getInputTargetBlock('STACK'); 
+    const body = walkChildren(bodyBlock);
+    return { action: 'DEFINE_FUNCTION', blockId: block.id, isControl: true, isDefinition: true, definitionName: name, body };
+  });
+
+  registerASTParser('turtle_visual_call', (block) => {
+    const name = block.getFieldValue('FRUIT_ID'); 
+    return { action: 'CALL_FUNCTION', blockId: block.id, isControl: true, isCall: true, callTarget: name };
+  });
 };

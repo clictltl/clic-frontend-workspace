@@ -2,15 +2,15 @@ import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { challengesGrade4 } from '@/tutorials/tutorialGrade4';
 
-import { defineMovementBlocks, defineVisualLoopBlock, registerMovementParsers, registerMovementHandlers } from '../turtle-grade-4/blocks';
+import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleTutorial4: BlockLibrary = {
   id: 'turtle-tutorial-4',
-  name: 'Tutorial 4ª Série',
+  name: 'Tutorial 4º Ano',
   isToolboxDynamic: true, // Avisa o App.vue que a toolbox pode mudar
   
   getToolboxXml: () => {
@@ -37,19 +37,19 @@ export const turtleTutorial4: BlockLibrary = {
   registerBlocks: (t: TranslateFn) => {
     defineStartBlock(t, { iconOnly: true });
     definePaintBlock(t, { iconOnly: true });
-    defineMovementBlocks(t);
-    defineVisualLoopBlock(t);
+    defineAbsoluteMovementBlocks(t, { iconOnly: true });
+    defineLoopBlocks(t, { iconOnly: true });
   },
 
   registerParsers: () => {
     registerPaintParser();
-    registerMovementParsers();
+    registerAbsoluteMovementParsers();
     registerLoopParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
-    registerMovementHandlers(engine);
+    registerAbsoluteMovementHandlers(engine);
     registerLoopHandlers(engine);
   }
 };

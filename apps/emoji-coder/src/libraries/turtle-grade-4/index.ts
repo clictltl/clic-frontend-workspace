@@ -1,13 +1,13 @@
 import type { BlockLibrary, TranslateFn } from '../types';
-import { defineMovementBlocks, defineVisualLoopBlock, registerMovementParsers, registerMovementHandlers } from './blocks';
+import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleGrade4: BlockLibrary = {
   id: 'turtle-grade-4',
-  name: '4ª Série - Movimento Absoluto',
+  name: '4º Ano - Movimento Absoluto',
   
   getToolboxXml: (t: TranslateFn) => `
     <xml>
@@ -30,19 +30,19 @@ export const turtleGrade4: BlockLibrary = {
   registerBlocks: (t: TranslateFn) => {
     defineStartBlock(t, { iconOnly: true });
     definePaintBlock(t, { iconOnly: true });
-    defineMovementBlocks(t);
-    defineVisualLoopBlock(t);
+    defineAbsoluteMovementBlocks(t, { iconOnly: true });
+    defineLoopBlocks(t, { iconOnly: true });
   },
 
   registerParsers: () => {
     registerPaintParser();
-    registerMovementParsers();
+    registerAbsoluteMovementParsers();
     registerLoopParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
-    registerMovementHandlers(engine);
+    registerAbsoluteMovementHandlers(engine);
     registerLoopHandlers(engine);
   }
 };

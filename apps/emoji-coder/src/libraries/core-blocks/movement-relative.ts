@@ -7,16 +7,13 @@ import iconTurnLeft from '@/assets/icons/turn-left.svg';
 import iconTurnRight from '@/assets/icons/turn-right.svg';
 
 export const defineRelativeMovementBlocks = (t: TranslateFn) => {
-  
   const buildTextOnly = (type: string, label: string) => ({
     type,
     message0: "%1",
-    args0: [
-      { type: "field_label", text: label }
-    ],
+    args0: [{ type: "field_label", text: label }],
     previousStatement: null,
     nextStatement: null,
-    colour: 230
+    colour: "#D75930"
   });
 
   const buildWithIcon = (type: string, src: string, label: string) => ({
@@ -28,14 +25,14 @@ export const defineRelativeMovementBlocks = (t: TranslateFn) => {
     ],
     previousStatement: null,
     nextStatement: null,
-    colour: 230
+    colour: "#D75930"
   });
 
   const blocksDefinition = [
-    buildTextOnly("move_forward", t('emojiCoder.blocks.move_forward')),
-    buildTextOnly("move_backward", t('emojiCoder.blocks.move_backward')),
-    buildWithIcon("turn_left", iconTurnLeft, t('emojiCoder.blocks.turn_left')),
-    buildWithIcon("turn_right", iconTurnRight, t('emojiCoder.blocks.turn_right')),
+    buildTextOnly("move_forward", t('emojiCoder.blocks.move_forward') || 'Avançar'),
+    buildTextOnly("move_backward", t('emojiCoder.blocks.move_backward') || 'Recuar'),
+    buildWithIcon("turn_left", iconTurnLeft, t('emojiCoder.blocks.turn_left') || 'Girar Esquerda'),
+    buildWithIcon("turn_right", iconTurnRight, t('emojiCoder.blocks.turn_right') || 'Girar Direita'),
   ];
 
   blocksDefinition.forEach(def => {
@@ -45,10 +42,7 @@ export const defineRelativeMovementBlocks = (t: TranslateFn) => {
 };
 
 export const registerRelativeMovementParsers = () => {
-  const createAction = (action: string) => (block: any) => ({ 
-    action, 
-    blockId: block.id 
-  });
+  const createAction = (action: string) => (block: any) => ({ action, blockId: block.id });
 
   registerASTParser('move_forward', createAction('MOVE_FORWARD'));
   registerASTParser('move_backward', createAction('MOVE_BACKWARD'));
@@ -57,14 +51,12 @@ export const registerRelativeMovementParsers = () => {
 };
 
 export const registerRelativeMovementHandlers = (engine: TurtleEngine) => {
-  
-  // Função auxiliar para converter ângulo em vetores X e Y
   const getDirectionVector = (rotation: number) => {
-    const angle = ((rotation % 360) + 360) % 360; // Normaliza para 0-359 positivos
-    if (angle === 0) return { dx: 0, dy: -1 };    // Cima
-    if (angle === 90) return { dx: 1, dy: 0 };    // Direita
-    if (angle === 180) return { dx: 0, dy: 1 };   // Baixo
-    if (angle === 270) return { dx: -1, dy: 0 };  // Esquerda
+    const angle = ((rotation % 360) + 360) % 360;
+    if (angle === 0) return { dx: 0, dy: -1 };   
+    if (angle === 90) return { dx: 1, dy: 0 };    
+    if (angle === 180) return { dx: 0, dy: 1 };   
+    if (angle === 270) return { dx: -1, dy: 0 };  
     return { dx: 0, dy: 0 };
   };
 
@@ -85,11 +77,8 @@ export const registerRelativeMovementHandlers = (engine: TurtleEngine) => {
     await eng.sleepTick();
   };
 
-  // 1 = Frente, -1 = Trás
   engine.registerAction('MOVE_FORWARD', async (_node, eng) => await moveRelative(eng, 1));
   engine.registerAction('MOVE_BACKWARD', async (_node, eng) => await moveRelative(eng, -1));
-  
-  // -90 = Esquerda, 90 = Direita
   engine.registerAction('TURN_LEFT', async (_node, eng) => await turn(eng, -90));
   engine.registerAction('TURN_RIGHT', async (_node, eng) => await turn(eng, 90));
 };

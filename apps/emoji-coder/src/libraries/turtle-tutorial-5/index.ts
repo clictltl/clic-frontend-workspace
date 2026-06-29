@@ -3,11 +3,11 @@ import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { challengesGrade5 } from '@/tutorials/tutorialGrade5';
 
-import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../turtle-grade-5/blocks';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
-import { registerProcedureParsers, registerProcedureHandlers, patchProcedureBlocks } from '../native-blocks/procedures';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
+import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../core-blocks/movement-relative';
+import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleTutorial5: BlockLibrary = {
@@ -55,6 +55,7 @@ export const turtleTutorial5: BlockLibrary = {
     defineStartBlock(t);
     definePaintBlock(t);
     defineRelativeMovementBlocks(t);
+    defineLoopBlocks(t);
     patchProcedureBlocks(t);
   },
 

@@ -21,7 +21,7 @@ export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean 
         ],
     previousStatement: null,
     nextStatement: null,
-    colour: 290,
+    colour: "#E9BF49",
     tooltip: isIcon ? (t('emojiCoder.blocks.paint') || 'Pintar o chão') : ""
   }]);
 };

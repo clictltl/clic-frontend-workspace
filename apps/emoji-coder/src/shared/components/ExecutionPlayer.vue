@@ -395,7 +395,7 @@ input[type="range"] { max-width: 120px; cursor: pointer; accent-color: #3b82f6; 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .play-btn, .pause-btn { width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3); }
-.play-btn { background-color: #22c55e; color: white; }
+.play-btn { background-color: #50A554; color: white; }
 .play-btn:hover:not(:disabled) { background-color: #16a34a; transform: scale(1.05); }
 .resume-btn { width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); background-color: #3b82f6; color: white; padding-left: 4px; }
 .resume-btn:hover:not(:disabled) { background-color: #2563eb; transform: scale(1.05); }

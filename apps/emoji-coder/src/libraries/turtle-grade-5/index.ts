@@ -1,15 +1,15 @@
 import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
-import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from './blocks';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
-import { registerProcedureParsers, registerProcedureHandlers, patchProcedureBlocks } from '../native-blocks/procedures';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
+import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../core-blocks/movement-relative';
+import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleGrade5: BlockLibrary = {
   id: 'turtle-grade-5',
-  name: '5ª Série - Movimento Relativo e Funções',
+  name: '5º Ano - Movimento Relativo e Funções',
   isToolboxDynamic: true,
   
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
@@ -39,9 +39,7 @@ export const turtleGrade5: BlockLibrary = {
         <sep gap="24"></sep>
 
         <label text="${t('emojiCoder.toolbox.loops')}"></label>
-        <block type="controls_repeat_ext">
-          <value name="TIMES"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
-        </block>
+        <block type="turtle_repeat"></block>
         <sep gap="24"></sep>
 
         <label text="${t('emojiCoder.toolbox.functions')}"></label>
@@ -57,6 +55,7 @@ export const turtleGrade5: BlockLibrary = {
     defineStartBlock(t);
     definePaintBlock(t);
     defineRelativeMovementBlocks(t);
+    defineLoopBlocks(t);
     patchProcedureBlocks(t);
   },
 

@@ -17,7 +17,7 @@ export const defineStartBlock = (t: TranslateFn, options?: { iconOnly?: boolean 
               { type: "field_label", text: t('emojiCoder.blocks.start') }
             ],
         nextStatement: null,
-        colour: "#22c55e", 
+        colour: "#50A554", 
         tooltip: isIcon ? t('emojiCoder.blocks.start') : ""
       });
       

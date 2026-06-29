@@ -28,16 +28,10 @@ const initialWorkspaceChallenge4 = {
         inputs: {
           STACK: {
             block: {
-              type: "controls_repeat_ext",
+              type: "turtle_repeat",
               id: "vzA-===9XEE/#}x+f@gN",
+              fields: { TIMES: 4 },
               inputs: {
-                TIMES: {
-                  shadow: {
-                    type: "math_number",
-                    id: "%sep,*N=[Ku~rwW2.[B+",
-                    fields: { NUM: 4 }
-                  }
-                },
                 DO: {
                   block: {
                     type: "paint",
@@ -95,7 +89,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Coloque Pintar + Avançar dentro do Repita. Quantas vezes você precisa repetir?',
     grid: { cols: 8, rows: 1 },
     startPos: { x: 0, y: 0 },
-    blocks: ['move_forward', 'paint', 'controls_repeat_ext'],
+    blocks: ['move_forward', 'paint', 'turtle_repeat'],
     targetCells: {},
     validate: (state) => {
       for (let x = 0; x < 8; x++) if (!state.paintedCells[`${x},0`]) return false;
@@ -110,7 +104,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Navegue até a próxima linha e chame a função de novo.',
     grid: { cols: 4, rows: 2 },
     startPos: { x: 0, y: 0 },
-    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
+    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {},
     initialWorkspace: initialWorkspaceChallenge4,
     validate: (state, ast) => {
@@ -134,7 +128,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Tente: Repita 4 vezes — Repita 2×(Pintar + Avançar), depois Girar à Direita.',
     grid: { cols: 8, rows: 8 },
     startPos: { x: 2, y: 2 },
-    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
+    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {
       '2,2': '#e2e8f0', '3,2': '#e2e8f0', '4,2': '#e2e8f0',
       '4,3': '#e2e8f0', '4,4': '#e2e8f0', '3,4': '#e2e8f0',
@@ -153,7 +147,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Use Repita para cada lado. Depois de pintar um lado, gire para o próximo!',
     grid: { cols: 8, rows: 8 },
     startPos: { x: 0, y: 0 },
-    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
+    blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {},
     validate: (state) => {
       const borders = ['0,0','1,0','2,0','3,0','4,0','5,0','6,0','7,0',
@@ -171,7 +165,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Navegue até cada olho preto e pinte. Use os comandos para chegar lá!',
     grid: { cols: 8, rows: 9 },
     startPos: { x: 0, y: 0 },
-    blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext'],
+    blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat'],
     // Coordenadas mapeadas de row,col para x,y
     targetCells: {
       '2,1':'#dc2626','3,1':'#dc2626','4,1':'#dc2626','5,1':'#dc2626',
@@ -193,7 +187,7 @@ export const challengesGrade5: TutorialChallenge[] = [
     tip: 'Navegue por cada linha da letra. Cuidado: pinte APENAS a letra!',
     grid: { cols: 8, rows: 8 },
     startPos: { x: 0, y: 0 },
-    blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'controls_repeat_ext', 'procedures_defnoreturn', 'procedures_callnoreturn'],
+    blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
     targetCells: {
       '2,1':'#d1d5db','3,1':'#d1d5db','4,1':'#d1d5db','5,1':'#d1d5db',
       '2,2':'#d1d5db',

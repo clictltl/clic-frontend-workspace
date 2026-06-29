@@ -1,15 +1,15 @@
 import type { BlockLibrary, TranslateFn } from '../types';
-import { defineMovementBlocks, defineVisualLoopBlock, registerMovementParsers, registerMovementHandlers } from '../turtle-grade-4/blocks';
+import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
-import { registerProcedureParsers, registerProcedureHandlers } from '../native-blocks/procedures';
-import { defineVisualProcedureBlocks } from './blocks';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
+import { defineVisualProcedureBlocks, registerVisualProcedureParsers } from '../core-blocks/procedures-visual';
+import { registerProcedureHandlers } from '../core-blocks/procedures';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
 export const turtleGrade4Advanced: BlockLibrary = {
   id: 'turtle-grade-4-advanced',
-  name: '4ª Série - Avançado (Funções)',
+  name: '4º Ano - Avançado (Funções)',
   
   getToolboxXml: (t: TranslateFn) => {
     return `
@@ -39,21 +39,21 @@ export const turtleGrade4Advanced: BlockLibrary = {
   registerBlocks: (t: TranslateFn) => {
     defineStartBlock(t, { iconOnly: true });
     definePaintBlock(t, { iconOnly: true });
-    defineMovementBlocks(t);
-    defineVisualLoopBlock(t);
+    defineAbsoluteMovementBlocks(t, { iconOnly: true });
+    defineLoopBlocks(t, { iconOnly: true });
     defineVisualProcedureBlocks(t);
   },
 
   registerParsers: () => {
     registerPaintParser();
-    registerMovementParsers();
+    registerAbsoluteMovementParsers();
     registerLoopParsers();
-    registerProcedureParsers();
+    registerVisualProcedureParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
-    registerMovementHandlers(engine);
+    registerAbsoluteMovementHandlers(engine);
     registerLoopHandlers(engine);
     registerProcedureHandlers(engine);
   }

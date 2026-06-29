@@ -7,26 +7,30 @@ import iconUp from '@/assets/icons/arrow-up.svg';
 import iconDown from '@/assets/icons/arrow-down.svg';
 import iconLeft from '@/assets/icons/arrow-left.svg';
 import iconRight from '@/assets/icons/arrow-right.svg';
-import iconRepeat from '@/assets/icons/repeat.svg';
 
-export const defineMovementBlocks = (t: TranslateFn) => {
+export const defineAbsoluteMovementBlocks = (t: TranslateFn, options?: { iconOnly?: boolean }) => {
+  const isIcon = options?.iconOnly;
+
   const buildDef = (type: string, src: string, label: string) => ({
     type,
-    message0: "%1",
-    args0: [
-      { type: "field_image", src, width: 28, height: 28, alt: label }
-    ],
+    message0: isIcon ? "%1" : "%1 %2",
+    args0: isIcon
+      ? [{ type: "field_image", src, width: 28, height: 28, alt: label }]
+      : [
+          { type: "field_image", src, width: 18, height: 18, alt: label },
+          { type: "field_label", text: label }
+        ],
     previousStatement: null,
     nextStatement: null,
-    colour: 230,
+    colour: "#D75930",
     tooltip: label
   });
 
   const blocksDefinition = [
-    buildDef("move_up", iconUp, t('emojiCoder.blocks.move_up')),
-    buildDef("move_down", iconDown, t('emojiCoder.blocks.move_down')),
-    buildDef("move_left", iconLeft, t('emojiCoder.blocks.move_left')),
-    buildDef("move_right", iconRight, t('emojiCoder.blocks.move_right')),
+    buildDef("move_up", iconUp, t('emojiCoder.blocks.move_up') || 'Ir para Cima'),
+    buildDef("move_down", iconDown, t('emojiCoder.blocks.move_down') || 'Ir para Baixo'),
+    buildDef("move_left", iconLeft, t('emojiCoder.blocks.move_left') || 'Ir para Esquerda'),
+    buildDef("move_right", iconRight, t('emojiCoder.blocks.move_right') || 'Ir para Direita'),
   ];
 
   blocksDefinition.forEach(def => {
@@ -35,31 +39,8 @@ export const defineMovementBlocks = (t: TranslateFn) => {
   });
 };
 
-export const defineVisualLoopBlock = (t: TranslateFn) => {
-  if (Blockly.Blocks['turtle_repeat']) delete Blockly.Blocks['turtle_repeat'];
-  Blockly.defineBlocksWithJsonArray([{
-    type: "turtle_repeat",
-    message0: "%1 %2",
-    args0: [
-      { type: "field_image", src: iconRepeat, width: 28, height: 28, alt: "Repetir" },
-      { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 }
-    ],
-    message1: "%1",
-    args1: [
-      { type: "input_statement", name: "DO" }
-    ],
-    previousStatement: null,
-    nextStatement: null,
-    colour: 120, // Verde do Blockly original para laços
-    tooltip: t('emojiCoder.toolbox.loops')
-  }]);
-};
-
-export const registerMovementParsers = () => {
-  const createAction = (action: string) => (block: any) => ({ 
-    action, 
-    blockId: block.id 
-  });
+export const registerAbsoluteMovementParsers = () => {
+  const createAction = (action: string) => (block: any) => ({ action, blockId: block.id });
 
   registerASTParser('move_up', createAction('MOVE_UP'));
   registerASTParser('move_down', createAction('MOVE_DOWN'));
@@ -67,8 +48,7 @@ export const registerMovementParsers = () => {
   registerASTParser('move_right', createAction('MOVE_RIGHT'));
 };
 
-export const registerMovementHandlers = (engine: TurtleEngine) => {
-  
+export const registerAbsoluteMovementHandlers = (engine: TurtleEngine) => {
   const move = async (eng: TurtleEngine, dx: number, dy: number, rot: number) => {
     const newX = eng.state.turtleX + dx;
     const newY = eng.state.turtleY + dy;

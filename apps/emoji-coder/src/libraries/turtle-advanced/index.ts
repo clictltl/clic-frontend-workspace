@@ -2,20 +2,12 @@ import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-// 1. Blocos Core & Nativos
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
-import { registerLoopParsers, registerLoopHandlers } from '../native-blocks/loops';
-import { registerProcedureParsers, registerProcedureHandlers, patchProcedureBlocks } from '../native-blocks/procedures';
-
-// 2. Blocos da Grade 5 (Movimento Relativo)
-import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../turtle-grade-5/blocks';
-
-// 3. Handlers da Grade 4 (As ações físicas do motor: MOVE_UP, etc)
-import { registerMovementHandlers } from '../turtle-grade-4/blocks';
-
-// 4. Novos blocos de Movimento Absoluto com Texto (Avançado)
-import { defineAdvancedAbsoluteMovementBlocks, registerAdvancedAbsoluteMovementParsers } from './blocks';
+import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
+import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../core-blocks/movement-relative';
+import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
+import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 
 export const turtleAdvanced: BlockLibrary = {
   id: 'turtle-advanced',
@@ -38,10 +30,10 @@ export const turtleAdvanced: BlockLibrary = {
     return `
       <xml>
         <label text="${t('emojiCoder.toolbox.movement_absolute')}"></label>
-        <block type="adv_move_up"></block>
-        <block type="adv_move_down"></block>
-        <block type="adv_move_left"></block>
-        <block type="adv_move_right"></block>
+        <block type="move_up"></block>
+        <block type="move_down"></block>
+        <block type="move_left"></block>
+        <block type="move_right"></block>
         <sep gap="24"></sep>
         
         <label text="${t('emojiCoder.toolbox.movement_relative')}"></label>
@@ -56,9 +48,7 @@ export const turtleAdvanced: BlockLibrary = {
         <sep gap="24"></sep>
 
         <label text="${t('emojiCoder.toolbox.loops')}"></label>
-        <block type="controls_repeat_ext">
-          <value name="TIMES"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
-        </block>
+        <block type="turtle_repeat"></block>
         <sep gap="24"></sep>
 
         <label text="${t('emojiCoder.toolbox.functions')}"></label>
@@ -74,14 +64,15 @@ export const turtleAdvanced: BlockLibrary = {
     defineStartBlock(t);
     definePaintBlock(t);
     defineRelativeMovementBlocks(t);
-    defineAdvancedAbsoluteMovementBlocks(t);
+    defineAbsoluteMovementBlocks(t);
+    defineLoopBlocks(t);
     patchProcedureBlocks(t);
   },
 
   registerParsers: () => {
     registerPaintParser();
     registerRelativeMovementParsers();
-    registerAdvancedAbsoluteMovementParsers();
+    registerAbsoluteMovementParsers();
     registerLoopParsers();
     registerProcedureParsers();
   },
@@ -89,8 +80,7 @@ export const turtleAdvanced: BlockLibrary = {
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
     registerRelativeMovementHandlers(engine);
-    // Aqui injetamos os handlers originais da Grade 4!
-    registerMovementHandlers(engine); 
+    registerAbsoluteMovementHandlers(engine); 
     registerLoopHandlers(engine);
     registerProcedureHandlers(engine);
   }
