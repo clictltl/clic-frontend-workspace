@@ -65,6 +65,13 @@
           <span class="btn-text show-mobile">{{ $t('header.guide') }}</span>
           <span class="hide-mobile">{{ $t('header.guide') }}</span>
         </a>
+
+        <!-- 2.5 Instalar App -->
+        <button v-if="isInstallable" class="guide-btn drawer-item" @click="promptInstall" style="--mobile-order: 5" title="Instalar Aplicativo">
+          <Download :size="16" />
+          <span class="btn-text show-mobile">{{ $t('header.app_install') }}</span>
+          <span class="hide-mobile">{{ $t('header.app_install') }}</span>
+        </button>
         
         <!-- 3. Info -->
         <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 5" :title="t('header.info_contact')">
@@ -127,8 +134,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
-import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu, Home } from '@lucide/vue';
+import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu, Home, Download } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
+import { useAppInstall } from '../composables/useAppInstall';
 import { useI18n } from 'vue-i18n';
 import { setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER, type SupportedLocales } from '../i18n';
 
@@ -144,6 +152,7 @@ defineEmits(['home-click']);
 const auth = useAuth();
 const isLoggedIn = computed(() => auth.state.ready && auth.state.loggedIn);
 const isInfoModalOpen = ref(false);
+const { isInstallable, promptInstall } = useAppInstall();
 
 const logoUrl = computed(() => {
   if (typeof window !== 'undefined' && window.CLIC_CORE) {

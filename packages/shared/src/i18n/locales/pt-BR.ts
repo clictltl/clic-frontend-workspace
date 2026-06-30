@@ -28,7 +28,8 @@ export default {
     bugs_suggestions: 'Bugs e Sugestões',
     bugs_desc: 'Sua contribuição é muito importante para a evolução contínua deste projeto. Se você encontrou algum erro na ferramenta ou quer nos enviar feedbacks e sugestões de melhoria, não hesite em nos contatar.',
     contact: 'Contato:',
-    site: 'Site:'
+    site: 'Site:',
+    app_install: 'Instalar App'
   },
 
   auth: {

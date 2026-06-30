@@ -8,7 +8,9 @@
     "build": "vue-tsc -b && vite build",
     "build:github": "vue-tsc && vite build --mode github",
     "build:offline": "vite build --mode offline",
+    "build:pwa": "vite build --mode pwa",
     "deploy": "npm run build:github && touch dist/.nojekyll",
+    "deploy:pwa": "npm run build:pwa && rsync -av --delete --exclude='.git' --exclude='.nojekyll' --exclude='README.md' dist-pwa/ ../../../caramelo-pwa/",
     "preview": "vite preview"
   },
   "dependencies": {

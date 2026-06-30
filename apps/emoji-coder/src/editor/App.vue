@@ -106,16 +106,16 @@ onUnmounted(() => {
   <div class="app-root">
     <!-- HEADER DO ECOSSISTEMA -->
     <AppHeader 
-      :title="t('emojiCoder.setup.app_title')" 
+      title="Caramelo" 
       :app-logo="appLogo"
       :show-home="store.isConfigured"
       @home-click="handleHomeClick"
     >
       <template #file-menu>
         <FileMenu 
-          item-name="Emoji Coder"
-          file-extension=".emjc"
-          file-accept=".emjc"
+          item-name="Projeto"
+          file-extension=".ccr"
+          file-accept=".ccr"
           :projectsStore="projects"
           :assetStore="assetStore"
           :has-unsaved-changes="store.hasUnsavedChanges"
