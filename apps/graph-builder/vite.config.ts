@@ -4,27 +4,26 @@ import vue from '@vitejs/plugin-vue'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Detecta o target pelo argumento --mode
   const isGithub = mode === 'github'
   const isOffline = mode === 'offline'
-  const isPwa = mode === 'pwa'
   
-  // Define o base path baseado no target
   const getBasePath = () => {
-    if (isPwa) return '/grafite-pwa/'
     if (isGithub) return '/clic-frontend-workspace/graph-builder/'
     return (mode === 'production' || isOffline) ? '' : './'
   }
 
+  // Se o base path for vazio (WordPress), usamos o diretório atual './' para o PWA entender as rotas virtuais
+  const pwaScope = getBasePath() || './'
+
   return {
     plugins: [
       vue(),
-      ...(isOffline ? [viteSingleFile()] : []),
-      ...(isPwa ? [
+      ...(isOffline ? [viteSingleFile()] : [
         VitePWA({
           registerType: 'autoUpdate',
+          // Diz ao Vite para não gerar o arquivo de registro inútil (pois o PHP já faz isso)
+          injectRegister: false,
           manifest: {
             name: 'CLIC Grafite',
             short_name: 'Grafite',
@@ -32,17 +31,40 @@ export default defineConfig(({ mode }) => {
             theme_color: '#FFCC00',
             background_color: '#ffffff',
             display: 'standalone',
-            id: getBasePath(),
-            start_url: getBasePath(),
-            scope: getBasePath(),
+            id: 'clic-graph-builder',
+            // Pula o redirecionamento (302) do WordPress e vai direto pro HTML final (200 OK)
+            start_url: pwaScope === './' ? './editor' : pwaScope, 
+            scope: pwaScope,
             icons: [
               { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
               { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
               { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' }
             ]
+          },
+          workbox: {
+            navigateFallback: null,
+            inlineWorkboxRuntime: true,
+            // Diz ao PWA para ignorar o arquivo físico index.html, pois o HTML verdadeiro é gerado pelo PHP do WordPress!
+            globIgnores: ['**/index.html'],
+            runtimeCaching: [
+              {
+                // Em vez de adivinhar a URL, intercepta QUALQUER pedido de página HTML!
+                urlPattern: ({ request }) => request.mode === 'navigate',
+                handler: 'NetworkFirst', 
+                options: {
+                  cacheName: 'clic-html-cache',
+                  expiration: {
+                    maxAgeSeconds: 60 * 60 * 24 * 30
+                  },
+                  cacheableResponse: {
+                    statuses: [0, 200]
+                  }
+                }
+              }
+            ]
           }
         })
-      ] : [])
+      ])
     ],
     resolve: {
       alias: {
@@ -51,12 +73,12 @@ export default defineConfig(({ mode }) => {
     },
     base: getBasePath(),
     build: {
-      outDir: isOffline ? 'dist-offline' : (isPwa ? 'dist-pwa' : 'dist'),
+      outDir: isOffline ? 'dist-offline' : 'dist',
       assetsDir: 'assets',
       sourcemap: false,
-      manifest: !(isOffline || isPwa),
+      manifest: !isOffline,
       chunkSizeWarningLimit: 1000,
-      rolldownOptions: (isOffline || isPwa) ? undefined : {
+      rolldownOptions: isOffline ? undefined : {
         input: {
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
           editor: fileURLToPath(new URL('./src/editor/main-editor.ts', import.meta.url)),
