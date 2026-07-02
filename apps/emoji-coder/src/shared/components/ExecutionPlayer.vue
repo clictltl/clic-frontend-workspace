@@ -142,6 +142,11 @@
         </div>
 
         <div class="action-group right">
+          <!-- Botão de Exportar Desenho (Câmera) -->
+          <button class="btn icon-btn export-btn" title="Exportar como Imagem" @click="handleExportImage">
+            <Camera :size="20" />
+          </button>
+
           <!-- Esconde o botão de minimizar caso esteja em modo Runtime (Publicado) -->
           <button v-if="!isRuntime" class="btn icon-btn expand-btn" :title="isPreview ? 'Modo Editor' : 'Tela Cheia'" @click="$emit('toggle-preview')">
             <Minimize v-if="isPreview" :size="20" />
@@ -161,8 +166,9 @@ import { getLibrary } from '@/libraries';
 import { getTutorialChallenges } from '@/tutorials';
 import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
 
-import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, PartyPopper, Trophy, Lightbulb } from '@lucide/vue';
+import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, PartyPopper, Trophy, Lightbulb, Camera } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
+import { exportToImage } from '@/shared/utils/exportImage';
 
 const props = defineProps<{ isPreview?: boolean; isRuntime?: boolean }>();
 defineEmits(['toggle-preview']);
@@ -321,6 +327,13 @@ const handleReset = () => {
   showSuccess.value = false;
   const c = projectStore.project.config;
   engine.reset(c.startX, c.startY);
+};
+
+const handleExportImage = () => {
+  const c = projectStore.project.config;
+  // Sugere um nome de arquivo amigável baseado no nome do projeto atual
+  const safeTitle = projectStore.project.title ? projectStore.project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'desenho';
+  exportToImage(c.gridWidth, c.gridHeight, engine.state.paintedCells, `emoji-${safeTitle}.png`);
 };
 </script>
 
