@@ -331,9 +331,9 @@ const handleReset = () => {
 
 const handleExportImage = () => {
   const c = projectStore.project.config;
-  // Sugere um nome de arquivo amigável baseado no nome do projeto atual
   const safeTitle = projectStore.project.title ? projectStore.project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'desenho';
-  exportToImage(c.gridWidth, c.gridHeight, engine.state.paintedCells, `emoji-${safeTitle}.png`);
+  const timestamp = Date.now(); 
+  exportToImage(c.gridWidth, c.gridHeight, engine.state.paintedCells, `${safeTitle}-${timestamp}.png`);
 };
 </script>
 
