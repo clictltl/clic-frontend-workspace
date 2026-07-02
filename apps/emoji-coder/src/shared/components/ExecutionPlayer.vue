@@ -275,7 +275,7 @@ const goHome = () => {
 };
 
 const executionSpeed = ref(3);
-const currentSpeedMs = computed(() => [800, 500, 250, 100, 30][executionSpeed.value - 1] || 250);
+const currentSpeedMs = computed(() => [250, 150, 100, 40, 5][executionSpeed.value - 1] || 100);
 const getSleepTime = () => currentSpeedMs.value;
 
 const engine = new TurtleEngine(getSleepTime);
