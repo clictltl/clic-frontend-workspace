@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, provide } from 'vue';
 import { ToastContainer } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
@@ -9,6 +9,12 @@ const isLoading = ref(true);
 const fatalError = ref<string | null>(null);
 const store = useProjectStore();
 const routeToken = ref<string>('');
+
+// No modo publicado (Runtime), voltar ao início significa recarregar ou voltar para a raiz
+const handleRuntimeHome = () => {
+  window.location.href = window.location.pathname;
+};
+provide('goHomeAction', handleRuntimeHome);
 
 function parseUrl() {
   const parts = window.location.pathname.split('/').filter(Boolean);

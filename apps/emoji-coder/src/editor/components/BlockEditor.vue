@@ -19,6 +19,7 @@ const { t, locale, fallbackLocale } = useI18n();
 const projectStore = useProjectStore();
 const blocklyDiv = ref<HTMLElement | null>(null);
 let workspace: Blockly.WorkspaceSvg | null = null;
+let previousFunctions = '';
 
 const loadBlocklyLocale = async (vueLocale: string) => {
   const blocklyLocalesMap: Record<string, () => Promise<any>> = {
@@ -104,6 +105,11 @@ const reloadWorkspace = () => {
     const workspaceJson = Blockly.serialization.workspaces.save(workspace);
     projectStore.updateWorkspaceSilent(workspaceJson, ast);
 
+    // <-- SINCRONIZAÇÃO: Garante que a memória seja resetada junto com o quadro do desafio!
+    previousFunctions = Array.from(new Set(
+      ast.filter(node => node.isDefinition).map(node => node.definitionName).filter(Boolean)
+    )).sort().join(',');
+
     if (wasClean) {
       projectStore.markAsSaved();
     }
@@ -129,7 +135,6 @@ onMounted(async () => {
   });
 
   // O Change Listener fica restrito apenas às interações MANUAIS do usuário
-  let previousFunctions = '';
   workspace.addChangeListener((event) => {
     if (event.isUiEvent || event.type === Blockly.Events.FINISHED_LOADING) return;
 
@@ -137,8 +142,6 @@ onMounted(async () => {
       const ast = compileWorkspaceToAST(workspace);
       const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
       const activeLibrary = getLibrary(libraryId);
-      activeLibrary.registerBlocks(t as any);
-      activeLibrary.registerParsers();
 
       if (activeLibrary.isToolboxDynamic) {
         const definedFunctions = Array.from(new Set(

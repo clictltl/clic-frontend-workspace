@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
 import { Turtle, BookOpen, Play, Compass, LayoutGrid, Leaf, Rocket } from '@lucide/vue';
@@ -33,10 +33,18 @@ const handleHomeClick = () => {
   }
   
   store.createNew(); 
+  
+  // Limpa o vínculo com o banco de dados para evitar sobrescrever o projeto anterior!
+  projects.currentProjectId.value = null;
+  projects.currentProjectName.value = '';
+
   if (window.location.search) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 };
+
+// Distribui a função de navegação blindada para toda a árvore de componentes
+provide('goHomeAction', handleHomeClick);
 
 async function handleLoginSuccess() {
   await assetStore.persistToDisk(); 

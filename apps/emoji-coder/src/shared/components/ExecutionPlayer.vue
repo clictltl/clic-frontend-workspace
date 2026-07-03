@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { TurtleEngine } from '@/shared/engine/interpreter';
 import { getLibrary } from '@/libraries';
@@ -261,18 +261,10 @@ const handleNextChallenge = () => {
   }
 };
 
-const goHome = () => {
-  if (projectStore.hasUnsavedChanges) {
-    if (!window.confirm("Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?")) {
-      return; 
-    }
-  }
-
-  projectStore.createNew(); 
-  if (window.location.search) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-};
+// Consome a função blindada direto do App.vue (ou RuntimeApp.vue)
+const goHome = inject<() => void>('goHomeAction', () => { 
+  window.location.href = window.location.pathname; 
+});
 
 const executionSpeed = ref(3);
 const currentSpeedMs = computed(() => [250, 150, 100, 40, 5][executionSpeed.value - 1] || 100);
@@ -297,16 +289,32 @@ watch(
     if (showSuccess.value) showSuccess.value = false;
     if (engine.state.status !== 'IDLE') {
       const c = projectStore.project.config;
-      engine.reset(c.startX, c.startY);
+      engine.reset(c.startX, c.startY, c.gridWidth, c.gridHeight);
     }
   },
   { deep: true }
 );
 
-const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
-const activeLibrary = getLibrary(libraryId);
-// O Player registra APENAS os comportamentos do motor
-activeLibrary.registerEngineHandlers(engine);
+const updateEngineHandlers = () => {
+  const libraryId = projectStore.project.config.libraryId || 'turtle-grade-4';
+  const activeLibrary = getLibrary(libraryId);
+  engine.clearHandlers();
+  activeLibrary.registerEngineHandlers(engine);
+};
+
+watch(
+  () => projectStore.project.meta.id,
+  () => {
+    const c = projectStore.project.config;
+    engine.reset(c.startX || 0, c.startY || 0, c.gridWidth, c.gridHeight);
+    updateEngineHandlers();
+    showSuccess.value = false;
+    showTutorialComplete.value = false;
+  }
+);
+
+// Registra os handlers pela primeira vez quando a tela carrega
+updateEngineHandlers();
 
 const handlePlay = () => {
   showSuccess.value = false;
@@ -326,7 +334,7 @@ const handleStep = () => {
 const handleReset = () => {
   showSuccess.value = false;
   const c = projectStore.project.config;
-  engine.reset(c.startX, c.startY);
+  engine.reset(c.startX, c.startY, c.gridWidth, c.gridHeight);
 };
 
 const handleExportImage = () => {

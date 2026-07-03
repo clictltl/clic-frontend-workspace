@@ -62,6 +62,10 @@ export class TurtleEngine {
     return total;
   }
 
+  public clearHandlers() {
+    this.actionHandlers = {};
+  }
+
   public registerAction(actionName: string, handler: ActionHandler) {
     if (this.actionHandlers[actionName]) {
       console.warn(`[TurtleEngine] Atenção: A ação '${actionName}' foi registrada novamente e sobrescreveu a anterior!`);
@@ -182,20 +186,23 @@ export class TurtleEngine {
     }
   }
 
-  public reset(startX: number = 0, startY: number = 0) {
+  public reset(startX: number = 0, startY: number = 0, gridWidth?: number, gridHeight?: number) {
     this.abortFlag = true;
     this.state.status = 'IDLE';
     this.onHighlight(null);
     if (this.resolveStep) this.resolveStep(); 
-    this.resetWorld(startX, startY);
+    this.resetWorld(startX, startY, gridWidth, gridHeight);
   }
 
-  private resetWorld(startX: number = 0, startY: number = 0) {
+  private resetWorld(startX: number = 0, startY: number = 0, gridWidth?: number, gridHeight?: number) {
     this.state.turtleX = startX;
     this.state.turtleY = startY;
     this.state.turtleRotation = 90;
     this.state.paintedCells = {};
     this.state.currentStep = 0;
     this.state.totalSteps = 0;
+    
+    if (gridWidth !== undefined) this.state.gridWidth = gridWidth;
+    if (gridHeight !== undefined) this.state.gridHeight = gridHeight;
   }
 }
