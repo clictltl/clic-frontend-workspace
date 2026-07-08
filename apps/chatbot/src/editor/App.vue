@@ -19,7 +19,7 @@ import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
-import appLogo from '@/assets/logo_novelo_amarelo.svg'
+import appLogo from '@/assets/logo_novelo.svg'
 import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
 import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from '@lucide/vue';
 

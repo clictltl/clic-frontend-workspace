@@ -7,6 +7,7 @@ import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
 import { Pencil, Eye } from '@lucide/vue';
+import appLogo from '@/assets/logo_grafite.svg';
 
 const store = useProjectStore();
 const projects = useProjects();
@@ -102,7 +103,7 @@ onUnmounted(() => {
   <div class="app-root">
     
     <!-- HEADER -->
-    <AppHeader title="Grafite">
+    <AppHeader title="Grafite" :app-logo="appLogo">
       <template #file-menu>
         <FileMenu 
           item-name="Grafo"

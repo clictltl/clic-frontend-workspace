@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
 import { Turtle, BookOpen, Play, Compass, LayoutGrid, Leaf, Rocket } from '@lucide/vue';
-import appLogo from '@/assets/caramelo_logo.svg';
+import appLogo from '@/assets/logo_caramelo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
