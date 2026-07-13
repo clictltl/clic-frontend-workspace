@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, provide } from 'vue';
-import { ToastContainer } from '@clic/shared';
+import { ToastContainer, RuntimeHeader } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
 import ExecutionPlayer from '@/shared/components/ExecutionPlayer.vue';
+import appLogo from '@/assets/logo_caramelo.svg';
 
 const isLoading = ref(true);
 const fatalError = ref<string | null>(null);
 const store = useProjectStore();
 const routeToken = ref<string>('');
+
+const handleEditClick = () => {
+  // Extrai a base da URL antes de /p/
+  const href = window.location.href;
+  const pIndex = href.indexOf('/p/');
+  const appBaseUrl = pIndex !== -1 ? href.substring(0, pIndex) : '/';
+  
+  // Abre o editor em uma nova aba, passando a intenção de "remix"
+  window.open(`${appBaseUrl}/editor?remix=${routeToken.value}`, '_blank');
+};
 
 // No modo publicado (Runtime), voltar ao início significa recarregar ou voltar para a raiz
 const handleRuntimeHome = () => {
@@ -70,6 +81,12 @@ const errorMessage = () => {
 
 <template>
   <div class="runtime-root">
+
+    <RuntimeHeader 
+      appName="Emoji Coder" 
+      :appLogo="appLogo" 
+      @edit-click="handleEditClick" 
+    />
     
     <!-- ESTADO: CARREGANDO -->
     <div v-if="isLoading" class="feedback-screen">

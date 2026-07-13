@@ -74,10 +74,15 @@ onMounted(async () => {
   // 1. Carregamento via link compartilhado ou Visualização
   const params = new URLSearchParams(window.location.search);
   const shareToken = params.get("share");
+  const remixToken = params.get("remix");
   const previewId = params.get("preview");
 
   if (shareToken) {
     const success = await projects.loadSharedProject(shareToken);
+    if (!success) showInvalidShareModal.value = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (remixToken) {
+    const success = await projects.loadRemixProject(remixToken);
     if (!success) showInvalidShareModal.value = true;
     window.history.replaceState({}, document.title, window.location.pathname);
   } else if (previewId) {

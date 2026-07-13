@@ -2,15 +2,9 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useChatRuntime } from '@/runtime/engine/useChatRuntime';
 import type { ProjectData } from '@/shared/types/project';
-import { logoClic as clicLogo } from '@clic/shared';
+import { RuntimeHeader } from '@clic/shared';
+import appLogo from '@/assets/logo_novelo.svg';
 import { Play, Square, Loader2, AlertTriangle, Bot, Send, RefreshCw } from '@lucide/vue';
-
-const logoUrl = computed(() => {
-  if (typeof window !== 'undefined' && window.CLIC_CORE) {
-    return window.CLIC_CORE.site_url ?? window.CLIC_CORE.app_url ?? '/';
-  }
-  return 'https://clic.tltlab.org';
-});
 
 // ===== Estado de carregamento =====
 const isLoading = ref(true);
@@ -36,6 +30,18 @@ const ERROR_MESSAGES: Record<string, string> = {
   START_NO_NEXT: 'Início sem conexão de saída.',
   UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.',
 };
+
+// ===== Abrir no Editor =====
+function handleEditClick() {
+  const href = window.location.href;
+  const pIndex = href.indexOf('/p/');
+  const appBaseUrl = pIndex !== -1 ? href.substring(0, pIndex) : '/';
+  const token = extractTokenFromPath();
+  
+  if (token) {
+    window.open(`${appBaseUrl}/editor?remix=${token}`, '_blank');
+  }
+}
 
 // ===== Utils =====
 function extractTokenFromPath(): string | null {
@@ -114,161 +120,178 @@ onMounted(loadProject);
 </script>
 
 <template>
-  <div class="runtime-page">
-    <div class="runtime-widget">
-      
-      <!-- Header -->
-      <header class="runtime-header">
-        <a
-          :href="logoUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="runtime-logo-link"
-        >
-          <img
-            :src="clicLogo"
-            alt="CLIC"
-            class="runtime-logo"
-          />
-        </a>
+  <div class="runtime-root">
+    
+    <RuntimeHeader
+      appName="Chatbot"
+      :appLogo="appLogo"
+      @edit-click="handleEditClick"
+    />
 
-        <div class="runtime-actions">
-          <button class="btn-start" @click="startChat">
-            <Play :size="14" fill="currentColor" /> Iniciar
-          </button>
-
-          <button
-            class="btn-stop"
-            @click="stopChat()"
-            :disabled="!r?.isRunning"
-          >
-            <Square :size="14" fill="currentColor" /> Parar
-          </button>
-        </div>
-      </header>
-
-      <!-- Body -->
-      <main class="runtime-body">
-        <!-- Loading -->
-        <div v-if="isLoading" class="start-screen">
-          <div class="start-icon">
-            <Loader2 class="animate-spin" :size="48" color="#9ca3af" />
-          </div>
-          <p>Carregando chatbot…</p>
-        </div>
-
-        <!-- Fatal error -->
-        <div v-else-if="fatalError" class="start-screen">
-          <div class="start-icon">
-            <AlertTriangle :size="48" color="#ef4444" />
-          </div>
-          <p>Chatbot indisponível.</p>
-        </div>
-
-        <!-- Chat -->
-        <div v-else class="chat-container">
-          <!-- Tela inicial -->
-          <div
-            v-if="!r?.isRunning && r?.messages.length === 0"
-            class="start-screen"
-          >
-            <div class="start-icon">
-              <Bot :size="48" color="#3b82f6" />
-            </div>
-            <h3>Iniciar conversa</h3>
-            <p>Clique em iniciar para começar</p>
+    <div class="runtime-page">
+      <div class="runtime-widget">
+        
+        <!-- Header Interno do Widget -->
+        <header class="runtime-header">
+          <div class="widget-title">
+            <Bot :size="18" />
+            <span>Chat</span>
           </div>
 
-          <!-- Mensagens -->
-          <div v-else class="messages">
-            <div
-              v-for="message in r!.messages"
-              :key="message.id"
-              :class="[
-                'message',
-                message.type === 'bot' || message.type === 'image'
-                  ? 'message-bot'
-                  : 'message-user'
-              ]"
+          <div class="runtime-actions">
+            <button class="btn-start" @click="startChat">
+              <Play :size="14" fill="currentColor" /> Iniciar
+            </button>
+
+            <button
+              class="btn-stop"
+              @click="stopChat()"
+              :disabled="!r?.isRunning"
             >
-              <div v-if="message.type === 'image'" class="message-image">
-                <img :src="message.content" />
-              </div>
+              <Square :size="14" fill="currentColor" /> Parar
+            </button>
+          </div>
+        </header>
 
-              <div
-                v-else
-                class="message-bubble"
-                :class="{ 'message-error': ERROR_MESSAGES[message.content] }"
-              >
-                <!-- Usamos um div.error-content para alinhar o ícone com o texto -->
-                <div v-if="ERROR_MESSAGES[message.content]" class="error-content">
-                  <AlertTriangle :size="16" />
-                  <span>{{ ERROR_MESSAGES[message.content] }}</span>
-                </div>
-                <div v-else class="rich-text-content" v-html="message.content"></div>
+        <!-- Body -->
+        <main class="runtime-body">
+          <!-- Loading -->
+          <div v-if="isLoading" class="start-screen">
+            <div class="start-icon">
+              <Loader2 class="animate-spin" :size="48" color="#9ca3af" />
+            </div>
+            <p>Carregando chatbot…</p>
+          </div>
+
+          <!-- Fatal error -->
+          <div v-else-if="fatalError" class="start-screen">
+            <div class="start-icon">
+              <AlertTriangle :size="48" color="#ef4444" />
+            </div>
+            <p>Chatbot indisponível.</p>
+          </div>
+
+          <!-- Chat -->
+          <div v-else class="chat-container">
+            <!-- Tela inicial -->
+            <div
+              v-if="!r?.isRunning && r?.messages.length === 0"
+              class="start-screen"
+            >
+              <div class="start-icon">
+                <Bot :size="48" color="#3b82f6" />
               </div>
+              <h3>Iniciar conversa</h3>
+              <p>Clique em iniciar para começar</p>
             </div>
 
-            <!-- Choices -->
-            <div v-if="r!.currentChoices.length" class="choices-container">
-              <button
-                v-for="choice in r!.currentChoices"
-                :key="choice.id"
-                class="choice-button"
-                @click="selectChoice(choice)"
+            <!-- Mensagens -->
+            <div v-else class="messages">
+              <div
+                v-for="message in r!.messages"
+                :key="message.id"
+                :class="[
+                  'message',
+                  message.type === 'bot' || message.type === 'image'
+                    ? 'message-bot'
+                    : 'message-user'
+                ]"
               >
-                {{ choice.label }}
+                <div v-if="message.type === 'image'" class="message-image">
+                  <img :src="message.content" />
+                </div>
+
+                <div
+                  v-else
+                  class="message-bubble"
+                  :class="{ 'message-error': ERROR_MESSAGES[message.content] }"
+                >
+                  <!-- Usamos um div.error-content para alinhar o ícone com o texto -->
+                  <div v-if="ERROR_MESSAGES[message.content]" class="error-content">
+                    <AlertTriangle :size="16" />
+                    <span>{{ ERROR_MESSAGES[message.content] }}</span>
+                  </div>
+                  <div v-else class="rich-text-content" v-html="message.content"></div>
+                </div>
+              </div>
+
+              <!-- Choices -->
+              <div v-if="r!.currentChoices.length" class="choices-container">
+                <button
+                  v-for="choice in r!.currentChoices"
+                  :key="choice.id"
+                  class="choice-button"
+                  @click="selectChoice(choice)"
+                >
+                  {{ choice.label }}
+                </button>
+              </div>
+
+              <div ref="chatEndRef" />
+            </div>
+
+            <!-- Input -->
+            <div v-if="r!.isWaitingForInput" class="input-area">
+              <input
+                v-model="userInput"
+                placeholder="Digite sua resposta…"
+                @keyup.enter="sendText"
+              />
+              <button @click="sendText" class="btn-send">
+                <Send :size="16" />
               </button>
             </div>
 
-            <div ref="chatEndRef" />
+            <!-- Restart -->
+            <div
+              v-if="!r!.isWaitingForInput && !r!.currentChoices.length && !r!.isRunning"
+              class="restart-area"
+            >
+              <button @click="startChat" class="btn-restart">
+                <RefreshCw :size="14" /> Recomeçar
+              </button>
+            </div>
           </div>
+        </main>
 
-          <!-- Input -->
-          <div v-if="r!.isWaitingForInput" class="input-area">
-            <input
-              v-model="userInput"
-              placeholder="Digite sua resposta…"
-              @keyup.enter="sendText"
-            />
-            <button @click="sendText" class="btn-send">
-              <Send :size="16" />
-            </button>
-          </div>
-
-          <!-- Restart -->
-          <div
-            v-if="!r!.isWaitingForInput && !r!.currentChoices.length && !r!.isRunning"
-            class="restart-area"
-          >
-            <button @click="startChat" class="btn-restart">
-              <RefreshCw :size="14" /> Recomeçar
-            </button>
-          </div>
-        </div>
-      </main>
-
+      </div>
     </div>
   </div>
 </template>
 
+<style>
+/* CSS Reset Global para o Runtime do Chatbot */
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
 
 <style scoped>
 /* ======================================================
    PAGE LAYOUT
    ====================================================== */
 
+.runtime-root {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
 .runtime-page {
-  min-height: 100dvh; /* viewport dinâmico (mobile-safe) */
+  flex: 1; /* Ocupa o restante da tela abaixo do header */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #f3f4f6;
   padding: 12px;
+  overflow-y: auto;
 }
-
 
 /* ======================================================
    WIDGET CONTAINER
@@ -320,6 +343,14 @@ onMounted(loadProject);
   gap: 8px;
 }
 
+.widget-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 14px;
+}
 
 /* ======================================================
    HEADER BUTTONS

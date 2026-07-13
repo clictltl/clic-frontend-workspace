@@ -418,43 +418,44 @@ export function createSharedProjects(config: UseProjectsConfig) {
     }
   }
 
-  async function loadSharedProject(token: string) {
+  async function _loadExternalProject(endpoint: string, fallbackErrorMsg: string) {
     loading.value = true;
     error.value = null;
 
     try {
-      // 1. Busca na API
-      const res = await clicFetch(pluginRestRoot + 'share/' + token);
+      const res = await clicFetch(pluginRestRoot + endpoint);
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || i18n.global.t('messages.share_load_error');
+        error.value = data.error || fallbackErrorMsg;
         return false;
       }
 
-      // 2. Limpa memória anterior
       config.assetStore.clearRegistry();
-
-      // 3. Aplica os dados no Editor
       config.setProjectData(data.project.data);
-
-      // 4. "Privatiza" os assets (Baixa e converte para Blob Local)
-      // Isso garante que se o usuário salvar, as imagens serão dele.
       await config.assetStore.privatizeRemoteAssets();
-
-      // 5. Configura como um projeto "Novo" (sem ID vinculado ao banco)
+      
       currentProjectId.value = null;
       currentProjectName.value = '';
 
       return true;
 
     } catch (err: any) {
-      console.error("Erro no loadSharedProject:", err);
+      console.error(`Erro ao carregar projeto externo (${endpoint}):`, err);
       error.value = err.message;
       return false;
     } finally {
       loading.value = false;
     }
+  }
+
+  async function loadSharedProject(token: string) {
+    return await _loadExternalProject('share/' + token, i18n.global.t('messages.share_load_error'));
+  }
+
+  async function loadRemixProject(token: string) {
+    // Reutiliza a chave de share_load_error ou cria uma nova no i18n se preferir
+    return await _loadExternalProject('publish/' + token, i18n.global.t('messages.share_load_error'));
   }
 
   /**
@@ -819,6 +820,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     loadPreviewProject,
     shareProject,
     loadSharedProject,
+    loadRemixProject,
     unshareProject,
     getShareStatus,
     publishProject,

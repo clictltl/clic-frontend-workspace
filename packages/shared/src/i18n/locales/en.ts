@@ -32,6 +32,11 @@ export default {
     app_install: 'Install App'
   },
 
+  runtime: {
+    created_with: 'Created with',
+    open_in_editor: 'Open in Editor',
+  },
+
   auth: {
     login: 'Log in',
     logout: 'Log out',

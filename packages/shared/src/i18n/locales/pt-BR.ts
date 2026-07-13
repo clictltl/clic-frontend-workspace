@@ -32,6 +32,11 @@ export default {
     app_install: 'Instalar App'
   },
 
+  runtime: {
+    created_with: 'Criado com',
+    open_in_editor: 'Abrir no Editor',
+  },
+
   auth: {
     login: 'Entrar',
     logout: 'Sair',

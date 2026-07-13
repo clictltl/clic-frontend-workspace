@@ -2,9 +2,10 @@
 import { ref, onMounted } from 'vue';
 import ReaderLayout from './layouts/ReaderLayout.vue';
 import FormLayout from './layouts/FormLayout.vue';
-import { ToastContainer } from '@clic/shared';
+import { ToastContainer, RuntimeHeader } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
+import appLogo from '@/assets/logo_grafite.svg';
 
 const isLoading = ref(true);
 const fatalError = ref<string | null>(null);
@@ -16,6 +17,15 @@ const routeToken = ref<string>('');
 
 // Dados exclusivos do formulário
 const formPayload = ref<any>(null);
+
+function handleEditClick() {
+  if (routeType.value !== 'reader') return;
+  const href = window.location.href;
+  const pIndex = href.indexOf('/p/');
+  const appBaseUrl = pIndex !== -1 ? href.substring(0, pIndex) : '/';
+  
+  window.open(`${appBaseUrl}/editor?remix=${routeToken.value}`, '_blank');
+}
 
 // ===== Utils =====
 function parseUrl() {
@@ -101,6 +111,14 @@ const errorMessage = () => {
 <template>
   <div class="runtime-root">
     
+    <!-- HEADER -->
+    <RuntimeHeader 
+      appName="Graph Builder" 
+      :appLogo="appLogo" 
+      :showEditButton="routeType === 'reader'"
+      @edit-click="handleEditClick" 
+    />
+
     <!-- ESTADO: CARREGANDO -->
     <div v-if="isLoading" class="feedback-screen">
       <Loader2 class="spinner" :size="48" color="#3b82f6" />
