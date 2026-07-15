@@ -29,7 +29,8 @@ export default {
     bugs_desc: 'Sua contribuição é muito importante para a evolução contínua deste projeto. Se você encontrou algum erro na ferramenta ou quer nos enviar feedbacks e sugestões de melhoria, não hesite em nos contatar.',
     contact: 'Contato:',
     site: 'Site:',
-    app_install: 'Instalar App'
+    app_install: 'Instalar App',
+    back_home: 'Voltar ao início'
   },
 
   runtime: {
@@ -222,13 +223,29 @@ export default {
       
       grid_fixed: 'Tamanho: 8x8 (Fixo)',
       grid_size: 'Tamanho do Tabuleiro:',
+      grid_small: '6x6 (Pequeno)',
+      grid_medium: '8x8 (Médio)',
+      grid_large: '12x12 (Grande)',
+      grid_max: '16x16 (Desafio Máximo)',
       start_btn: 'Começar'
+    },
+    messages: {
+      unsaved_confirm: 'Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?',
+      preview_denied: 'Acesso negado ou falha ao carregar projeto.',
+      loading_project: 'Carregando Projeto...',
+      oops: 'Ops!',
+      invalid_token: 'Projeto não encontrado ou link inválido.',
+      invalid_data: 'O arquivo do projeto está corrompido.',
+      network_error: 'Erro de conexão. Verifique sua internet.',
+      unknown_error: 'Ocorreu um erro desconhecido.'
     },
     workspace: {
       loaded_title: 'Ambiente de Código Carregado!',
       active_lib: 'Biblioteca Ativa:',
       grid_size: 'Tamanho do Grid:',
-      placeholder: '(O Blockly e o Canvas serão renderizados aqui)'
+      placeholder: '(O Blockly e o Canvas serão renderizados aqui)',
+      drag_resize: 'Arrastar para redimensionar',
+      actor_alt: 'Tartaruga'
     },
     blocks: {
       start: 'Quando iniciar',
@@ -249,11 +266,120 @@ export default {
     toolbox: {
       start: 'Início',
       movement: 'Movimento',
-      movement_absolute: 'Movimeno Absoluto',
+      movement_absolute: 'Movimento Absoluto',
       movement_relative: 'Movimento Relativo',
       actions: 'Ações',
       loops: 'Repetição',
       functions: 'Funções'
+    },
+    player: {
+      challenge: 'Desafio {number}',
+      go_to_challenge: 'Ir para este desafio',
+      need_hint: 'Precisa de uma dica?',
+      hint: 'Dica:',
+      success: 'Sucesso!',
+      finish_tutorial: 'Finalizar Tutorial',
+      next_challenge: 'Próximo Desafio →',
+      tutorial_completed: 'Tutorial Concluído!',
+      tutorial_completed_desc: 'Você completou todos os desafios com excelência. Você já é um(a) mestre da Tartaruga e está pronto(a) para criar seus próprios projetos livres!',
+      save_tip: 'Lembre-se de usar o menu <strong>Arquivo > Salvar</strong> para guardar suas soluções antes de sair!',
+      back_home: 'Voltar ao Início',
+      step: 'Passo',
+      waiting_code: 'Aguardando código...',
+      speed: 'Velocidade',
+      reset_world: 'Reiniciar Mundo',
+      run_code: 'Executar Código',
+      resume: 'Continuar Execução',
+      pause: 'Pausar',
+      step_by_step: 'Passo a Passo',
+      export_image: 'Exportar como Imagem',
+      editor_mode: 'Modo Editor',
+      full_screen: 'Tela Cheia',
+      default_drawing_name: 'desenho'
+    },
+    tutorials: {
+      grade4: {
+        c1: {
+          title: 'Vá para a direita!',
+          desc: 'A tartaruga precisa chegar até o bloco verde. Use o bloco → Direita para mover!',
+          tip: 'Cada → Direita avança 1 célula. Quantas vezes você precisa usar para chegar ao verde?',
+          success: 'Parabéns! Você moveu a tartaruga até o objetivo!'
+        },
+        c2: {
+          title: 'Pinte uma linha!',
+          desc: 'Pinte os 4 blocos da linha. Use Pintar e → Direita.',
+          tip: 'Comece pintando onde está, depois vá para direita e pinte de novo!',
+          success: 'Muito bem! Você pintou a linha inteira!'
+        },
+        c3: {
+          title: 'Use o Repita!',
+          desc: 'Pinte uma linha de 6 blocos, mas desta vez use o bloco Repita para facilitar!',
+          tip: 'Coloque Pintar + Direita dentro do Repita. Repita 6 vezes!',
+          success: 'Perfeito! O bloco Repita deixou seu código muito mais simples!'
+        },
+        c4: {
+          title: 'Pinte tudo!',
+          desc: 'Pinte todos os 12 blocos do grid 4×3 de azul. Use todos os movimentos!',
+          tip: 'Pinte linha por linha ou coluna por coluna. Use Repita para facilitar!',
+          success: 'Excelente! Você pintou todos os blocos do grid!'
+        },
+        c5: {
+          title: 'Pinte a moldura!',
+          desc: 'Pinte apenas as bordas do grid 8×8. Não pinte os blocos do meio!',
+          tip: 'Pinte a linha de cima toda, depois as laterais, e por fim a linha de baixo. Use Repita!',
+          success: 'Fantástico! Você pintou a moldura perfeita sem pintar nenhum bloco a mais! 🎉'
+        }
+      },
+      grade5: {
+        c1: {
+          title: 'Chegue ao objetivo!',
+          desc: 'A tartaruga precisa chegar até o bloco verde no final da linha. Use o bloco Avançar para avançar!',
+          tip: 'Cada Avançar avança 1 passo. Quantos passos até o bloco verde?',
+          success: 'Você chegou ao objetivo! Aprendeu a mover a tartaruga com precisão.'
+        },
+        c2: {
+          title: 'Pinte a linha!',
+          desc: 'Pinte todos os 8 blocos da linha. Use Pintar e Avançar.',
+          tip: 'Pinte a célula atual, avance, pinte a próxima... repita para todos os 8 blocos!',
+          success: 'Incrível! Você pintou a linha inteira — mas foi bem trabalhoso, né? Há uma forma melhor...'
+        },
+        c3: {
+          title: 'Use o Repita!',
+          desc: 'Pinte a linha novamente — mas desta vez use o bloco Repita.',
+          tip: 'Coloque Pintar + Avançar dentro do Repita. Quantas vezes você precisa repetir?',
+          success: 'Perfeito! O bloco Repita deixou o código muito menor e mais elegante!'
+        },
+        c4: {
+          title: 'Utilize uma função!',
+          desc: 'Utilize a função que pinta uma linha inteira. Chame-a novamente para pintar a segunda linha!',
+          tip: 'Navegue até a próxima linha e chame a função de novo.',
+          success: 'Excelente! Funções permitem reutilizar código — defina uma vez, use quantas quiser!'
+        },
+        c5: {
+          title: 'Desenhe um quadrado!',
+          desc: 'Pinte o perímetro do quadrado marcado na malha.',
+          tip: 'Tente: Repita 4 vezes — Repita 2×(Pintar + Avançar), depois Girar à Direita.',
+          success: 'Fantástico! Você desenhou um quadrado usando código. Você é um(a) programador(a)!'
+        },
+        c6: {
+          title: 'Moldura!',
+          desc: 'Pinte apenas as bordas da tela - o perímetro completo.',
+          tip: 'Use Repita para cada lado. Depois de pintar um lado, gire para o próximo!',
+          success: 'Excelente! Você criou uma moldura perfeita ao redor da tela!'
+        },
+        c7: {
+          title: 'Mude os olhos!',
+          desc: 'Mude os 2 blocos pretos para outra cor!',
+          tip: 'Navegue até cada olho preto e pinte. Use os comandos para chegar lá!',
+          success: 'Perfeito! Você mudou os olhos de preto para outra cor!'
+        },
+        c8: {
+          title: 'Pinte a letra E!',
+          desc: 'A letra E está em cinza. Pinte toda a letra com a cor que quiser!',
+          tip: 'Navegue por cada linha da letra. Cuidado: pinte APENAS a letra!',
+          success: 'Incrível! Você coloriu a letra E completamente!'
+        }
+      }
     }
   }
 };

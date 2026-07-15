@@ -29,7 +29,8 @@ export default {
     bugs_desc: 'Your contribution is very important to the continuous evolution of this project. If you found any errors in the tool or want to send us feedback and improvement suggestions, do not hesitate to contact us.',
     contact: 'Contact:',
     site: 'Website:',
-    app_install: 'Install App'
+    app_install: 'Install App',
+    back_home: 'Back to Home'
   },
 
   runtime: {
@@ -196,5 +197,188 @@ export default {
   },
   
   chatbot: {},
-  graphBuilder: {}
+  graphBuilder: {},
+  emojiCoder: {
+    setup: {
+      prepare_env: 'Choose an activity to start',
+      
+      basic_title: 'Basic Level',
+      basic_desc: 'Learn to move the caramel dog using absolute directions.',
+      intermediate_title: 'Intermediate Level',
+      intermediate_desc: 'Learn to put yourself in the dog\'s shoes using relative movements.',
+      advanced_title: 'Advanced Level',
+      advanced_desc: 'Full access to blocks, advanced functions, and custom grids.',
+      
+      tutorial_title: 'Interactive Tutorial',
+      tutorial_basic_desc: 'Learn to move the dog and paint the floor step by step.',
+      tutorial_inter_desc: 'Learn to navigate from the dog\'s perspective (Move Forward/Turn).',
+      
+      sandbox_basic_title: 'Sandbox (Basic)',
+      sandbox_basic_desc: 'Create free drawings using movement blocks.',
+      sandbox_inter_title: 'Sandbox (Relative)',
+      sandbox_inter_desc: 'Program Move Forward, Backward, and Turn movements.',
+      sandbox_adv_title: 'Sandbox (Master)',
+      sandbox_adv_desc: 'Merge absolute and relative movement in the same project. Create huge challenges!',
+      
+      grid_fixed: 'Size: 8x8 (Fixed)',
+      grid_size: 'Board Size:',
+      grid_small: '6x6 (Small)',
+      grid_medium: '8x8 (Medium)',
+      grid_large: '12x12 (Large)',
+      grid_max: '16x16 (Max Challenge)',
+      start_btn: 'Start'
+    },
+    messages: {
+      unsaved_confirm: 'You have unsaved changes. Do you really want to go back to the start and lose your progress?',
+      preview_denied: 'Access denied or failed to load project.',
+      loading_project: 'Loading Project...',
+      oops: 'Oops!',
+      invalid_token: 'Project not found or invalid link.',
+      invalid_data: 'Project file is corrupted.',
+      network_error: 'Connection error. Check your internet.',
+      unknown_error: 'An unknown error occurred.'
+    },
+    workspace: {
+      loaded_title: 'Coding Environment Loaded!',
+      active_lib: 'Active Library:',
+      grid_size: 'Grid Size:',
+      placeholder: '(Blockly and Canvas will be rendered here)',
+      drag_resize: 'Drag to resize',
+      actor_alt: 'Turtle'
+    },
+    blocks: {
+      start: 'When start',
+      paint: 'Paint',
+      move_up: 'Move up',
+      move_down: 'Move down',
+      move_left: 'Move left',
+      move_right: 'Move right',
+      define: 'Define',
+      call: 'Call',
+      defaultFuncName: 'my function',
+      move_forward: 'Move forward',
+      move_backward: 'Move backward',
+      turn_left: 'Turn Left',
+      turn_right: 'Turn Right',
+      repeat: 'Repeat'
+    },
+    toolbox: {
+      start: 'Start',
+      movement: 'Movement',
+      movement_absolute: 'Absolute Movement',
+      movement_relative: 'Relative Movement',
+      actions: 'Actions',
+      loops: 'Loops',
+      functions: 'Functions'
+    },
+    player: {
+      challenge: 'Challenge {number}',
+      go_to_challenge: 'Go to this challenge',
+      need_hint: 'Need a hint?',
+      hint: 'Hint:',
+      success: 'Success!',
+      finish_tutorial: 'Finish Tutorial',
+      next_challenge: 'Next Challenge →',
+      tutorial_completed: 'Tutorial Completed!',
+      tutorial_completed_desc: 'You completed all challenges with excellence. You are already a Turtle master and are ready to create your own free projects!',
+      save_tip: 'Remember to use the <strong>File > Save</strong> menu to save your solutions before leaving!',
+      back_home: 'Back to Home',
+      step: 'Step',
+      waiting_code: 'Waiting for code...',
+      speed: 'Speed',
+      reset_world: 'Reset World',
+      run_code: 'Run Code',
+      resume: 'Resume Execution',
+      pause: 'Pause',
+      step_by_step: 'Step by Step',
+      export_image: 'Export as Image',
+      editor_mode: 'Editor Mode',
+      full_screen: 'Full Screen',
+      default_drawing_name: 'drawing'
+    },
+    tutorials: {
+      grade4: {
+        c1: {
+          title: 'Go right!',
+          desc: 'The turtle needs to reach the green block. Use the → Right block to move!',
+          tip: 'Each → Right moves 1 cell. How many times do you need to use it to reach the green?',
+          success: 'Congratulations! You moved the turtle to the goal!'
+        },
+        c2: {
+          title: 'Paint a line!',
+          desc: 'Paint the 4 blocks in the line. Use Paint and → Right.',
+          tip: 'Start by painting where you are, then go right and paint again!',
+          success: 'Well done! You painted the entire line!'
+        },
+        c3: {
+          title: 'Use Repeat!',
+          desc: 'Paint a line of 6 blocks, but this time use the Repeat block to make it easier!',
+          tip: 'Put Paint + Right inside the Repeat. Repeat 6 times!',
+          success: 'Perfect! The Repeat block made your code much simpler!'
+        },
+        c4: {
+          title: 'Paint everything!',
+          desc: 'Paint all 12 blocks of the 4x3 grid blue. Use all movements!',
+          tip: 'Paint row by row or column by column. Use Repeat to make it easier!',
+          success: 'Excellent! You painted all blocks in the grid!'
+        },
+        c5: {
+          title: 'Paint the frame!',
+          desc: 'Paint only the borders of the 8x8 grid. Do not paint the blocks in the middle!',
+          tip: 'Paint the entire top row, then the sides, and finally the bottom row. Use Repeat!',
+          success: 'Fantastic! You painted the perfect frame without painting any extra blocks! 🎉'
+        }
+      },
+      grade5: {
+        c1: {
+          title: 'Reach the goal!',
+          desc: 'The turtle needs to reach the green block at the end of the line. Use the Move Forward block to advance!',
+          tip: 'Each Move Forward advances 1 step. How many steps to the green block?',
+          success: 'You reached the goal! You learned to move the turtle with precision.'
+        },
+        c2: {
+          title: 'Paint the line!',
+          desc: 'Paint all 8 blocks in the line. Use Paint and Move Forward.',
+          tip: 'Paint the current cell, move forward, paint the next... repeat for all 8 blocks!',
+          success: 'Incredible! You painted the entire line — but it was quite a lot of work, right? There is a better way...'
+        },
+        c3: {
+          title: 'Use Repeat!',
+          desc: 'Paint the line again — but this time use the Repeat block.',
+          tip: 'Put Paint + Move Forward inside the Repeat. How many times do you need to repeat?',
+          success: 'Perfect! The Repeat block made the code much smaller and more elegant!'
+        },
+        c4: {
+          title: 'Use a function!',
+          desc: 'Use the function that paints an entire line. Call it again to paint the second line!',
+          tip: 'Navigate to the next line and call the function again.',
+          success: 'Excellent! Functions let you reuse code — define once, use as many times as you want!'
+        },
+        c5: {
+          title: 'Draw a square!',
+          desc: 'Paint the perimeter of the square marked on the grid.',
+          tip: 'Try: Repeat 4 times — Repeat 2×(Paint + Move Forward), then Turn Right.',
+          success: 'Fantastic! You drew a square using code. You are a programmer!'
+        },
+        c6: {
+          title: 'Frame!',
+          desc: 'Paint only the edges of the canvas - the complete perimeter.',
+          tip: 'Use Repeat for each side. After painting a side, turn to the next one!',
+          success: 'Excellent! You created a perfect frame around the canvas!'
+        },
+        c7: {
+          title: 'Change the eyes!',
+          desc: 'Change the 2 black blocks to another color!',
+          tip: 'Navigate to each black eye and paint. Use the commands to get there!',
+          success: 'Perfect! You changed the eyes from black to another color!'
+        },
+        c8: {
+          title: 'Paint the letter E!',
+          desc: 'The letter E is in gray. Paint the entire letter with whatever color you want!',
+          tip: 'Navigate through each line of the letter. Be careful: paint ONLY the letter!',
+          success: 'Incredible! You colored the letter E completely!'
+        }
+      }
+    }
+  }
 };

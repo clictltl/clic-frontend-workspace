@@ -27,10 +27,10 @@ export const defineAbsoluteMovementBlocks = (t: TranslateFn, options?: { iconOnl
   });
 
   const blocksDefinition = [
-    buildDef("move_up", iconUp, t('emojiCoder.blocks.move_up') || 'Ir para Cima'),
-    buildDef("move_down", iconDown, t('emojiCoder.blocks.move_down') || 'Ir para Baixo'),
-    buildDef("move_left", iconLeft, t('emojiCoder.blocks.move_left') || 'Ir para Esquerda'),
-    buildDef("move_right", iconRight, t('emojiCoder.blocks.move_right') || 'Ir para Direita'),
+    buildDef("move_up", iconUp, t('emojiCoder.blocks.move_up')),
+    buildDef("move_down", iconDown, t('emojiCoder.blocks.move_down')),
+    buildDef("move_left", iconLeft, t('emojiCoder.blocks.move_left')),
+    buildDef("move_right", iconRight, t('emojiCoder.blocks.move_right')),
   ];
 
   blocksDefinition.forEach(def => {

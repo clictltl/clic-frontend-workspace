@@ -32,7 +32,7 @@ export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean 
         ]
       : [
           { type: "field_image", src: iconRepeat, width: 20, height: 20, alt: "Repetir" },
-          { type: "field_label", text: t('emojiCoder.blocks.repeat') || 'Repita' },
+          { type: "field_label", text: t('emojiCoder.blocks.repeat') },
           { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 }
         ],
     message1: "%1",
@@ -40,7 +40,7 @@ export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean 
     previousStatement: null,
     nextStatement: null,
     colour: "#4C6AB0",
-    tooltip: t('emojiCoder.toolbox.loops') || 'Repetir ações'
+    tooltip: t('emojiCoder.toolbox.loops')
   }]);
 };
 

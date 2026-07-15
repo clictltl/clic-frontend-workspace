@@ -29,10 +29,10 @@ export const defineRelativeMovementBlocks = (t: TranslateFn) => {
   });
 
   const blocksDefinition = [
-    buildTextOnly("move_forward", t('emojiCoder.blocks.move_forward') || 'Avançar'),
-    buildTextOnly("move_backward", t('emojiCoder.blocks.move_backward') || 'Recuar'),
-    buildWithIcon("turn_left", iconTurnLeft, t('emojiCoder.blocks.turn_left') || 'Girar Esquerda'),
-    buildWithIcon("turn_right", iconTurnRight, t('emojiCoder.blocks.turn_right') || 'Girar Direita'),
+    buildTextOnly("move_forward", t('emojiCoder.blocks.move_forward')),
+    buildTextOnly("move_backward", t('emojiCoder.blocks.move_backward')),
+    buildWithIcon("turn_left", iconTurnLeft, t('emojiCoder.blocks.turn_left')),
+    buildWithIcon("turn_right", iconTurnRight, t('emojiCoder.blocks.turn_right')),
   ];
 
   blocksDefinition.forEach(def => {

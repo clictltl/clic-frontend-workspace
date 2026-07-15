@@ -1,23 +1,23 @@
 import type { TutorialChallenge } from './index';
 
-export const challengesGrade4: TutorialChallenge[] = [
+export const getChallengesGrade4 = (t: any): TutorialChallenge[] => [
   {
     id: 1,
-    title: 'Vá para a direita!',
-    description: 'A tartaruga precisa chegar até o bloco verde. Use o bloco → Direita para mover!',
-    tip: 'Cada → Direita avança 1 célula. Quantas vezes você precisa usar para chegar ao verde?',
+    title: t('emojiCoder.tutorials.grade4.c1.title'),
+    description: t('emojiCoder.tutorials.grade4.c1.desc'),
+    tip: t('emojiCoder.tutorials.grade4.c1.tip'),
     grid: { cols: 4, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_right'],
     targetCells: { '3,0': '#22c55e' }, // x=3, y=0
     validate: (state) => state.turtleX === 3 && state.turtleY === 0,
-    successMsg: 'Parabéns! Você moveu a tartaruga até o objetivo!'
+    successMsg: t('emojiCoder.tutorials.grade4.c1.success')
   },
   {
     id: 2,
-    title: 'Pinte uma linha!',
-    description: 'Pinte os 4 blocos da linha. Use Pintar e → Direita.',
-    tip: 'Comece pintando onde está, depois vá para direita e pinte de novo!',
+    title: t('emojiCoder.tutorials.grade4.c2.title'),
+    description: t('emojiCoder.tutorials.grade4.c2.desc'),
+    tip: t('emojiCoder.tutorials.grade4.c2.tip'),
     grid: { cols: 4, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_right', 'paint'],
@@ -26,13 +26,13 @@ export const challengesGrade4: TutorialChallenge[] = [
       for (let x = 0; x < 4; x++) if (!state.paintedCells[`${x},0`]) return false;
       return true;
     },
-    successMsg: 'Muito bem! Você pintou a linha inteira!'
+    successMsg: t('emojiCoder.tutorials.grade4.c2.success')
   },
   {
     id: 3,
-    title: 'Use o Repita!',
-    description: 'Pinte uma linha de 6 blocos, mas desta vez use o bloco Repita para facilitar!',
-    tip: 'Coloque Pintar + Direita dentro do Repita. Repita 6 vezes!',
+    title: t('emojiCoder.tutorials.grade4.c3.title'),
+    description: t('emojiCoder.tutorials.grade4.c3.desc'),
+    tip: t('emojiCoder.tutorials.grade4.c3.tip'),
     grid: { cols: 6, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_right', 'paint', 'turtle_repeat'],
@@ -41,13 +41,13 @@ export const challengesGrade4: TutorialChallenge[] = [
       for (let x = 0; x < 6; x++) if (!state.paintedCells[`${x},0`]) return false;
       return true;
     },
-    successMsg: 'Perfeito! O bloco Repita deixou seu código muito mais simples!'
+    successMsg: t('emojiCoder.tutorials.grade4.c3.success')
   },
   {
     id: 4,
-    title: 'Pinte tudo!',
-    description: 'Pinte todos os 12 blocos do grid 4×3 de azul. Use todos os movimentos!',
-    tip: 'Pinte linha por linha ou coluna por coluna. Use Repita para facilitar!',
+    title: t('emojiCoder.tutorials.grade4.c4.title'),
+    description: t('emojiCoder.tutorials.grade4.c4.desc'),
+    tip: t('emojiCoder.tutorials.grade4.c4.tip'),
     grid: { cols: 4, rows: 3 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_right', 'move_left', 'move_up', 'move_down', 'paint', 'turtle_repeat'],
@@ -58,13 +58,13 @@ export const challengesGrade4: TutorialChallenge[] = [
       }
       return true;
     },
-    successMsg: 'Excelente! Você pintou todos os blocos do grid!'
+    successMsg: t('emojiCoder.tutorials.grade4.c4.success')
   },
   {
     id: 5,
-    title: 'Pinte a moldura!',
-    description: 'Pinte apenas as bordas do grid 8×8. Não pinte os blocos do meio!',
-    tip: 'Pinte a linha de cima toda, depois as laterais, e por fim a linha de baixo. Use Repita!',
+    title: t('emojiCoder.tutorials.grade4.c5.title'),
+    description: t('emojiCoder.tutorials.grade4.c5.desc'),
+    tip: t('emojiCoder.tutorials.grade4.c5.tip'),
     grid: { cols: 8, rows: 8 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_right', 'move_left', 'move_up', 'move_down', 'paint', 'turtle_repeat'],
@@ -79,6 +79,6 @@ export const challengesGrade4: TutorialChallenge[] = [
              borders.every(k => state.paintedCells[k]) && 
              painted.every(k => borders.includes(k));
     },
-    successMsg: 'Fantástico! Você pintou a moldura perfeita sem pintar nenhum bloco a mais! 🎉'
+    successMsg: t('emojiCoder.tutorials.grade4.c5.success')
   }
 ];

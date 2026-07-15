@@ -27,7 +27,7 @@ const handleStartProject = (libraryId: string, gridSize: number) => {
 
 const handleHomeClick = () => {
   if (store.hasUnsavedChanges) {
-    if (!window.confirm("Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?")) {
+    if (!window.confirm(t('emojiCoder.messages.unsaved_confirm'))) {
       return;
     }
   }
@@ -87,7 +87,7 @@ onMounted(async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   } else if (previewId) {
     const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert("Acesso negado ou falha ao carregar projeto.");
+    if (!success) alert(t('emojiCoder.messages.preview_denied'));
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
@@ -254,10 +254,10 @@ onUnmounted(() => {
                     <LayoutGrid :size="16"/> {{ t('emojiCoder.setup.grid_size') }}
                   </label>
                   <select v-model="advancedGridSize" class="grid-select" @click.stop>
-                    <option :value="6">6x6 (Pequeno)</option>
-                    <option :value="8">8x8 (Médio)</option>
-                    <option :value="12">12x12 (Grande)</option>
-                    <option :value="16">16x16 (Desafio Máximo)</option>
+                    <option :value="6">{{ t('emojiCoder.setup.grid_small') }}</option>
+                    <option :value="8">{{ t('emojiCoder.setup.grid_medium') }}</option>
+                    <option :value="12">{{ t('emojiCoder.setup.grid_large') }}</option>
+                    <option :value="16">{{ t('emojiCoder.setup.grid_max') }}</option>
                   </select>
                 </div>
 

@@ -54,24 +54,24 @@ const initialWorkspaceChallenge4 = {
   }
 };
 
-export const challengesGrade5: TutorialChallenge[] = [
+export const getChallengesGrade5 = (t: any): TutorialChallenge[] => [
   {
     id: 1,
-    title: 'Chegue ao objetivo!',
-    description: 'A tartaruga precisa chegar até o bloco verde no final da linha. Use o bloco Avançar para avançar!',
-    tip: 'Cada Avançar avança 1 passo. Quantos passos até o bloco verde?',
+    title: t('emojiCoder.tutorials.grade5.c1.title'),
+    description: t('emojiCoder.tutorials.grade5.c1.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c1.tip'),
     grid: { cols: 8, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward'],
     targetCells: { '7,0': '#22c55e' }, // x=7, y=0
     validate: (state) => state.turtleX === 7 && state.turtleY === 0,
-    successMsg: 'Você chegou ao objetivo! Aprendeu a mover a tartaruga com precisão.'
+    successMsg: t('emojiCoder.tutorials.grade5.c1.success')
   },
   {
     id: 2,
-    title: 'Pinte a linha!',
-    description: 'Pinte todos os 8 blocos da linha. Use Pintar e Avançar.',
-    tip: 'Pinte a célula atual, avance, pinte a próxima... repita para todos os 8 blocos!',
+    title: t('emojiCoder.tutorials.grade5.c2.title'),
+    description: t('emojiCoder.tutorials.grade5.c2.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c2.tip'),
     grid: { cols: 8, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'paint'],
@@ -80,13 +80,13 @@ export const challengesGrade5: TutorialChallenge[] = [
       for (let x = 0; x < 8; x++) if (!state.paintedCells[`${x},0`]) return false;
       return true;
     },
-    successMsg: 'Incrível! Você pintou a linha inteira — mas foi bem trabalhoso, né? Há uma forma melhor...'
+    successMsg: t('emojiCoder.tutorials.grade5.c2.success')
   },
   {
     id: 3,
-    title: 'Use o Repita!',
-    description: 'Pinte a linha novamente — mas desta vez use o bloco Repita.',
-    tip: 'Coloque Pintar + Avançar dentro do Repita. Quantas vezes você precisa repetir?',
+    title: t('emojiCoder.tutorials.grade5.c3.title'),
+    description: t('emojiCoder.tutorials.grade5.c3.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c3.tip'),
     grid: { cols: 8, rows: 1 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'paint', 'turtle_repeat'],
@@ -95,13 +95,13 @@ export const challengesGrade5: TutorialChallenge[] = [
       for (let x = 0; x < 8; x++) if (!state.paintedCells[`${x},0`]) return false;
       return true;
     },
-    successMsg: 'Perfeito! O bloco Repita deixou o código muito menor e mais elegante!'
+    successMsg: t('emojiCoder.tutorials.grade5.c3.success')
   },
   {
     id: 4,
-    title: 'Utilize uma função!',
-    description: 'Utilize a função que pinta uma linha inteira. Chame-a novamente para pintar a segunda linha!',
-    tip: 'Navegue até a próxima linha e chame a função de novo.',
+    title: t('emojiCoder.tutorials.grade5.c4.title'),
+    description: t('emojiCoder.tutorials.grade5.c4.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c4.tip'),
     grid: { cols: 4, rows: 2 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
@@ -119,13 +119,13 @@ export const challengesGrade5: TutorialChallenge[] = [
       
       return paintedAll && usedProcedureCall;
     },
-    successMsg: 'Excelente! Funções permitem reutilizar código — defina uma vez, use quantas quiser!'
+    successMsg: t('emojiCoder.tutorials.grade5.c4.success')
   },
   {
     id: 5,
-    title: 'Desenhe um quadrado!',
-    description: 'Pinte o perímetro do quadrado marcado na malha.',
-    tip: 'Tente: Repita 4 vezes — Repita 2×(Pintar + Avançar), depois Girar à Direita.',
+    title: t('emojiCoder.tutorials.grade5.c5.title'),
+    description: t('emojiCoder.tutorials.grade5.c5.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c5.tip'),
     grid: { cols: 8, rows: 8 },
     startPos: { x: 2, y: 2 },
     blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
@@ -138,13 +138,13 @@ export const challengesGrade5: TutorialChallenge[] = [
       const sq = ['2,2','3,2','4,2','4,3','4,4','3,4','2,4','2,3'];
       return sq.every(k => state.paintedCells[k]);
     },
-    successMsg: 'Fantástico! Você desenhou um quadrado usando código. Você é um(a) programador(a)!'
+    successMsg: t('emojiCoder.tutorials.grade5.c5.success')
   },
   {
     id: 6,
-    title: 'Moldura!',
-    description: 'Pinte apenas as bordas da tela - o perímetro completo.',
-    tip: 'Use Repita para cada lado. Depois de pintar um lado, gire para o próximo!',
+    title: t('emojiCoder.tutorials.grade5.c6.title'),
+    description: t('emojiCoder.tutorials.grade5.c6.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c6.tip'),
     grid: { cols: 8, rows: 8 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
@@ -156,13 +156,13 @@ export const challengesGrade5: TutorialChallenge[] = [
                        '7,1','7,2','7,3','7,4','7,5','7,6'];
       return borders.every(k => state.paintedCells[k]);
     },
-    successMsg: 'Excelente! Você criou uma moldura perfeita ao redor da tela!'
+    successMsg: t('emojiCoder.tutorials.grade5.c6.success')
   },
   {
     id: 7,
-    title: 'Mude os olhos!',
-    description: 'Mude os 2 blocos pretos para outra cor!',
-    tip: 'Navegue até cada olho preto e pinte. Use os comandos para chegar lá!',
+    title: t('emojiCoder.tutorials.grade5.c7.title'),
+    description: t('emojiCoder.tutorials.grade5.c7.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c7.tip'),
     grid: { cols: 8, rows: 9 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat'],
@@ -178,13 +178,13 @@ export const challengesGrade5: TutorialChallenge[] = [
       '2,8':'#9B4D24','5,8':'#9B4D24'
     },
     validate: (state) => state.paintedCells['3,3'] && state.paintedCells['5,3'],
-    successMsg: 'Perfeito! Você mudou os olhos de preto para outra cor!'
+    successMsg: t('emojiCoder.tutorials.grade5.c7.success')
   },
   {
     id: 8,
-    title: 'Pinte a letra E!',
-    description: 'A letra E está em cinza. Pinte toda a letra com a cor que quiser!',
-    tip: 'Navegue por cada linha da letra. Cuidado: pinte APENAS a letra!',
+    title: t('emojiCoder.tutorials.grade5.c8.title'),
+    description: t('emojiCoder.tutorials.grade5.c8.desc'),
+    tip: t('emojiCoder.tutorials.grade5.c8.tip'),
     grid: { cols: 8, rows: 8 },
     startPos: { x: 0, y: 0 },
     blocks: ['move_forward', 'move_backward', 'turn_left', 'turn_right', 'paint', 'turtle_repeat', 'procedures_defnoreturn', 'procedures_callnoreturn'],
@@ -200,6 +200,6 @@ export const challengesGrade5: TutorialChallenge[] = [
       const painted = Object.keys(state.paintedCells);
       return painted.length === letraE.length && painted.every(k => letraE.includes(k));
     },
-    successMsg: 'Incrível! Você coloriu a letra E completamente!'
+    successMsg: t('emojiCoder.tutorials.grade5.c8.success')
   }
 ];

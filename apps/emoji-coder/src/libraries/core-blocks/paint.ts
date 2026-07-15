@@ -16,13 +16,13 @@ export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean 
         ]
       : [
           { type: "field_image", src: iconPaint, width: 20, height: 20, alt: "Pintar" },
-          { type: "field_label", text: t('emojiCoder.blocks.paint') || 'Pintar o chão' },
+          { type: "field_label", text: t('emojiCoder.blocks.paint') },
           { type: "field_colour", name: "COLOR", colour: "#3b82f6" }
         ],
     previousStatement: null,
     nextStatement: null,
     colour: "#E9BF49",
-    tooltip: isIcon ? (t('emojiCoder.blocks.paint') || 'Pintar o chão') : ""
+    tooltip: isIcon ? (t('emojiCoder.blocks.paint')) : ""
   }]);
 };
 

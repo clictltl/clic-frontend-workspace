@@ -1,5 +1,5 @@
-import { challengesGrade4 } from './tutorialGrade4';
-import { challengesGrade5 } from './tutorialGrade5';
+import { getChallengesGrade4 } from './tutorialGrade4';
+import { getChallengesGrade5 } from './tutorialGrade5';
 
 export interface TutorialChallenge {
   id: number;
@@ -15,7 +15,7 @@ export interface TutorialChallenge {
   successMsg: string;
 }
 
-export const getTutorialChallenges = (libraryId: string | null) => {
-  if (libraryId === 'turtle-tutorial-5') return challengesGrade5;
-  return challengesGrade4; // Default para Grade 4
+export const getTutorialChallenges = (libraryId: string | null, t: any) => {
+  if (libraryId === 'turtle-tutorial-5') return getChallengesGrade5(t);
+  return getChallengesGrade4(t); // Default para Grade 4
 };

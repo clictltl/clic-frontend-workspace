@@ -15,7 +15,7 @@
       class="resizer" 
       v-show="!isPreview" 
       @mousedown="startDrag"
-      title="Arrastar para redimensionar"
+      :title="t('emojiCoder.workspace.drag_resize')"
     ></div>
 
     <!-- Painel Direito: Execução -->
@@ -31,8 +31,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import BlockEditor from './BlockEditor.vue';
 import ExecutionPanel from './ExecutionPanel.vue';
+
+const { t } = useI18n();
 
 defineProps<{ isPreview?: boolean }>();
 defineEmits(['toggle-preview']);

@@ -9,7 +9,7 @@
     >
       <div class="mission-header" @click="toggleMission" :style="isMobile ? 'cursor: pointer' : ''">
         <div class="mission-header-left">
-          <span class="mission-progress">Desafio {{ projectStore.activeChallengeIndex + 1 }}</span>
+          <span class="mission-progress">{{ t('emojiCoder.player.challenge', { number: projectStore.activeChallengeIndex + 1 }) }}</span>
           <span class="mission-title-inline" v-show="isMissionCollapsed">{{ currentChallenge.title }}</span>
         </div>
 
@@ -37,7 +37,7 @@
               class="dot" 
               :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }"
               @click.stop="goToChallenge(i)"
-              title="Ir para este desafio"
+              :title="t('emojiCoder.player.go_to_challenge')"
             ></span>
           </div>
         </div>
@@ -54,10 +54,10 @@
         
         <div class="mission-tip-container" v-if="currentChallenge.tip">
           <button v-if="!showTip" class="reveal-tip-btn" @click.stop="showTip = true">
-            <Lightbulb :size="16" class="inline-icon" /> Precisa de uma dica?
+            <Lightbulb :size="16" class="inline-icon" /> {{ t('emojiCoder.player.need_hint') }}
           </button>
           <div v-else class="mission-tip">
-            <strong><Lightbulb :size="16" class="inline-icon" /> Dica:</strong> {{ currentChallenge.tip }}
+            <strong><Lightbulb :size="16" class="inline-icon" /> {{ t('emojiCoder.player.hint') }}</strong> {{ currentChallenge.tip }}
           </div>
         </div>
       </div>
@@ -70,10 +70,10 @@
       <!-- OVERLAY DE SUCESSO DO TUTORIAL -->
       <div v-if="showSuccess" class="success-overlay">
         <div class="success-card">
-          <h2 class="title-with-icon"><PartyPopper :size="28" /> Sucesso!</h2>
+          <h2 class="title-with-icon"><PartyPopper :size="28" /> {{ t('emojiCoder.player.success') }}</h2>
           <p>{{ currentChallenge?.successMsg }}</p>
           <button class="next-challenge-btn" @click="handleNextChallenge">
-            {{ isLastChallenge ? 'Finalizar Tutorial' : 'Próximo Desafio →' }}
+            {{ isLastChallenge ? t('emojiCoder.player.finish_tutorial') : t('emojiCoder.player.next_challenge') }}
           </button>
         </div>
       </div>
@@ -81,16 +81,16 @@
       <!-- OVERLAY DE CONCLUSÃO DO TUTORIAL -->
       <div v-if="showTutorialComplete" class="success-overlay final-overlay">
         <div class="success-card final-card">
-          <h2 class="title-with-icon"><Trophy :size="32" /> Tutorial Concluído!</h2>
-          <p>Você completou todos os desafios com excelência. Você já é um(a) mestre da Tartaruga e está pronto(a) para criar seus próprios projetos livres!</p>
+          <h2 class="title-with-icon"><Trophy :size="32" /> {{ t('emojiCoder.player.tutorial_completed') }}</h2>
+          <p>{{ t('emojiCoder.player.tutorial_completed_desc') }}</p>
           
           <div class="save-tip" v-if="!isRuntime">
             <Lightbulb :size="18" class="inline-icon-top" /> 
-            <span>Lembre-se de usar o menu <strong>Arquivo &gt; Salvar</strong> para guardar suas soluções antes de sair!</span>
+            <span v-html="t('emojiCoder.player.save_tip')"></span>
           </div>
 
           <button class="next-challenge-btn btn-home" @click="goHome">
-            Voltar ao Início
+            {{ t('emojiCoder.player.back_home') }}
           </button>
         </div>
       </div>
@@ -100,55 +100,55 @@
     <div class="control-board">
       <div class="settings-row">
         <div class="step-indicator" v-if="engine.state.totalSteps > 0">
-          <span class="label">Passo</span>
+          <span class="label">{{ t('emojiCoder.player.step') }}</span>
           <span class="current">{{ engine.state.currentStep }}</span>
           <span class="divider">/</span>
           <span class="total">{{ engine.state.totalSteps }}</span>
         </div>
         <div class="step-indicator empty" v-else>
-          <span class="label">Aguardando código...</span>
+          <span class="label">{{ t('emojiCoder.player.waiting_code') }}</span>
         </div>
 
         <div class="speed-control">
           <TurtleIcon :size="16" class="speed-icon"/>
-          <input type="range" min="1" max="5" v-model="executionSpeed" title="Velocidade" />
+          <input type="range" min="1" max="5" v-model="executionSpeed" :title="t('emojiCoder.player.speed')" />
           <Rabbit :size="16" class="speed-icon"/>
         </div>
       </div>
 
       <div class="actions-row">
         <div class="action-group left">
-          <button class="btn icon-btn reset-btn" title="Reiniciar Mundo" @click="handleReset" :disabled="showSuccess">
+          <button class="btn icon-btn reset-btn" :title="t('emojiCoder.player.reset_world')" @click="handleReset" :disabled="showSuccess">
             <RotateCcw :size="20" />
           </button>
         </div>
 
         <div class="action-group center">
-          <button class="btn icon-btn play-btn" v-if="engine.state.status === 'IDLE'" title="Executar Código" @click="handlePlay" :disabled="showSuccess">
+          <button class="btn icon-btn play-btn" v-if="engine.state.status === 'IDLE'" :title="t('emojiCoder.player.run_code')" @click="handlePlay" :disabled="showSuccess">
             <img :src="iconStart" alt="Start" class="svg-icon" />
           </button>
           
-          <button class="btn icon-btn resume-btn" v-else-if="engine.state.status === 'PAUSED'" title="Continuar Execução" @click="handlePlay" :disabled="showSuccess">
+          <button class="btn icon-btn resume-btn" v-else-if="engine.state.status === 'PAUSED'" :title="t('emojiCoder.player.resume')" @click="handlePlay" :disabled="showSuccess">
             <Play :size="26" />
           </button>
 
-          <button class="btn icon-btn pause-btn" v-else title="Pausar" @click="handlePause" :disabled="showSuccess">
+          <button class="btn icon-btn pause-btn" v-else :title="t('emojiCoder.player.pause')" @click="handlePause" :disabled="showSuccess">
             <Pause :size="26" />
           </button>
 
-          <button class="btn icon-btn step-btn" title="Passo a Passo" @click="handleStep" :disabled="engine.state.status === 'RUNNING' || showSuccess">
+          <button class="btn icon-btn step-btn" :title="t('emojiCoder.player.step_by_step')" @click="handleStep" :disabled="engine.state.status === 'RUNNING' || showSuccess">
             <StepForward :size="20" />
           </button>
         </div>
 
         <div class="action-group right">
           <!-- Botão de Exportar Desenho (Câmera) -->
-          <button class="btn icon-btn export-btn" title="Exportar como Imagem" @click="handleExportImage">
+          <button class="btn icon-btn export-btn" :title="t('emojiCoder.player.export_image')" @click="handleExportImage">
             <Camera :size="20" />
           </button>
 
           <!-- Esconde o botão de minimizar caso esteja em modo Runtime (Publicado) -->
-          <button v-if="!isRuntime" class="btn icon-btn expand-btn" :title="isPreview ? 'Modo Editor' : 'Tela Cheia'" @click="$emit('toggle-preview')">
+          <button v-if="!isRuntime" class="btn icon-btn expand-btn" :title="isPreview ? t('emojiCoder.player.editor_mode') : t('emojiCoder.player.full_screen')" @click="$emit('toggle-preview')">
             <Minimize v-if="isPreview" :size="20" />
             <Maximize v-else :size="20" />
           </button>
@@ -160,6 +160,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { TurtleEngine } from '@/shared/engine/interpreter';
 import { getLibrary } from '@/libraries';
@@ -173,6 +174,7 @@ import { exportToImage } from '@/shared/utils/exportImage';
 const props = defineProps<{ isPreview?: boolean; isRuntime?: boolean }>();
 defineEmits(['toggle-preview']);
 
+const { t } = useI18n();
 const projectStore = useProjectStore();
 
 const isMobile = ref(window.innerWidth <= 768);
@@ -206,7 +208,7 @@ const showTip = ref(false);
 
 const activeChallengeList = computed(() => {
   if (!projectStore.isTutorialMode) return [];
-  return getTutorialChallenges(projectStore.project.config.libraryId);
+  return getTutorialChallenges(projectStore.project.config.libraryId, t);
 });
 
 const totalChallenges = computed(() => activeChallengeList.value.length);
@@ -339,7 +341,7 @@ const handleReset = () => {
 
 const handleExportImage = () => {
   const c = projectStore.project.config;
-  const safeTitle = projectStore.project.title ? projectStore.project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'desenho';
+  const safeTitle = projectStore.project.title ? projectStore.project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : t('emojiCoder.player.default_drawing_name');
   const timestamp = Date.now(); 
   exportToImage(c.gridWidth, c.gridHeight, engine.state.paintedCells, `${safeTitle}-${timestamp}.png`);
 };

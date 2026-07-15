@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { challengesGrade5 } from '@/tutorials/tutorialGrade5';
+import { getChallengesGrade5 } from '@/tutorials/tutorialGrade5';
 
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
@@ -18,7 +18,7 @@ export const turtleTutorial5: BlockLibrary = {
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
     const store = useProjectStore();
     const challengeIndex = store.activeChallengeIndex || 0;
-    const challenge = challengesGrade5[challengeIndex];
+    const challenge = getChallengesGrade5(t)[challengeIndex];
     
     if (!challenge) return `<xml></xml>`;
 

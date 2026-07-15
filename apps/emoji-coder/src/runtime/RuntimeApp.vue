@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, provide } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ToastContainer, RuntimeHeader } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
 import ExecutionPlayer from '@/shared/components/ExecutionPlayer.vue';
 import appLogo from '@/assets/logo_caramelo.svg';
+
+const { t } = useI18n();
 
 const isLoading = ref(true);
 const fatalError = ref<string | null>(null);
@@ -71,10 +74,10 @@ onMounted(() => {
 
 const errorMessage = () => {
   switch (fatalError.value) {
-    case 'INVALID_TOKEN': return 'Projeto não encontrado ou link inválido.';
-    case 'INVALID_DATA': return 'O arquivo do projeto está corrompido.';
-    case 'NETWORK_ERROR': return 'Erro de conexão. Verifique sua internet.';
-    default: return 'Ocorreu um erro desconhecido.';
+    case 'INVALID_TOKEN': return t('emojiCoder.messages.invalid_token');
+    case 'INVALID_DATA': return t('emojiCoder.messages.invalid_data');
+    case 'NETWORK_ERROR': return t('emojiCoder.messages.network_error');
+    default: return t('emojiCoder.messages.unknown_error');
   }
 };
 </script>
@@ -91,13 +94,13 @@ const errorMessage = () => {
     <!-- ESTADO: CARREGANDO -->
     <div v-if="isLoading" class="feedback-screen">
       <Loader2 class="spinner" :size="48" color="#3b82f6" />
-      <p>Carregando Projeto...</p>
+      <p>{{ t('emojiCoder.messages.loading_project') }}</p>
     </div>
 
     <!-- ESTADO: ERRO FATAL -->
     <div v-else-if="fatalError" class="feedback-screen error">
       <AlertCircle :size="48" color="#ef4444" />
-      <h2>Ops!</h2>
+      <h2>{{ t('emojiCoder.messages.oops') }}</h2>
       <p>{{ errorMessage() }}</p>
     </div>
 

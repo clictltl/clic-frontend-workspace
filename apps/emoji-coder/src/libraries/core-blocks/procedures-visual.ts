@@ -30,7 +30,7 @@ export const defineVisualProcedureBlocks = (t: TranslateFn) => {
       message1: "%1",
       args1: [{ type: "input_statement", name: "STACK" }],
       colour: "#97989B",
-      tooltip: t('emojiCoder.blocks.define') || 'Criar um pacote de ações'
+      tooltip: t('emojiCoder.blocks.define')
     },
     {
       type: "turtle_visual_call",
@@ -39,7 +39,7 @@ export const defineVisualProcedureBlocks = (t: TranslateFn) => {
       previousStatement: null,
       nextStatement: null,
       colour: "#97989B",
-      tooltip: 'Chamar este pacote'
+      tooltip: t('emojiCoder.blocks.call')
     }
   ]);
 };

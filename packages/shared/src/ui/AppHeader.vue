@@ -17,7 +17,7 @@
     <div class="toolbar-actions">
       
       <!-- BOTÃO VOLTAR (Home) -->
-      <button v-if="showHome" class="home-btn" @click="$emit('home-click')" title="Voltar ao Início">
+      <button v-if="showHome" class="home-btn" @click="$emit('home-click')" :title="t('header.back_home')">
         <Home :size="20" />
       </button>
 

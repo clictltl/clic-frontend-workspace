@@ -1,6 +1,6 @@
 import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { challengesGrade4 } from '@/tutorials/tutorialGrade4';
+import { getChallengesGrade4 } from '@/tutorials/tutorialGrade4';
 
 import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { defineStartBlock } from '../core-blocks/start';
@@ -13,11 +13,11 @@ export const turtleTutorial4: BlockLibrary = {
   name: 'Tutorial 4º Ano',
   isToolboxDynamic: true, // Avisa o App.vue que a toolbox pode mudar
   
-  getToolboxXml: () => {
+  getToolboxXml: (t: TranslateFn) => {
     // Lemos a store do Pinia dinamicamente para saber qual bloco renderizar
     const store = useProjectStore();
     const challengeIndex = store.activeChallengeIndex || 0;
-    const challenge = challengesGrade4[challengeIndex];
+    const challenge = getChallengesGrade4(t)[challengeIndex];
     
     // Fallback de segurança para o TypeScript (previne o 'possibly undefined')
     if (!challenge) {
