@@ -37,27 +37,7 @@
         </button>
 
         <!-- 1. Menu de Idiomas -->
-        <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper drawer-item" style="--mobile-order: 3">
-          <button class="info-btn" @click="isLangMenuOpen = !isLangMenuOpen" :title="t('header.language')">
-            <Languages :size="20" />
-            <span class="btn-text show-mobile">{{ $t('header.language') }}</span>
-          </button>
-          
-          <!-- Overlay invisível para fechar ao clicar fora -->
-          <div v-if="isLangMenuOpen" class="lang-overlay" @click="isLangMenuOpen = false"></div>
-          
-          <div v-if="isLangMenuOpen" class="lang-dropdown-menu">
-            <button
-              v-for="lang in availableLocales"
-              :key="lang.code"
-              class="lang-option"
-              :class="{ active: currentLocale === lang.code }"
-              @click="changeLanguage(lang.code)"
-              >
-              {{ lang.label }}
-            </button>
-          </div>
-        </div>
+        <LanguageSwitcher class="drawer-item" style="--mobile-order: 3" mobile-drawer />
 
         <!-- 2. Guia -->
         <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 4" rel="noopener noreferrer">
@@ -134,11 +114,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
-import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Languages, Menu, Home, Download } from '@lucide/vue';
+import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Menu, Home, Download } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
 import { useAppInstall } from '../composables/useAppInstall';
 import { useI18n } from 'vue-i18n';
-import { setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER, type SupportedLocales } from '../i18n';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 defineProps<{
   title: string;
@@ -162,14 +142,8 @@ const logoUrl = computed(() => {
 });
 
 // Lógica de i18n
-const { locale: currentLocale, t } = useI18n();
-const isLangMenuOpen = ref(false);
+const { t } = useI18n();
 const isMobileMenuOpen = ref(false);
-
-function changeLanguage(code: SupportedLocales) {
-  setLocale(code);
-  isLangMenuOpen.value = false;
-}
 </script>
 
 <style scoped>
@@ -377,58 +351,6 @@ function changeLanguage(code: SupportedLocales) {
   align-items: center;
   gap: 8px;
   margin: 0 0 12px 0 !important;
-}
-
-/* --- Menu de Idiomas --- */
-.lang-dropdown-wrapper {
-  position: relative;
-}
-
-.lang-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  padding: 4px;
-  z-index: 50;
-  min-width: 160px;
-}
-
-.lang-option {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #374151;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.lang-option:hover {
-  background: #f3f4f6;
-}
-
-.lang-option.active {
-  font-weight: 600;
-  color: #111827;
-  background: #f3f4f6;
-}
-
-.lang-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40; /* Fica atrás do menu, mas à frente do resto da tela */
 }
 
 .show-mobile { display: none !important; }

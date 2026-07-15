@@ -23,12 +23,16 @@
     </div>
 
     <!-- DIREITA -->
-    <div v-if="showEditButton" class="toolbar-actions">
+    <div class="toolbar-actions">
+      
+      <LanguageSwitcher />
+
       <!-- Botão Abrir no Editor -->
-      <button class="action-btn" @click="$emit('edit-click')" :title="$t('runtime.open_in_editor')">
+      <button v-if="showEditButton" class="action-btn" @click="$emit('edit-click')" :title="$t('runtime.open_in_editor')">
         <ExternalLink :size="16" />
         <span class="hide-mobile">{{ $t('runtime.open_in_editor') }}</span>
       </button>
+      
     </div>
   </header>
 </template>
@@ -37,6 +41,7 @@
 import { computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
 import { ExternalLink } from '@lucide/vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 withDefaults(defineProps<{
   appName: string;
