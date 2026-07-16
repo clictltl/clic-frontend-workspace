@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Plus, X } from '@lucide/vue';
 import type { Variable } from '@/shared/types/chatbot';
 import { useProjectStore } from '@/shared/stores/projectStore';
 
@@ -7,6 +9,7 @@ const props = defineProps<{
   variables: Record<string, Variable>;
 }>();
 
+const { t } = useI18n();
 const store = useProjectStore();
 
 const emit = defineEmits<{
@@ -20,15 +23,15 @@ const newVarType = ref<'string' | 'number'>('string');
 function addVariable() {
   const name = newVarName.value.trim();
   if (!name) {
-    alert('Digite um nome para a variável');
+    alert(t('chatbot.variables.error_empty'));
     return;
   }
   if (props.variables[name]) {
-    alert('Já existe uma variável com este nome');
+    alert(t('chatbot.variables.error_exists'));
     return;
   }
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-    alert('Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.');
+    alert(t('chatbot.variables.error_invalid'));
     return;
   }
 
@@ -37,7 +40,7 @@ function addVariable() {
 }
 
 function removeVariable(name: string) {
-  if (confirm(`Deseja remover a variável "${name}"?`)) {
+  if (confirm(t('chatbot.variables.confirm_delete', { name }))) {
     emit('remove-variable', name);
   }
 }
@@ -52,39 +55,41 @@ function updateVariable(name: string, value: string | number) {
 <template>
   <div class="variables-panel">
     <div class="add-variable-form">
-      <h3>Nova Variável</h3>
+      <h3>{{ t('chatbot.variables.title_new') }}</h3>
       <div class="form-row">
         <input
           v-model="newVarName"
           type="text"
-          placeholder="nome_da_variavel"
+          :placeholder="t('chatbot.variables.name_placeholder')"
           @keyup.enter="addVariable"
         />
         <select v-model="newVarType">
-          <option value="string">Texto</option>
-          <option value="number">Número</option>
+          <option value="string">{{ t('chatbot.variables.type_text') }}</option>
+          <option value="number">{{ t('chatbot.variables.type_number') }}</option>
         </select>
-        <button @click="addVariable" class="btn-add">+</button>
+        <button @click="addVariable" class="btn-add"><Plus :size="18" /></button>
       </div>
     </div>
 
     <div class="variables-list">
-      <h3>Variáveis Criadas</h3>
+      <h3>{{ t('chatbot.variables.title_list') }}</h3>
       <div v-if="Object.keys(variables).length === 0" class="empty-state">
-        <p>Nenhuma variável criada ainda</p>
+        <p>{{ t('chatbot.variables.empty_state') }}</p>
       </div>
       <div v-else class="variables-grid">
         <div v-for="(variable, name) in variables" :key="name" class="variable-item">
           <div class="variable-header">
             <span class="variable-name">{{ name }}</span>
-            <span class="variable-type">{{ variable.type === 'string' ? 'Texto' : 'Número' }}</span>
-            <button @click="removeVariable(name)" class="btn-remove-small" title="Remover variável">×</button>
+            <span class="variable-type">{{ variable.type === 'string' ? t('chatbot.variables.type_text') : t('chatbot.variables.type_number') }}</span>
+            <button @click="removeVariable(name)" class="btn-remove-small" :title="t('chatbot.variables.remove_title')">
+              <X :size="14" />
+            </button>
           </div>
           <input
             :type="variable.type === 'number' ? 'number' : 'text'"
             :value="variable.value ?? ''"
             @change="updateVariable(name, ($event.target as HTMLInputElement).value)"
-            placeholder="Valor atual"
+            :placeholder="t('chatbot.variables.value_placeholder')"
             class="variable-value"
           />
         </div>

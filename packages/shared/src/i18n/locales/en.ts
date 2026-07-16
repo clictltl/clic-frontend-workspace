@@ -13,7 +13,9 @@ export default {
     copied: 'Copied!',
     project: 'Project',
     unexpected_error: 'Unexpected error.',
-    error_saving: 'Error saving.'
+    error_saving: 'Error saving.',
+    undo: 'Undid',
+    redo: 'Redid'
   },
   
   header: {
@@ -196,8 +198,177 @@ export default {
     fetch_responses_error: 'Error fetching responses'
   },
   
-  chatbot: {},
+  chatbot: {
+    editor: {
+      new_block: 'New Block',
+      delete_block: 'Delete block',
+      input_handle: 'Input handle',
+      output_handle: 'Output handle',
+      no_content: 'No content',
+      no_image: 'No image defined',
+      connect_label: "Connect '{label}'",
+      connect_condition: 'Connect condition',
+      connecting: 'Connecting...',
+      connect_hint: 'Click or tap on the input handle (red) of the destination block',
+      delete_connection: 'Delete Connection',
+      delete_connection_hint: 'Press <kbd>Delete</kbd> or <kbd>Backspace</kbd> to remove this connection',
+      tabs: {
+        block: 'Block',
+        variables: 'Variables',
+        preview: 'Preview'
+      },
+      context_menu: {
+        paste: 'Paste Block',
+        duplicate: 'Duplicate',
+        copy: 'Copy',
+        delete: 'Delete',
+        no_actions: 'No actions available'
+      }
+    },
+    blocks: {
+      start: 'Start',
+      message: 'Message',
+      openQuestion: 'Open Question',
+      choiceQuestion: 'Multiple Choice',
+      condition: 'Conditional',
+      setVariable: 'Set Variable',
+      math: 'Math Operation',
+      image: 'Image',
+      end: 'End Conversation',
+      default_content: {
+        message: 'Hello! Welcome to the chatbot.',
+        openQuestion: 'What is your name?',
+        choiceQuestion: 'Choose an option:',
+        condition: 'Checking condition...',
+        setVariable: 'Setting variable...',
+        math: 'Math operation',
+        image: 'Image',
+        end: 'Thank you for using the chatbot!'
+      }
+    },
+    properties: {
+      empty_state: 'Select a block to edit its properties',
+      block_type: 'Block Type',
+      label_message: 'Message',
+      label_question: 'Question',
+      label_final_message: 'Final Message',
+      variable_name: 'Variable Name',
+      variable_select: 'Select a variable',
+      value: 'Value',
+      value_placeholder: 'Enter value...',
+      variable: 'Variable',
+      operation: 'Operation',
+      math_placeholder: "Enter a number or {'{{'}variable{'}}'}",
+      math_ops: {
+        sum: 'Add',
+        sub: 'Subtract',
+        mult: 'Multiply',
+        div: 'Divide'
+      },
+      save_answer_var: 'Save answer in variable',
+      save_answer_none: 'Do not save',
+      choices_label: 'Response Options',
+      choice_placeholder: 'Option text',
+      delete_choice: 'Remove Option',
+      add_choice: 'Add Option',
+      new_choice: 'New Option',
+      conditions_label: 'Conditions',
+      delete_condition: 'Remove Condition',
+      add_condition: 'Add Condition',
+      image_source: 'Image Source',
+      image_url_tab: 'Link (URL)',
+      image_upload_tab: 'Upload',
+      image_url_placeholder: 'https://example.com/photo.jpg',
+      image_upload_btn: 'Upload Image',
+      image_upload_empty: 'No file',
+      image_upload_success: 'File uploaded',
+      image_preview: 'Preview:',
+      delete_image: 'Remove Image',
+      hints: {
+        variables: 'Use &#123;&#123;variable&#125;&#125; to insert variable values<br/><strong>Warning:</strong> Avoid formatting only "half" of the variable.',
+        variables_other: 'Use &#123;&#123;variable&#125;&#125; to use values from other variables',
+        math_target_var: 'Variable that will receive the operation result',
+        math_value: 'Use a fixed number or &#123;&#123;variable&#125;&#125; to use another variable\'s value',
+        image_url: 'Paste the direct link to an image on the internet.',
+        image_upload: 'The image will be saved along with the project.'
+      }
+    },
+    variables: {
+      title_new: 'New Variable',
+      title_list: 'Created Variables',
+      name_placeholder: 'variable_name',
+      type_text: 'Text',
+      type_number: 'Number',
+      empty_state: 'No variables created yet',
+      remove_title: 'Remove variable',
+      value_placeholder: 'Current value',
+      error_empty: 'Enter a name for the variable',
+      error_exists: 'A variable with this name already exists',
+      error_invalid: 'Invalid name. Use only letters, numbers, and underscore. Cannot start with a number.',
+      confirm_delete: 'Do you want to remove the variable "{name}"?'
+    },
+    messages: {
+      preview_denied: 'Access denied or failed to load project.'
+    },
+    runtime: {
+      errors: {
+        BLOCK_NOT_FOUND: 'Flow error: block not found.',
+        IMAGE_NOT_DEFINED: 'Error: image not defined.',
+        INVALID_FLOW: 'Flow error.',
+        INVALID_NEXT_BLOCK: 'Flow error: target block not found.',
+        NO_CHOICE_TARGET: 'Error: choice without target defined.',
+        NO_CHOICES: 'Error: question without choice options.',
+        NO_CONDITION_MATCH: 'No condition matched.',
+        NO_START_BLOCK: 'Start block not found.',
+        START_NO_NEXT: 'Start block without outgoing connection.',
+        UNSUPPORTED_BLOCK_TYPE: 'Unsupported block type.'
+      },
+      preview: {
+        title: 'Test your Chatbot',
+        desc: 'Click "Start" to talk with your chatbot and test the created flow.',
+        btn_start: 'Start Test'
+      },
+      player: {
+        title: 'Start conversation',
+        desc: 'Click start to begin',
+        btn_start: 'Start'
+      },
+      chat: {
+        placeholder: 'Type your response...',
+        send: 'Send',
+        restart: 'Restart'
+      },
+      toolbar: {
+        start: 'Start',
+        restart: 'Restart',
+        stop: 'Stop',
+        expand: 'Expand fullscreen',
+        collapse: 'Exit fullscreen'
+      },
+      status: {
+        loading: 'Loading chatbot...',
+        unavailable: 'Chatbot unavailable.',
+        chat_title: 'Chat'
+      }
+    },
+    history: {
+      createBlock: 'Block Creation',
+      updateBlock: 'Block Update',
+      deleteBlock: 'Block Deletion',
+      duplicateBlock: 'Block Duplication',
+      pasteBlock: 'Block Paste',
+      updateBlockPosition: 'Block Movement',
+      addVariable: 'Variable Creation',
+      updateVariableValue: 'Variable Update',
+      removeVariable: 'Variable Deletion',
+      createConnection: 'Connection Creation',
+      deleteConnection: 'Connection Deletion',
+      updateConnection: 'Path Adjustment (Line)'
+    }
+  },
+
   graphBuilder: {},
+
   emojiCoder: {
     setup: {
       prepare_env: 'Choose an activity to start',

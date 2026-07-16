@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import type { Block, Connection, Variable, BlockType } from '@/shared/types/chatbot';
 import type { ProjectData } from '@/shared/types/project';
 import type { ClicAsset } from '@clic/shared';
+import { i18n } from '@clic/shared';
 
 // IDs fixos para o fluxo inicial
 const START_ID = 'start';
@@ -14,16 +15,18 @@ const GAP_Y = 60;
 
 // Helper: Retorna o conteúdo padrão baseado no tipo do bloco
 function getDefaultContent(type: BlockType): string {
+  const t = i18n.global.t;
+
   switch (type) {
     case 'start': return '';
-    case 'message': return 'Olá! Bem-vindo ao chatbot.';
-    case 'openQuestion': return 'Qual é o seu nome?';
-    case 'choiceQuestion': return 'Escolha uma opção:';
-    case 'condition': return 'Verificando condição...';
-    case 'setVariable': return 'Definindo variável...';
-    case 'math': return 'Operação matemática';
-    case 'image': return 'Imagem';
-    case 'end': return 'Obrigado por usar o chatbot!';
+    case 'message': return t('chatbot.blocks.default_content.message');
+    case 'openQuestion': return t('chatbot.blocks.default_content.openQuestion');
+    case 'choiceQuestion': return t('chatbot.blocks.default_content.choiceQuestion');
+    case 'condition': return t('chatbot.blocks.default_content.condition');
+    case 'setVariable': return t('chatbot.blocks.default_content.setVariable');
+    case 'math': return t('chatbot.blocks.default_content.math');
+    case 'image': return t('chatbot.blocks.default_content.image');
+    case 'end': return t('chatbot.blocks.default_content.end');
     default: return '';
   }
 }
@@ -68,18 +71,18 @@ export const useProjectStore = defineStore('chatbot-project', {
     ],
     clearHistoryActions:['setProjectData', 'resetProjectData'],
     actionLabels: {
-      createBlock: 'Criação de Bloco',
-      updateBlock: 'Atualização de Bloco',
-      deleteBlock: 'Exclusão de Bloco',
-      duplicateBlock: 'Duplicação de Bloco',
-      pasteBlock: 'Colagem de Bloco',
-      updateBlockPosition: 'Movimentação de Bloco',
-      addVariable: 'Criação de Variável',
-      updateVariableValue: 'Atualização de Variável',
-      removeVariable: 'Exclusão de Variável',
-      createConnection: 'Criação de Conexão',
-      deleteConnection: 'Exclusão de Conexão',
-      updateConnection: 'Ajuste de Caminho (Linha)'
+      createBlock: 'chatbot.history.createBlock',
+      updateBlock: 'chatbot.history.updateBlock',
+      deleteBlock: 'chatbot.history.deleteBlock',
+      duplicateBlock: 'chatbot.history.duplicateBlock',
+      pasteBlock: 'chatbot.history.pasteBlock',
+      updateBlockPosition: 'chatbot.history.updateBlockPosition',
+      addVariable: 'chatbot.history.addVariable',
+      updateVariableValue: 'chatbot.history.updateVariableValue',
+      removeVariable: 'chatbot.history.removeVariable',
+      createConnection: 'chatbot.history.createConnection',
+      deleteConnection: 'chatbot.history.deleteConnection',
+      updateConnection: 'chatbot.history.updateConnection'
     }
   },
 

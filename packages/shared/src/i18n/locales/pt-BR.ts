@@ -13,7 +13,9 @@ export default {
     copied: 'Copiado!',
     project: 'Projeto',
     unexpected_error: 'Erro inesperado.',
-    error_saving: 'Erro ao salvar.'
+    error_saving: 'Erro ao salvar.',
+    undo: 'Desfez',
+    redo: 'Refez'
   },
   
   header: {
@@ -197,8 +199,177 @@ export default {
     fetch_responses_error: 'Erro ao buscar respostas'
   },
   
-  chatbot: {},
+  chatbot: {
+    editor: {
+      new_block: 'Novo Bloco',
+      delete_block: 'Excluir bloco',
+      input_handle: 'Ponto de entrada',
+      output_handle: 'Ponto de saída',
+      no_content: 'Sem conteúdo',
+      no_image: 'Nenhuma imagem definida',
+      connect_label: "Conectar '{label}'",
+      connect_condition: 'Conectar condição',
+      connecting: 'Conectando...',
+      connect_hint: 'Clique ou toque no ponto de entrada (vermelho) do bloco de destino',
+      delete_connection: 'Apagar Conexão',
+      delete_connection_hint: 'Pressione <kbd>Delete</kbd> ou <kbd>Backspace</kbd> para remover esta conexão',
+      tabs: {
+        block: 'Bloco',
+        variables: 'Variáveis',
+        preview: 'Preview'
+      },
+      context_menu: {
+        paste: 'Colar Bloco',
+        duplicate: 'Duplicar',
+        copy: 'Copiar',
+        delete: 'Deletar',
+        no_actions: 'Sem ações disponíveis'
+      }
+    },
+    blocks: {
+      start: 'Início',
+      message: 'Mensagem',
+      openQuestion: 'Pergunta Aberta',
+      choiceQuestion: 'Múltipla Escolha',
+      condition: 'Condicional',
+      setVariable: 'Definir Variável',
+      math: 'Operação Matemática',
+      image: 'Imagem',
+      end: 'Fim da Conversa',
+      default_content: {
+        message: 'Olá! Bem-vindo ao chatbot.',
+        openQuestion: 'Qual é o seu nome?',
+        choiceQuestion: 'Escolha uma opção:',
+        condition: 'Verificando condição...',
+        setVariable: 'Definindo variável...',
+        math: 'Operação matemática',
+        image: 'Imagem',
+        end: 'Obrigado por usar o chatbot!'
+      }
+    },
+    properties: {
+      empty_state: 'Selecione um bloco para editar suas propriedades',
+      block_type: 'Tipo de Bloco',
+      label_message: 'Mensagem',
+      label_question: 'Pergunta',
+      label_final_message: 'Mensagem Final',
+      variable_name: 'Nome da Variável',
+      variable_select: 'Selecione uma variável',
+      value: 'Valor',
+      value_placeholder: 'Digite o valor...',
+      variable: 'Variável',
+      operation: 'Operação',
+      math_placeholder: "Digite um número ou {'{{'}variavel{'}}'}",
+      math_ops: {
+        sum: 'Somar',
+        sub: 'Subtrair',
+        mult: 'Multiplicar',
+        div: 'Dividir'
+      },
+      save_answer_var: 'Salvar resposta em variável',
+      save_answer_none: 'Não salvar',
+      choices_label: 'Opções de Resposta',
+      choice_placeholder: 'Texto da opção',
+      delete_choice: 'Remover Opção',
+      add_choice: 'Adicionar Opção',
+      new_choice: 'Nova Opção',
+      conditions_label: 'Condições',
+      delete_condition: 'Remover Condição',
+      add_condition: 'Adicionar Condição',
+      image_source: 'Fonte da Imagem',
+      image_url_tab: 'Link (URL)',
+      image_upload_tab: 'Upload',
+      image_url_placeholder: 'https://exemplo.com/foto.jpg',
+      image_upload_btn: 'Carregar Imagem',
+      image_upload_empty: 'Nenhum arquivo',
+      image_upload_success: 'Arquivo carregado',
+      image_preview: 'Pré-visualização:',
+      delete_image: 'Remover Imagem',
+      hints: {
+        variables: 'Use &#123;&#123;variavel&#125;&#125; para inserir valores de variáveis<br/><strong>Aviso:</strong> Evite formatar apenas "metade" da variável.',
+        variables_other: 'Use &#123;&#123;variavel&#125;&#125; para usar valores de outras variáveis',
+        math_target_var: 'Variável que receberá o resultado da operação',
+        math_value: 'Use um número fixo ou &#123;&#123;variavel&#125;&#125; para usar valor de outra variável',
+        image_url: 'Cole o link direto de uma imagem na internet.',
+        image_upload: 'A imagem será salva junto com o projeto.'
+      }
+    },
+    variables: {
+      title_new: 'Nova Variável',
+      title_list: 'Variáveis Criadas',
+      name_placeholder: 'nome_da_variavel',
+      type_text: 'Texto',
+      type_number: 'Número',
+      empty_state: 'Nenhuma variável criada ainda',
+      remove_title: 'Remover variável',
+      value_placeholder: 'Valor atual',
+      error_empty: 'Digite um nome para a variável',
+      error_exists: 'Já existe uma variável com este nome',
+      error_invalid: 'Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.',
+      confirm_delete: 'Deseja remover a variável "{name}"?'
+    },
+    messages: {
+      preview_denied: 'Acesso negado ou falha ao carregar projeto.'
+    },
+    runtime: {
+      errors: {
+        BLOCK_NOT_FOUND: 'Erro de fluxo: bloco não encontrado.',
+        IMAGE_NOT_DEFINED: 'Erro: imagem não definida.',
+        INVALID_FLOW: 'Erro de fluxo.',
+        INVALID_NEXT_BLOCK: 'Erro de fluxo: bloco de destino não encontrado.',
+        NO_CHOICE_TARGET: 'Erro: escolha sem destino definido.',
+        NO_CHOICES: 'Erro: pergunta sem opções de escolha.',
+        NO_CONDITION_MATCH: 'Nenhuma condição satisfeita.',
+        NO_START_BLOCK: 'Bloco de início não encontrado.',
+        START_NO_NEXT: 'Início sem conexão de saída.',
+        UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.'
+      },
+      preview: {
+        title: 'Teste seu Chatbot',
+        desc: 'Clique em "Iniciar" para conversar com seu chatbot e testar o fluxo criado.',
+        btn_start: 'Iniciar Teste'
+      },
+      player: {
+        title: 'Iniciar conversa',
+        desc: 'Clique em iniciar para começar',
+        btn_start: 'Iniciar'
+      },
+      chat: {
+        placeholder: 'Digite sua resposta...',
+        send: 'Enviar',
+        restart: 'Recomeçar'
+      },
+      toolbar: {
+        start: 'Iniciar',
+        restart: 'Reiniciar',
+        stop: 'Parar',
+        expand: 'Expandir tela cheia',
+        collapse: 'Sair da tela cheia'
+      },
+      status: {
+        loading: 'Carregando chatbot...',
+        unavailable: 'Chatbot indisponível.',
+        chat_title: 'Chat'
+      }
+    },
+    history: {
+      createBlock: 'Criação de Bloco',
+      updateBlock: 'Atualização de Bloco',
+      deleteBlock: 'Exclusão de Bloco',
+      duplicateBlock: 'Duplicação de Bloco',
+      pasteBlock: 'Colagem de Bloco',
+      updateBlockPosition: 'Movimentação de Bloco',
+      addVariable: 'Criação de Variável',
+      updateVariableValue: 'Atualização de Variável',
+      removeVariable: 'Exclusão de Variável',
+      createConnection: 'Criação de Conexão',
+      deleteConnection: 'Exclusão de Conexão',
+      updateConnection: 'Ajuste de Caminho (Linha)'
+    }
+  },
+
   graphBuilder: {},
+
   emojiCoder: {
     setup: {
       prepare_env: 'Escolha uma atividade para começar',

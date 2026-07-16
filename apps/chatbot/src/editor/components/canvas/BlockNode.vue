@@ -7,8 +7,9 @@
 
 import { computed, onBeforeUnmount } from 'vue';
 import type { Block } from '@/shared/types/chatbot';
+import { useI18n } from 'vue-i18n';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
-import { BLOCK_CONFIG } from '@/editor/utils/blockConfig';
+import { useBlockUI } from '@/editor/composables/useBlockUI';
 import { X } from '@lucide/vue';
 
 const props = defineProps<{
@@ -26,7 +27,14 @@ const emit = defineEmits<{
   contextMenu: [event: MouseEvent];
 }>();
 
-const blockConfig = computed(() => BLOCK_CONFIG[props.block.type]);
+const { t } = useI18n();
+const { getBlockTitle, getBlockIcon, getBlockColor } = useBlockUI();
+
+const blockConfig = computed(() => ({
+  title: getBlockTitle(props.block.type),
+  icon: getBlockIcon(props.block.type),
+  color: getBlockColor(props.block.type)
+}));
 
 const assetStore = useAssetStore();
 
@@ -133,7 +141,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
   >
     <!-- START (inteiro verde, sem área branca) -->
     <div v-if="block.type === 'start'" class="start-body" :style="{ backgroundColor: blockConfig.color }">
-      <span class="start-title">Início</span>
+      <span class="start-title">{{ blockConfig.title }}</span>
     </div>
 
     <!-- RESTO (layout normal) -->
@@ -148,7 +156,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
           @click="handleDelete"
           @touchstart.stop="handleDelete"
           @mousedown.stop
-          title="Deletar bloco"
+          :title="t('chatbot.editor.delete_block')"
         >
           <X :size="14" />
         </button>
@@ -162,14 +170,14 @@ function handleDelete(event: MouseEvent | TouchEvent) {
         class="handle input-handle"
         @mousedown="handleInputMouseDown"
         @touchstart="handleInputMouseDown"
-        title="Handle de entrada"
+        :title="t('chatbot.editor.input_handle')"
       />
 
       <div class="block-content">
         <div 
           v-if="block.type !== 'setVariable' && block.type !== 'image' && block.type !== 'math'"
           class="rich-text-preview"
-          v-html="block.content || 'Sem conteúdo'"
+          v-html="block.content || t('chatbot.editor.no_content')"
         ></div>
 
         <!-- Visualização para setVariable -->
@@ -194,7 +202,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
             alt="Preview"
             style="max-width: 100%; border-radius: 4px;" 
           />
-          <span v-else class="no-image">Nenhuma imagem definida</span>
+          <span v-else class="no-image">{{ t('chatbot.editor.no_image') }}</span>
         </div>
 
         <!-- Opções de múltipla escolha -->
@@ -208,7 +216,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
               class="handle output-handle choice-output"
               @mousedown="handleOutputMouseDown($event, choice.id)"
               @touchstart="handleOutputMouseDown($event, choice.id)"
-              :title="`Conectar '${choice.label}'`"
+              :title="t('chatbot.editor.connect_label', { label: choice.label })"
             />
           </div>
         </div>
@@ -224,7 +232,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
               class="handle output-handle condition-output"
               @mousedown="handleOutputMouseDown($event, condition.id)"
               @touchstart="handleOutputMouseDown($event, condition.id)"
-              title="Conectar condição"
+              :title="t('chatbot.editor.connect_condition')"
             />
           </div>
         </div>
@@ -241,7 +249,7 @@ function handleDelete(event: MouseEvent | TouchEvent) {
       class="handle output-handle main-output"
       @mousedown="handleOutputMouseDown($event)"
       @touchstart="handleOutputMouseDown($event)"
-      title="Handle de saída"
+      :title="t('chatbot.editor.output_handle')"
     />
   </div>
 </template>

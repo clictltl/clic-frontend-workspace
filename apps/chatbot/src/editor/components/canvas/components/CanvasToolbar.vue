@@ -7,7 +7,9 @@
 
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { BlockType } from '@/shared/types/chatbot';
-import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
+import { useI18n } from 'vue-i18n';
+import { useBlockUI } from '@/editor/composables/useBlockUI';
+import { CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
 import { Plus } from '@lucide/vue';
 
 const emit = defineEmits<{
@@ -15,6 +17,9 @@ const emit = defineEmits<{
   'zoom-in': [];
   'zoom-out': [];
 }>();
+
+const { t } = useI18n();
+const { getBlockTitle, getBlockIcon, getBlockColor } = useBlockUI();
 
 const showMenu = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -50,7 +55,7 @@ onBeforeUnmount(() => {
   <div class="canvas-toolbar" @click.stop>
     <button class="btn-newblock" @click="toggleMenu">
       <Plus :size="16" />
-      Novo Bloco
+      {{ t('chatbot.editor.new_block') }}
     </button>
 
     <div v-if="showMenu" class="canvas-block-menu" ref="menuRef">
@@ -61,10 +66,10 @@ onBeforeUnmount(() => {
         class="canvas-block-menu-item"
       >
         <!-- Ícone Lucide encapsulado na cor de fundo -->
-        <span class="menu-icon" :style="{ background: BLOCK_CONFIG[type].color }">
-          <component :is="BLOCK_CONFIG[type].icon" :size="16" color="#ffffff" />
+        <span class="menu-icon" :style="{ background: getBlockColor(type) }">
+          <component :is="getBlockIcon(type)" :size="16" color="#ffffff" />
         </span>
-        <span class="menu-label">{{ BLOCK_CONFIG[type].title }}</span>
+        <span class="menu-label">{{ getBlockTitle(type) }}</span>
       </button>
     </div>
   </div>

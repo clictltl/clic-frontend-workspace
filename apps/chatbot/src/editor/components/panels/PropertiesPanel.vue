@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { CloudUpload, AlertTriangle, Plus, X } from '@lucide/vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
+import { useBlockUI } from '@/editor/composables/useBlockUI';
 import RichTextEditor from '@/editor/components/RichTextEditor.vue';
 
 const props = defineProps<{
@@ -13,6 +16,9 @@ const emit = defineEmits<{
   'update:block': [block: Block];
   'update:block-silent': [block: Block];
 }>();
+
+const { t } = useI18n();
+const { getBlockTitle } = useBlockUI();
 
 const localBlock = ref<Block | null>(null);
 const mainTextareaRef = ref<InstanceType<typeof RichTextEditor> | null>(null);
@@ -68,7 +74,7 @@ function addChoice() {
     if (!localBlock.value.choices) localBlock.value.choices = [];
     localBlock.value.choices.push({
       id: `choice_${Date.now()}`,
-      label: 'Nova opção',
+      label: t('chatbot.properties.new_choice'),
       nextBlockId: undefined
     });
     commitBlock();
@@ -207,13 +213,13 @@ defineExpose({ focusContent });
 <template>
   <div class="properties-panel">
     <div v-if="!block" class="empty-state">
-      <p>Selecione um bloco para editar suas propriedades</p>
+      <p>{{ t('chatbot.properties.empty_state') }}</p>
     </div>
 
     <div v-else-if="localBlock" class="properties-content">
       <div class="property-group">
-        <label>Tipo de Bloco</label>
-        <input type="text" :value="localBlock.type" disabled />
+        <label>{{ t('chatbot.properties.block_type') }}</label>
+        <input type="text" :value="getBlockTitle(localBlock.type)" disabled />
       </div>
 
       <div v-if="localBlock.type !== 'start'
@@ -222,18 +228,18 @@ defineExpose({ focusContent });
         && localBlock.type !== 'math'
         && localBlock.type !== 'image'" class="property-group"
       >
-        <label>{{ localBlock.type === 'message' ? 'Mensagem' : 'Pergunta' }}</label>
+        <label>{{ localBlock.type === 'message' ? t('chatbot.properties.label_message') : t('chatbot.properties.label_question') }}</label>
         <RichTextEditor
           ref="mainTextareaRef"
           v-model="localBlock.content"
           @update:modelValue="updateBlockSilent"
           @blur="commitBlock"
         />
-        <small>Use &#123;&#123;variavel&#125;&#125; para inserir valores de variáveis<br/><strong>Aviso:</strong> Evite formatar apenas "metade" da variável.</small>
+        <small v-html="t('chatbot.properties.hints.variables')"></small>
       </div>
 
       <div v-if="localBlock.type === 'end'" class="property-group">
-        <label>Mensagem Final</label>
+        <label>{{ t('chatbot.properties.label_final_message') }}</label>
         <RichTextEditor
           ref="mainTextareaRef"
           v-model="localBlock.content"
@@ -243,9 +249,9 @@ defineExpose({ focusContent });
       </div>
 
       <div v-if="localBlock.type === 'setVariable'" class="property-group">
-        <label>Nome da Variável</label>
+        <label>{{ t('chatbot.properties.variable_name') }}</label>
         <select v-model="localBlock.variableName" @change="commitBlock">
-          <option :value="undefined">Selecione uma variável</option>
+          <option :value="undefined">{{ t('chatbot.properties.variable_select') }}</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
           </option>
@@ -253,52 +259,52 @@ defineExpose({ focusContent });
       </div>
 
       <div v-if="localBlock.type === 'setVariable'" class="property-group">
-        <label>Valor</label>
+        <label>{{ t('chatbot.properties.value') }}</label>
         <input
           v-model="localBlock.variableValue"
           @input="updateBlockSilent"
           @change="commitBlock"
-          placeholder="Digite o valor..."
+          :placeholder="t('chatbot.properties.value_placeholder')"
         />
-        <small>Use &#123;&#123;variavel&#125;&#125; para usar valores de outras variáveis</small>
+        <small v-html="t('chatbot.properties.hints.variables_other')"></small>
       </div>
 
       <div v-if="localBlock.type === 'math'" class="property-group">
-        <label>Variável</label>
+        <label>{{ t('chatbot.properties.variable') }}</label>
         <select v-model="localBlock.variableName" @change="commitBlock">
-          <option :value="undefined">Selecione uma variável</option>
+          <option :value="undefined">{{ t('chatbot.properties.variable_select') }}</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
           </option>
         </select>
-        <small>Variável que receberá o resultado da operação</small>
+        <small>{{ t('chatbot.properties.hints.math_target_var') }}</small>
       </div>
 
       <div v-if="localBlock.type === 'math'" class="property-group">
-        <label>Operação</label>
+        <label>{{ t('chatbot.properties.operation') }}</label>
         <select v-model="localBlock.mathOperation" @change="commitBlock">
-          <option value="+">+ (Somar)</option>
-          <option value="-">- (Subtrair)</option>
-          <option value="*">* (Multiplicar)</option>
-          <option value="/">/ (Dividir)</option>
+          <option value="+">+ ({{ t('chatbot.properties.math_ops.sum') }})</option>
+          <option value="-">- ({{ t('chatbot.properties.math_ops.sub') }})</option>
+          <option value="*">* ({{ t('chatbot.properties.math_ops.mult') }})</option>
+          <option value="/">/ ({{ t('chatbot.properties.math_ops.div') }})</option>
         </select>
       </div>
 
       <div v-if="localBlock.type === 'math'" class="property-group">
-        <label>Valor</label>
+        <label>{{ t('chatbot.properties.value') }}</label>
         <input
           v-model="localBlock.mathValue"
           @input="updateBlockSilent"
           @change="commitBlock"
-          placeholder="Digite um número ou {{variavel}}"
+          :placeholder="t('chatbot.properties.math_placeholder')"
         />
-        <small>Use um número fixo ou &#123;&#123;variavel&#125;&#125; para usar valor de outra variável</small>
+        <small v-html="t('chatbot.properties.hints.math_value')"></small>
       </div>
 
       <div v-if="localBlock.type === 'openQuestion'" class="property-group">
-        <label>Salvar resposta em variável</label>
+        <label>{{ t('chatbot.properties.save_answer_var') }}</label>
         <select v-model="localBlock.variableName" @change="commitBlock">
-          <option :value="undefined">Não salvar</option>
+          <option :value="undefined">{{ t('chatbot.properties.save_answer_none') }}</option>
           <option v-for="name in Object.keys(variables)" :key="name" :value="name">
             {{ name }}
           </option>
@@ -306,23 +312,27 @@ defineExpose({ focusContent });
       </div>
 
       <div v-if="localBlock.type === 'choiceQuestion'" class="property-group">
-        <label>Opções de Resposta</label>
+        <label>{{ t('chatbot.properties.choices_label') }}</label>
         <div class="choices-list">
           <div v-for="choice in localBlock.choices" :key="choice.id" class="choice-editor">
             <input
               v-model="choice.label"
               @input="updateBlockSilent"
               @change="commitBlock"
-              placeholder="Texto da opção"
+              :placeholder="t('chatbot.properties.choice_placeholder')"
             />
-            <button @click="removeChoice(choice.id)" class="btn-remove" title="Remover opção">×</button>
+            <button @click="removeChoice(choice.id)" class="btn-remove" :title="t('chatbot.properties.delete_choice')">
+              <X :size="16" />
+            </button>
           </div>
         </div>
-        <button @click="addChoice" class="btn-add">+ Adicionar Opção</button>
+        <button @click="addChoice" class="btn-add">
+          <Plus :size="16" /> {{ t('chatbot.properties.add_choice') }}
+        </button>
       </div>
 
       <div v-if="localBlock.type === 'condition'" class="property-group">
-        <label>Condições</label>
+        <label>{{ t('chatbot.properties.conditions_label') }}</label>
         <div class="conditions-list">
           <div v-for="condition in localBlock.conditions" :key="condition.id" class="condition-editor">
             <select v-model="condition.variableName" @change="commitBlock">
@@ -342,16 +352,20 @@ defineExpose({ focusContent });
               v-model="condition.value"
               @input="updateBlockSilent"
               @change="commitBlock"
-              placeholder="Valor"
+              :placeholder="t('chatbot.properties.value')"
             />
-            <button @click="removeCondition(condition.id)" class="btn-remove" title="Remover condição">×</button>
+            <button @click="removeCondition(condition.id)" class="btn-remove" :title="t('chatbot.properties.delete_condition')">
+              <X :size="16" />
+            </button>
           </div>
         </div>
-        <button @click="addCondition" class="btn-add">+ Adicionar Condição</button>
+        <button @click="addCondition" class="btn-add">
+          <Plus :size="16" /> {{ t('chatbot.properties.add_condition') }}
+        </button>
       </div>
 
       <div v-if="localBlock.type === 'image'" class="property-group">
-        <label>Fonte da Imagem</label>
+        <label>{{ t('chatbot.properties.image_source') }}</label>
         
         <!-- Abas de Navegação -->
         <div class="image-source-tabs">
@@ -361,7 +375,7 @@ defineExpose({ focusContent });
             :class="{ active: imageTab === 'url' }"
             class="tab-button"
           >
-            Link (URL)
+            {{ t('chatbot.properties.image_url_tab') }}
           </button>
           <button
             type="button"
@@ -369,7 +383,7 @@ defineExpose({ focusContent });
             :class="{ active: imageTab === 'upload' }"
             class="tab-button"
           >
-            Upload
+            {{ t('chatbot.properties.image_upload_tab') }}
           </button>
         </div>
 
@@ -378,25 +392,25 @@ defineExpose({ focusContent });
           <input
             v-model="localBlock.imageUrl"
             @input="handleUrlInput"
-            placeholder="https://exemplo.com/foto.jpg"
+            :placeholder="t('chatbot.properties.image_url_placeholder')"
             type="url"
             class="full-width-input"
           />
-          <small class="help-text">Cole o link direto de uma imagem na internet.</small>
+          <small class="help-text">{{ t('chatbot.properties.hints.image_url') }}</small>
         </div>
 
         <!-- Conteúdo: Modo Upload -->
         <div v-if="imageTab === 'upload'" class="tab-content upload-area">
           <div class="upload-controls">
-             <button @click="openFileDialog" class="btn-primary-outline" type="button">
-              ☁️ Carregar Imagem
+            <button @click="openFileDialog" class="btn-primary-outline" type="button">
+              <CloudUpload :size="18" /> {{ t('chatbot.properties.image_upload_btn') }}
             </button>
-            <span v-if="localBlock.assetId" class="file-status">Arquivo carregado</span>
-            <span v-else class="file-status">Nenhum arquivo</span>
+            <span v-if="localBlock.assetId" class="file-status">{{ t('chatbot.properties.image_upload_success') }}</span>
+            <span v-else class="file-status">{{ t('chatbot.properties.image_upload_empty') }}</span>
           </div>
 
           <div v-if="uploadError" class="error-message">
-            ⚠️ {{ uploadError }}
+            <AlertTriangle :size="18" /> {{ uploadError }}
           </div>
           
           <!-- Input Invisível -->
@@ -407,16 +421,16 @@ defineExpose({ focusContent });
             @change="handleImageUpload"
             style="display: none;"
           />
-          <small>A imagem será salva junto com o projeto.</small>
+          <small>{{ t('chatbot.properties.hints.image_upload') }}</small>
         </div>
 
         <!-- Preview Unificado (Sempre visível se houver imagem) -->
         <div v-if="previewSrc" class="image-preview-container">
-          <label>Pré-visualização:</label>
+          <label>{{ t('chatbot.properties.image_preview') }}</label>
           <div class="preview-box">
             <img :src="previewSrc" alt="Preview" />
-            <button @click="clearImage" class="btn-remove-image" title="Remover imagem">
-              ×
+            <button @click="clearImage" class="btn-remove-image" :title="t('chatbot.properties.delete_image')">
+              <X :size="16" />
             </button>
           </div>
         </div>

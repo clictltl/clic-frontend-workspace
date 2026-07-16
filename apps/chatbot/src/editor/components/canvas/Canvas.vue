@@ -4,6 +4,8 @@
  */
 
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, toRef } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Link, Trash2 } from '@lucide/vue';
 import type { Block, Connection, BlockType } from '@/shared/types/chatbot';
 import BlockNode from './BlockNode.vue';
 import CanvasToolbar from './components/CanvasToolbar.vue';
@@ -31,6 +33,7 @@ const emit = defineEmits<{
   'create-block': [payload: { type: BlockType; position?: { x: number; y: number } }];
 }>();
 
+const { t } = useI18n();
 const store = useProjectStore();
 
 // Refs
@@ -409,8 +412,11 @@ onBeforeUnmount(() => {
 
     <!-- Dica quando está conectando -->
     <div v-if="connectionMgr.connectingFrom.value" class="connection-hint">
-      <strong>🔗 Conectando...</strong><br />
-      Clique/Toque no handle vermelho (entrada) do bloco de destino
+      <div class="hint-title">
+        <Link :size="16" />
+        <strong>{{ t('chatbot.editor.connecting') }}</strong>
+      </div>
+      <p>{{ t('chatbot.editor.connect_hint') }}</p>
     </div>
 
     <!-- Container de Ação da Conexão Selecionada (Dica ou Botão Touch) -->
@@ -420,15 +426,10 @@ onBeforeUnmount(() => {
         class="touch-delete-btn" 
         @click.stop="connectionMgr.deleteSelectedConnection()"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-        </svg>
-        Apagar Conexão
+        <Trash2 :size="18" />
+        {{ t('chatbot.editor.delete_connection') }}
       </button>
-      <div v-else class="delete-hint">
-        Pressione <kbd>Delete</kbd> ou <kbd>Backspace</kbd> para remover esta conexão
-      </div>
+      <div v-else class="delete-hint" v-html="t('chatbot.editor.delete_connection_hint')"></div>
     </div>
 
   </div>

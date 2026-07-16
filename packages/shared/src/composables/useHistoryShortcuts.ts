@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useToast } from '../ui/useToast';
+import { i18n } from '../i18n';
 
 /**
  * Injeta os atalhos de teclado de Undo/Redo (Ctrl+Z / Ctrl+Shift+Z) no ciclo de vida do componente.
@@ -18,15 +19,17 @@ export function useHistoryShortcuts(store: any) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
 
+      const t = i18n.global.t;
+
       if (e.shiftKey) {
         if (store.canRedo) {
           const actionLabel = store.redo();
-          toast.info(`Refez: ${actionLabel}`);
+          toast.info(`${t('global.redo')}: ${t(actionLabel)}`);
         }
       } else {
         if (store.canUndo) {
           const actionLabel = store.undo();
-          toast.info(`Desfez: ${actionLabel}`); 
+          toast.info(`${t('global.undo')}: ${t(actionLabel)}`);
         }
       }
     }

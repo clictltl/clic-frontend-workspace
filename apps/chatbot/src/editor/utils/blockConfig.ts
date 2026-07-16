@@ -12,7 +12,7 @@ import {
 import type { BlockType } from '@/shared/types/chatbot';
 
 export interface BlockVisualConfig {
-  title: string;
+  titleKey: string;
   color: string;
   icon: any;
 }
@@ -20,47 +20,47 @@ export interface BlockVisualConfig {
 // Mapeamento central de todas as propriedades visuais dos blocos
 export const BLOCK_CONFIG: Record<BlockType, BlockVisualConfig> = {
   start: {
-    title: 'Início',
+    titleKey: 'chatbot.blocks.start',
     color: '#10b981',
     icon: Play
   },
   message: {
-    title: 'Mensagem',
+    titleKey: 'chatbot.blocks.message',
     color: '#3b82f6',
     icon: MessageSquare
   },
   openQuestion: {
-    title: 'Pergunta Aberta',
+    titleKey: 'chatbot.blocks.openQuestion',
     color: '#fb923c',
     icon: CircleHelp
   },
   choiceQuestion: {
-    title: 'Múltipla Escolha',
+    titleKey: 'chatbot.blocks.choiceQuestion',
     color: '#facc15',
     icon: ListChecks
   },
   condition: {
-    title: 'Condicional',
+    titleKey: 'chatbot.blocks.condition',
     color: '#a855f7',
     icon: Split
   },
   setVariable: {
-    title: 'Definir Variável',
+    titleKey: 'chatbot.blocks.setVariable',
     color: '#06b6d4',
     icon: Box
   },
   math: {
-    title: 'Operação Matemática',
+    titleKey: 'chatbot.blocks.math',
     color: '#38bdf8',
     icon: Calculator
   },
   image: {
-    title: 'Imagem',
+    titleKey: 'chatbot.blocks.image',
     color: '#f472b6',
     icon: ImageIcon
   },
   end: {
-    title: 'Fim da Conversa',
+    titleKey: 'chatbot.blocks.end',
     color: '#ef4444',
     icon: CircleCheck
   }

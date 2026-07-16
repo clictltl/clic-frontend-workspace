@@ -20,12 +20,16 @@ import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
 import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
 import appLogo from '@/assets/logo_novelo.svg'
-import { BLOCK_CONFIG, CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
+import { CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
 import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
+import { useBlockUI } from '@/editor/composables/useBlockUI';
 
 const store = useProjectStore();
 const projects = useProjects();
 const assetStore = useAssetStore();
+const { t } = useI18n();
+const { getBlockTitle, getBlockColor, getBlockIcon } = useBlockUI();
 
 // Ativa os atalhos globais de Undo/Redo (Ctrl+Z) para o Chatbot
 useHistoryShortcuts(store);
@@ -83,7 +87,7 @@ onMounted(async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   } else if (previewId) {
     const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert("Acesso negado ou falha ao carregar projeto.");
+    if (!success) alert(t('chatbot.messages.preview_denied'));
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
@@ -246,7 +250,7 @@ function duplicateBlock() {
 function copyBlock() {
    if (!contextMenuBlockId.value) return;
 
-  // ✅ nunca copiar o start
+  // nunca copiar o start
   if (contextMenuBlockId.value === 'start') {
     closeContextMenu();
     return;
@@ -332,7 +336,7 @@ async function handleLoginSuccess() {
     <AppHeader title="Novelo" :app-logo="appLogo" guide-url="https://docs.google.com/presentation/d/12zqJqZYmpS43mbEpfiKqOnS-Pu9QiwUcCj9ydMrnBJ8/edit?usp=sharing">
       <template #file-menu>
         <FileMenu 
-          item-name="Chatbot"
+          :item-name="t('global.project')"
           file-extension=".cnv"
           file-accept=".cnv"
           :projectsStore="projects"
@@ -381,17 +385,17 @@ async function handleLoginSuccess() {
             @click="createBlock(type)" 
             class="block-menu-item"
           >
-            <span class="block-icon" :style="{ background: BLOCK_CONFIG[type].color }">
-              <component :is="BLOCK_CONFIG[type].icon" :size="14" color="#ffffff" />
+            <span class="block-icon" :style="{ background: getBlockColor(type) }">
+              <component :is="getBlockIcon(type)" :size="14" color="#ffffff" />
             </span>
-            {{ BLOCK_CONFIG[type].title }}
+            {{ getBlockTitle(type) }}
           </button>
 
           <button v-if="hasCopiedBlock" @click="pasteBlock" class="block-menu-item paste-item">
             <span class="block-icon" style="background: #6366f1;">
               <ClipboardPaste :size="14" color="#ffffff" />
             </span>
-            Colar Bloco
+            {{ t('chatbot.editor.context_menu.paste') }}
           </button>
         </div>
       </div>
@@ -409,20 +413,20 @@ async function handleLoginSuccess() {
       <template v-if="contextMenuBlockId !== 'start'">
         <button @click="duplicateBlock" class="context-menu-item">
           <Zap :size="16" />
-          Duplicar
+          {{ t('chatbot.editor.context_menu.duplicate') }}
         </button>
         <button @click="copyBlock" class="context-menu-item">
           <Copy :size="16" />
-          Copiar
+          {{ t('chatbot.editor.context_menu.copy') }}
         </button>
         <button @click="deleteBlockFromMenu" class="context-menu-item delete">
           <Trash2 :size="16" />
-          Deletar
+          {{ t('chatbot.editor.context_menu.delete') }}
         </button>
       </template>
 
       <div v-else class="context-menu-empty">
-        Sem ações disponíveis
+        {{ t('chatbot.editor.context_menu.no_actions') }}
       </div>
     </div>
 
@@ -436,19 +440,19 @@ async function handleLoginSuccess() {
             :class="['tab', { active: activeTab === 'properties' }]"
             @click="activeTab = 'properties'"
           >
-            <Wrench :size="16" /> Bloco
+            <Wrench :size="16" /> {{ t('chatbot.editor.tabs.block') }}
           </button>
           <button
             :class="['tab', { active: activeTab === 'variables' }]"
             @click="activeTab = 'variables'"
           >
-            <Box :size="16" /> Variáveis
+            <Box :size="16" /> {{ t('chatbot.editor.tabs.variables') }}
           </button>
           <button
             :class="['tab', { active: activeTab === 'preview' }]"
             @click="activeTab = 'preview'"
           >
-            <Eye :size="16" /> Preview
+            <Eye :size="16" /> {{ t('chatbot.editor.tabs.preview') }}
           </button>
         </div>
 
@@ -481,7 +485,7 @@ async function handleLoginSuccess() {
 
     <ToastContainer />
 
-    <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Chatbot" @close="handleCloseInvalidShareModal" />
+    <InvalidShareLinkModal v-if="showInvalidShareModal" :item-name="t('global.project')" @close="handleCloseInvalidShareModal" />
 
   </div>
 </template>
