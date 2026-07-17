@@ -87,7 +87,7 @@ onMounted(async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   } else if (previewId) {
     const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert(t('chatbot.messages.preview_denied'));
+    if (!success) alert(t('global.messages.preview_denied'));
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 

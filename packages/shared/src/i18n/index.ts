@@ -3,7 +3,7 @@ import ptBR from './locales/pt-BR';
 import en from './locales/en';
 
 // Feature Flag para exibir ou ocultar o seletor no Header na produção
-export const ENABLE_LANGUAGE_SWITCHER = false; // TODO: Mudar para true quando a tradução do 'en' estiver pronta
+export const ENABLE_LANGUAGE_SWITCHER = true; // TODO: Mudar para true quando a tradução do 'en' estiver pronta
 
 // ==============================================================================
 // 1. A Fonte Única de Verdade

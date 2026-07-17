@@ -35,7 +35,7 @@ export const useProjectStore = defineStore('emoji-coder-project', {
     ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
-      updateConfig: 'Alteração na Grade',
+      updateConfig: 'emojiCoder.history.updateConfig',
       // Não rastrearemos blocos aqui, pois o Blockly já tem seu próprio Undo/Redo nativo!
     }
   },

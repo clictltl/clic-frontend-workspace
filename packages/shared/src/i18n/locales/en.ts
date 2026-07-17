@@ -195,7 +195,8 @@ export default {
     share_load_error: 'Error loading share',
     form_load_error: 'Error loading form',
     submit_response_error: 'Error submitting response',
-    fetch_responses_error: 'Error fetching responses'
+    fetch_responses_error: 'Error fetching responses',
+    preview_denied: 'Access denied or failed to load project.',
   },
   
   chatbot: {
@@ -307,9 +308,6 @@ export default {
       error_invalid: 'Invalid name. Use only letters, numbers, and underscore. Cannot start with a number.',
       confirm_delete: 'Do you want to remove the variable "{name}"?'
     },
-    messages: {
-      preview_denied: 'Access denied or failed to load project.'
-    },
     runtime: {
       errors: {
         BLOCK_NOT_FOUND: 'Flow error: block not found.',
@@ -367,7 +365,150 @@ export default {
     }
   },
 
-  graphBuilder: {},
+  graphBuilder: {
+    editor: {
+      edit: 'Edit',
+      preview: 'Preview'
+    },
+    board: {
+      title_placeholder: 'Your Project Title...',
+      new_category: 'New Category'
+    },
+    category: {
+      form_powered: 'Form powered',
+      check_answers: 'Check new answers',
+      edit_category: 'Edit Category',
+      new_answers: 'new answers',
+      importing: 'Importing...',
+      import: 'Import',
+      add_item: '+ Add Item'
+    },
+    categoryModal: {
+      title_edit: 'Edit Category',
+      title_new: 'New Category',
+      label_name: 'Name',
+      placeholder_name: 'E.g.: Introduction, Examples...',
+      label_color: 'Color',
+      color_used: 'Already used',
+      color_custom: 'Custom:',
+      color_click_pick: 'Click to choose a color',
+      color_open_picker: 'Open color picker',
+      form_use: 'Use a form in this category',
+      form_exists_tooltip: 'This category already has a linked form',
+      form_lock_notice: 'Active form link. To remove it, delete the category.',
+      form_default_question: 'What is your name?',
+      form_question_label: 'Form Question',
+      form_question_placeholder: 'E.g.: What is your name?',
+      form_connect_categories: 'Connect with Categories:',
+      link_warning_save: 'Warning: To generate the public link, save the category and project to the cloud.',
+      link_checking: 'Checking link status...',
+      link_hint: 'The configuration travels with the file. Activate the link to start receiving data from this class.',
+      link_processing: 'Processing...',
+      link_activate: 'Activate Public Link',
+      link_active_label: 'Link Active and receiving responses',
+      link_copy: 'Copy link',
+      link_open_form: 'Open Form',
+      link_deactivate: 'Deactivate Link',
+      link_copied: 'Link copied!',
+      create_failed: 'Failed to create category.',
+      server_error: 'Error connecting to the server.',
+      delete_confirm: 'Delete the category "{name}" and ALL its items?',
+      btn_create: 'Create'
+    },
+    contentEditor: {
+      editing: 'Editing:',
+      hide_preview: 'Hide Preview',
+      show_preview: 'Show Preview',
+      cancel_close: 'Cancel and Close',
+      placeholder: '# Start writing here...',
+      format_bold: 'Bold',
+      format_italic: 'Italic',
+      format_heading: 'Heading',
+      format_list: 'Bulleted List',
+      format_ordered: 'Numbered List',
+      format_link: 'Link',
+      format_image: 'Image',
+      format_quote: 'Quote'
+    },
+    properties: {
+      empty_state: 'Select an item to edit',
+      title: 'Edit Item',
+      delete_tooltip: 'Delete item',
+      delete_confirm: 'Are you sure you want to delete this item?',
+      label_title: 'Title',
+      placeholder_title: 'Item name',
+      label_content: 'Content',
+      help_content: 'Content is edited in full screen for better focus.',
+      btn_edit_content: 'Edit Content',
+      label_connections: 'Connections',
+      hint_connections: 'No other items available to connect (create items in other categories).'
+    },
+    node: {
+      default_title: 'New Item',
+      no_name: 'No name'
+    },
+    runtime: {
+      navigation: {
+        index_label: 'Index',
+        global_map: 'View Global Map',
+        empty_category: '(Empty)'
+      },
+      references: {
+        title: 'Connections',
+        empty: 'No connections found.',
+        unknown_category: 'Unknown'
+      },
+      form: {
+        fallback_option: 'Option',
+        error_submit: 'Error submitting response.',
+        success_title: 'Response Sent!',
+        success_message: 'Thank you, {name}. Your response has been recorded in the system.',
+        btn_submit_another: 'Submit another response',
+        survey_title: 'Survey',
+        survey_desc: 'Fill out the fields below to participate in the mapping.',
+        default_name_label: 'What is your name?',
+        placeholder_name: 'Type your response...',
+        choose_option: 'Choose an option from: {category}',
+        btn_submitting: 'Submitting...',
+        btn_submit: 'Submit Response'
+      },
+      reader: {
+        empty_project: 'The project is empty.',
+        global_map_title: 'Global Connections Map',
+        global_map_desc: 'Explore the map and click on an item to discover more.',
+        connections_label: 'Connections:',
+        level_label: 'Level',
+        level_all: 'All',
+        btn_collapse: 'Collapse',
+        btn_expand: 'Expand',
+        no_content: 'No content written.'
+      }
+    },
+    messages: {
+      invalid_token: 'Graph not found or invalid link.',
+      form_not_found: 'This form does not exist or has been disabled by the teacher.',
+      invalid_data: 'Data file is corrupted.',
+      network_error: 'Connection error. Check your internet.',
+      unknown_error: 'An unknown error occurred.',
+      loading: 'Loading...',
+      oops: 'Oops!'
+    },
+    history: {
+      updateTitle: 'Graph Title Update',
+      saveNodeContent: 'Content Edit',
+      addNode: 'Item Creation',
+      deleteNode: 'Item Deletion',
+      updateNode: 'Item Update',
+      reorderNodesInCategory: 'Item Reorder',
+      addCategory: 'Category Creation',
+      deleteCategory: 'Category Deletion',
+      updateCategory: 'Category Update',
+      reorderCategories: 'Category Reorder',
+      addEdge: 'Connection Creation',
+      removeEdge: 'Connection Removal',
+      updateCategoryFormConfig: 'Form Configuration'
+    }
+  },
 
   emojiCoder: {
     setup: {
@@ -401,7 +542,6 @@ export default {
     },
     messages: {
       unsaved_confirm: 'You have unsaved changes. Do you really want to go back to the start and lose your progress?',
-      preview_denied: 'Access denied or failed to load project.',
       loading_project: 'Loading Project...',
       oops: 'Oops!',
       invalid_token: 'Project not found or invalid link.',
@@ -550,6 +690,9 @@ export default {
           success: 'Incredible! You colored the letter E completely!'
         }
       }
+    },
+    history: {
+      updateConfig: 'Grid change',
     }
   }
 };

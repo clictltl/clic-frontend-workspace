@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Trash2, MousePointerClick, ChevronRight, FileEdit } from '@lucide/vue';
 import ContentEditorModal from '../modals/ContentEditorModal.vue';
 
+const { t } = useI18n();
 const store = useProjectStore();
 
 // O nó atualmente selecionado
@@ -81,7 +83,7 @@ const handleTitleCommit = (e: Event) => {
 };
 
 const handleDelete = () => {
-  if (activeNode.value && confirm('Tem certeza que deseja excluir este item?')) {
+  if (activeNode.value && confirm(t('graphBuilder.properties.delete_confirm'))) {
     store.deleteNode(activeNode.value.id);
   }
 };
@@ -99,16 +101,16 @@ watch(() => activeNode.value?.id, () => {
     <!-- Estado: Nenhum nó selecionado -->
     <div v-if="!activeNode" class="empty-state">
       <MousePointerClick class="empty-icon" />
-      <p>Selecione um item para editar</p>
+      <p>{{ t('graphBuilder.properties.empty_state') }}</p>
     </div>
 
     <!-- Estado: Editando nó -->
     <div v-else class="edit-form">
       <div class="header">
         <div class="header-title">
-          <h2>Editar Item</h2>
+          <h2>{{ t('graphBuilder.properties.title') }}</h2>
         </div>
-        <button class="btn-delete" @click="handleDelete" title="Excluir item">
+        <button class="btn-delete" @click="handleDelete" :title="t('graphBuilder.properties.delete_tooltip')">
           <Trash2 class="icon-trash" />
         </button>
       </div>
@@ -116,38 +118,38 @@ watch(() => activeNode.value?.id, () => {
       <div class="scrollable-content">
         <!-- Campo Título -->
         <div class="form-group">
-          <label>Título</label>
+          <label>{{ t('graphBuilder.properties.label_title') }}</label>
           <input 
             :value="activeNode.title" 
             @input="handleTitleInput"
             @change="handleTitleCommit"
             type="text" 
-            placeholder="Nome do conceito"
+            :placeholder="t('graphBuilder.properties.placeholder_title')"
             class="input-title"
           />
         </div>
 
         <!-- Campo Conteúdo -->
         <div class="form-group">
-          <label>Conteúdo</label>
+          <label>{{ t('graphBuilder.properties.label_content') }}</label>
           <div class="content-actions">
             <p class="help-text">
-              O conteúdo é editado em tela cheia para melhor foco.
+              {{ t('graphBuilder.properties.help_content') }}
             </p>
             <button class="btn-open-editor" @click="showEditor = true">
               <FileEdit class="icon-btn" />
-              Editar Conteúdo
+              {{ t('graphBuilder.properties.btn_edit_content') }}
             </button>
           </div>
         </div>
 
         <!-- Lista de Conexões (Novo Layout) -->
         <div class="form-group connections-section">
-          <label>Conexões</label>
+          <label>{{ t('graphBuilder.properties.label_connections') }}</label>
           <div class="connections-container">
             
             <p v-if="connectionGroups.length === 0" class="hint">
-              Nenhum outro item disponível para conectar (crie itens em outras categorias).
+              {{ t('graphBuilder.properties.hint_connections') }}
             </p>
 
             <div 

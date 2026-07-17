@@ -1,10 +1,12 @@
 <!-- src/runtime/components/ReferencesPanel.vue -->
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import type { Node } from '@/shared/types';
 import { Link2 } from '@lucide/vue'; // Ícone de link
 
+const { t } = useI18n();
 const store = useProjectStore();
 
 // Computa os grupos de referências baseados no nó selecionado
@@ -45,7 +47,7 @@ const referenceGroups = computed(() => {
   return Object.keys(groups).map(catId => {
     const category = store.project.categories[catId];
     return {
-      category: category || { name: 'Desconhecido', color: '#ccc', id: 'unknown' },
+      category: category || { name: t('graphBuilder.runtime.references.unknown_category'), color: '#ccc', id: 'unknown' },
       nodes: groups[catId]
     };
   }).sort((a, b) => a.category.name.localeCompare(b.category.name));
@@ -61,13 +63,13 @@ const handleNavigate = (nodeId: string) => {
     <div class="panel-header">
       <h3>
         <Link2 class="icon-sm" />
-        Conexões
+        {{ t('graphBuilder.runtime.references.title') }}
       </h3>
     </div>
 
     <div class="panel-content">
       <div v-if="referenceGroups.length === 0" class="empty-state">
-        Nenhuma conexão encontrada.
+        {{ t('graphBuilder.runtime.references.empty') }}
       </div>
 
       <div 

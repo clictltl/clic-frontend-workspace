@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import Navigation from '../components/Navigation.vue';
 import GraphCanvas from '../components/GraphCanvas.vue';
@@ -8,6 +9,7 @@ import { Maximize2, Minimize2 } from '@lucide/vue';
 import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
 
 const props = defineProps<{ isPreview?: boolean }>();
+const { t } = useI18n();
 const store = useProjectStore();
 
 // Sincronização: Hash do Navegador -> Store (Lida com o botão "Voltar" e Links Diretos)
@@ -93,15 +95,15 @@ watch(activeNode, (newVal) => {
       
       <!-- CASO 1: Vazio -->
       <div v-if="isEmpty" class="empty-msg">
-        O projeto está vazio.
+        {{ t('graphBuilder.runtime.reader.empty_project') }}
       </div>
 
       <!-- CASO 2: Home View (Grafo Global) -->
       <div v-else-if="!activeNode" class="home-view">
         <div class="home-header">
-          <h1>Mapa Global de Conexões</h1>
+          <h1>{{ t('graphBuilder.runtime.reader.global_map_title') }}</h1>
           <span class="header-divider">—</span>
-          <p>Explore o mapa e clique em um item para descobrir mais.</p>
+          <p>{{ t('graphBuilder.runtime.reader.global_map_desc') }}</p>
         </div>
         <div class="full-graph-container">
           <GraphCanvas :force-global="true" />
@@ -115,11 +117,11 @@ watch(activeNode, (newVal) => {
         <div class="graph-section" :class="{ 'expanded': isGraphExpanded }">
           
           <div class="graph-controls">
-            <span class="label">Conexões:</span>
+            <span class="label">{{ t('graphBuilder.runtime.reader.connections_label') }}</span>
             
             <!-- Slider -->
             <div class="slider-container">
-              <span class="small-label">Nível</span>
+              <span class="small-label">{{ t('graphBuilder.runtime.reader.level_label') }}</span>
               <input 
                 type="range" 
                 min="1" 
@@ -127,7 +129,7 @@ watch(activeNode, (newVal) => {
                 step="1" 
                 v-model.number="graphDepth"
               />
-              <span class="small-label">{{ graphDepth >= 5 ? 'Todos' : graphDepth }}</span>
+              <span class="small-label">{{ graphDepth >= 5 ? t('graphBuilder.runtime.reader.level_all') : graphDepth }}</span>
             </div>
 
             <div class="spacer"></div>
@@ -136,11 +138,11 @@ watch(activeNode, (newVal) => {
             <button 
               class="btn-expand" 
               @click="isGraphExpanded = !isGraphExpanded"
-              :title="isGraphExpanded ? 'Reduzir' : 'Expandir'"
+              :title="isGraphExpanded ? t('graphBuilder.runtime.reader.btn_collapse') : t('graphBuilder.runtime.reader.btn_expand')"
             >
               <Minimize2 v-if="isGraphExpanded" class="icon-xs" />
               <Maximize2 v-else class="icon-xs" />
-              <span>{{ isGraphExpanded ? 'Reduzir' : 'Expandir' }}</span>
+              <span>{{ isGraphExpanded ? t('graphBuilder.runtime.reader.btn_collapse') : t('graphBuilder.runtime.reader.btn_expand') }}</span>
             </button>
           </div>
 
@@ -160,7 +162,7 @@ watch(activeNode, (newVal) => {
               v-if="activeNodeContent" 
               :source="activeNodeContent" 
             />
-            <p v-else class="no-content">Sem conteúdo escrito.</p>
+            <p v-else class="no-content">{{ t('graphBuilder.runtime.reader.no_content') }}</p>
           </div>
         </article>
 

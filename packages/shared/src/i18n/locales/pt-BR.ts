@@ -196,7 +196,8 @@ export default {
     share_load_error: 'Erro ao carregar compartilhamento',
     form_load_error: 'Erro ao carregar formulário',
     submit_response_error: 'Erro ao enviar resposta',
-    fetch_responses_error: 'Erro ao buscar respostas'
+    fetch_responses_error: 'Erro ao buscar respostas',
+    preview_denied: 'Acesso negado ou falha ao carregar projeto.',
   },
   
   chatbot: {
@@ -308,9 +309,6 @@ export default {
       error_invalid: 'Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.',
       confirm_delete: 'Deseja remover a variável "{name}"?'
     },
-    messages: {
-      preview_denied: 'Acesso negado ou falha ao carregar projeto.'
-    },
     runtime: {
       errors: {
         BLOCK_NOT_FOUND: 'Erro de fluxo: bloco não encontrado.',
@@ -368,7 +366,150 @@ export default {
     }
   },
 
-  graphBuilder: {},
+  graphBuilder: {
+    editor: {
+      edit: 'Editar',
+      preview: 'Visualizar'
+    },
+    board: {
+      title_placeholder: 'Título do seu Projeto...',
+      new_category: 'Nova Categoria'
+    },
+    category: {
+      form_powered: 'Alimentada por formulário',
+      check_answers: 'Verificar novas respostas',
+      edit_category: 'Editar Categoria',
+      new_answers: 'novas respostas',
+      importing: 'Importando...',
+      import: 'Importar',
+      add_item: '+ Adicionar Item'
+    },
+    categoryModal: {
+      title_edit: 'Editar Categoria',
+      title_new: 'Nova Categoria',
+      label_name: 'Nome',
+      placeholder_name: 'Ex: Introdução, Exemplos...',
+      label_color: 'Cor',
+      color_used: 'Já utilizada',
+      color_custom: 'Personalizado:',
+      color_click_pick: 'Clique para escolher uma cor',
+      color_open_picker: 'Abrir seletor de cores',
+      form_use: 'Utilizar formulário nesta categoria',
+      form_exists_tooltip: 'Esta categoria já possui um formulário vinculado',
+      form_lock_notice: 'Vínculo com formulário ativo. Para remover, exclua a categoria.',
+      form_default_question: 'Qual o seu nome?',
+      form_question_label: 'Pergunta do Formulário',
+      form_question_placeholder: 'Ex: Qual seu nome?',
+      form_connect_categories: 'Conectar com Categorias:',
+      link_warning_save: 'Atenção: Para gerar o link público, salve a categoria e o projeto na nuvem.',
+      link_checking: 'Verificando status do link...',
+      link_hint: 'A configuração viaja com o arquivo. Ative o link para começar a receber dados desta turma.',
+      link_processing: 'Processando...',
+      link_activate: 'Ativar Link Público',
+      link_active_label: 'Link Ativo e recebendo respostas',
+      link_copy: 'Copiar link',
+      link_open_form: 'Abrir Form',
+      link_deactivate: 'Desativar Link',
+      link_copied: 'Link copiado!',
+      create_failed: 'Falha ao criar categoria.',
+      server_error: 'Erro ao conectar com o servidor.',
+      delete_confirm: 'Excluir a categoria "{name}" e TODOS os seus itens?',
+      btn_create: 'Criar'
+    },
+    contentEditor: {
+      editing: 'Editando:',
+      hide_preview: 'Esconder Preview',
+      show_preview: 'Mostrar Preview',
+      cancel_close: 'Cancelar e Fechar',
+      placeholder: '# Comece a escrever aqui...',
+      format_bold: 'Negrito',
+      format_italic: 'Itálico',
+      format_heading: 'Título',
+      format_list: 'Lista',
+      format_ordered: 'Numérica',
+      format_link: 'Link',
+      format_image: 'Imagem',
+      format_quote: 'Citação'
+    },
+    properties: {
+      empty_state: 'Selecione um item para editar',
+      title: 'Editar Item',
+      delete_tooltip: 'Excluir item',
+      delete_confirm: 'Tem certeza que deseja excluir este item?',
+      label_title: 'Título',
+      placeholder_title: 'Nome do item',
+      label_content: 'Conteúdo',
+      help_content: 'O conteúdo é editado em tela cheia para melhor foco.',
+      btn_edit_content: 'Editar Conteúdo',
+      label_connections: 'Conexões',
+      hint_connections: 'Nenhum outro item disponível para conectar (crie itens em outras categorias).'
+    },
+    node: {
+      default_title: 'Novo Item',
+      no_name: 'Sem nome'
+    },
+    runtime: {
+      navigation: {
+        index_label: 'Índice',
+        global_map: 'Ver Mapa Global',
+        empty_category: '(Vazio)'
+      },
+      references: {
+        title: 'Conexões',
+        empty: 'Nenhuma conexão encontrada.',
+        unknown_category: 'Desconhecido'
+      },
+      form: {
+        fallback_option: 'Opção',
+        error_submit: 'Erro ao enviar resposta.',
+        success_title: 'Resposta Enviada!',
+        success_message: 'Obrigado, {name}. Sua resposta foi registrada no sistema.',
+        btn_submit_another: 'Enviar outra resposta',
+        survey_title: 'Pesquisa',
+        survey_desc: 'Preencha os campos abaixo para participar do mapeamento.',
+        default_name_label: 'Qual o seu nome?',
+        placeholder_name: 'Digite sua resposta...',
+        choose_option: 'Escolha uma opção de: {category}',
+        btn_submitting: 'Enviando...',
+        btn_submit: 'Enviar Resposta'
+      },
+      reader: {
+        empty_project: 'O projeto está vazio.',
+        global_map_title: 'Mapa Global de Conexões',
+        global_map_desc: 'Explore o mapa e clique em um item para descobrir mais.',
+        connections_label: 'Conexões:',
+        level_label: 'Nível',
+        level_all: 'Todos',
+        btn_collapse: 'Reduzir',
+        btn_expand: 'Expandir',
+        no_content: 'Sem conteúdo escrito.'
+      }
+    },
+    messages: {
+      invalid_token: 'Grafo não encontrado ou link inválido.',
+      form_not_found: 'Este formulário não existe ou foi desativado pelo professor.',
+      invalid_data: 'O arquivo de dados está corrompido.',
+      network_error: 'Erro de conexão. Verifique sua internet.',
+      unknown_error: 'Ocorreu um erro desconhecido.',
+      loading: 'Carregando...',
+      oops: 'Ops!'
+    },
+    history: {
+      updateTitle: 'Alteração do título do grafo',
+      saveNodeContent: 'Edição do conteúdo',
+      addNode: 'Criação de item',
+      deleteNode: 'Exclusão de item',
+      updateNode: 'Atualização de item',
+      reorderNodesInCategory: 'Reordenação de item',
+      addCategory: 'Criação de categoria',
+      deleteCategory: 'Exclusão de categoria',
+      updateCategory: 'Atualização de categoria',
+      reorderCategories: 'Reordenação de categoria',
+      addEdge: 'Conexão',
+      removeEdge: 'Remoção de conexão',
+      updateCategoryFormConfig: 'Configuração de Formulário'
+    }
+  },
 
   emojiCoder: {
     setup: {
@@ -402,7 +543,6 @@ export default {
     },
     messages: {
       unsaved_confirm: 'Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?',
-      preview_denied: 'Acesso negado ou falha ao carregar projeto.',
       loading_project: 'Carregando Projeto...',
       oops: 'Ops!',
       invalid_token: 'Projeto não encontrado ou link inválido.',
@@ -551,6 +691,9 @@ export default {
           success: 'Incrível! Você coloriu a letra E completamente!'
         }
       }
+    },
+    history: {
+      updateConfig: 'Alteração na Grade',
     }
   }
 };

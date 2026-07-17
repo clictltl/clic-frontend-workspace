@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
@@ -9,6 +10,7 @@ import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, u
 import { Pencil, Eye } from '@lucide/vue';
 import appLogo from '@/assets/logo_grafite.svg';
 
+const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
 
@@ -102,7 +104,7 @@ onUnmounted(() => {
     <AppHeader title="Grafite" :app-logo="appLogo">
       <template #file-menu>
         <FileMenu 
-          item-name="Grafo"
+          :item-name="t('global.project')"
           file-extension=".cgr"
           file-accept=".cgr"
           :projectsStore="projects"
@@ -131,11 +133,11 @@ onUnmounted(() => {
       @click="isPreview = !isPreview"
     >
       <component :is="isPreview ? Pencil : Eye" class="icon-fab" />
-      <span class="label">{{ isPreview ? 'Editar' : 'Visualizar' }}</span>
+      <span class="label">{{ isPreview ? t('graphBuilder.editor.edit') : t('graphBuilder.editor.preview') }}</span>
     </button>
 
     <ToastContainer />
-    <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Grafo" @close="showInvalidShareModal = false" />
+    <InvalidShareLinkModal v-if="showInvalidShareModal" :item-name="t('global.project')" @close="showInvalidShareModal = false" />
   </div>
 </template>
 

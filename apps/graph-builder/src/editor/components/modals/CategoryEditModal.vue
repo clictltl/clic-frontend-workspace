@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Category, CategoryFormConfig } from '@/shared/types';
 import { useProjectStore, CATEGORY_COLORS } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -8,6 +9,7 @@ import { Palette, Hash, Copy, ExternalLink, Settings2, Link, Unlink, Loader2 } f
 const props = defineProps<{ category?: Category; }>();
 const emit = defineEmits(['close']);
 
+const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
 const isEditing = computed(() => !!props.category);
@@ -28,7 +30,7 @@ const colorInputRef = ref<HTMLInputElement | null>(null);
 
 // --- ESTADO DO FORMULÁRIO (Configuração Local do JSON) ---
 const formEnabled = ref(props.category?.formConfig?.enabled || false);
-const formNameFieldLabel = ref(props.category?.formConfig?.nameFieldLabel || 'Qual o seu nome?');
+const formNameFieldLabel = ref(props.category?.formConfig?.nameFieldLabel || t('graphBuilder.categoryModal.form_default_question'));
 const formTargetCategories = ref<string[]>(props.category?.formConfig?.targetCategories ||[]);
 
 // --- ESTADO DO SERVIDOR (Efêmero, não vai pro JSON) ---
@@ -72,7 +74,7 @@ const openNativePicker = () => colorInputRef.value?.click();
 
 const copyLink = () => {
   navigator.clipboard.writeText(formUrl.value);
-  alert('Link copiado!');
+  alert(t('graphBuilder.categoryModal.link_copied'));
 };
 
 // 1. AÇÃO LOCAL: Apenas salva a intenção e a configuração no arquivo (Pinia)
@@ -87,7 +89,7 @@ const handleSave = () => {
     } else {
       store.addCategory(categoryName.value, categoryColor.value);
       const newCategory = Object.values(store.project.categories).find(c => c.name === categoryName.value);
-      if (!newCategory) throw new Error("Falha ao criar categoria.");
+      if (!newCategory) throw new Error(t('graphBuilder.categoryModal.create_failed'));
       categoryId = newCategory.id;
     }
 
@@ -134,7 +136,7 @@ const handleToggleLink = async (activate: boolean) => {
       }
     }
   } catch (e: any) {
-    alert(e.message || "Erro ao conectar com o servidor.");
+    alert(e.message || t('graphBuilder.categoryModal.server_error'));
   } finally {
     isTogglingLink.value = false;
   }
@@ -142,7 +144,7 @@ const handleToggleLink = async (activate: boolean) => {
 
 const handleDelete = () => {
   if (isEditing.value && props.category) {
-    if (confirm(`Excluir a categoria "${categoryName.value}" e TODOS os seus itens?`)) {
+    if (confirm(t('graphBuilder.categoryModal.delete_confirm', { name: categoryName.value }))) {
       store.deleteCategory(props.category.id);
       emit('close');
     }
@@ -153,7 +155,7 @@ const handleDelete = () => {
 <template>
   <div class="modal-backdrop" @click.self="emit('close')">
     <div class="modal-card">
-      <h3>{{ isEditing ? 'Editar Categoria' : 'Nova Categoria' }}</h3>
+      <h3>{{ isEditing ? t('graphBuilder.categoryModal.title_edit') : t('graphBuilder.categoryModal.title_new') }}</h3>
 
       <div class="form-group">
         <label>Nome</label>
@@ -161,13 +163,13 @@ const handleDelete = () => {
           ref="nameInput"
           v-model="categoryName" 
           type="text" 
-          placeholder="Ex: Introdução, Exemplos..." 
+          :placeholder="t('graphBuilder.categoryModal.placeholder_name')"
           @keyup.enter="handleSave"
         />
       </div>
 
       <div class="form-group">
-        <label>Cor</label>
+        <label>{{ t('graphBuilder.categoryModal.label_color') }}</label>
         
         <div class="color-section">
           
@@ -183,13 +185,13 @@ const handleDelete = () => {
                 used: !isEditing && store.usedColors.has(color) && categoryColor !== color 
               }"
               @click="categoryColor = color"
-              :title="(!isEditing && store.usedColors.has(color)) ? 'Já utilizada' : ''"
+              :title="(!isEditing && store.usedColors.has(color)) ? t('graphBuilder.categoryModal.color_used') : ''"
             ></div>
           </div>
 
           <!-- 2. Seletor Personalizado (Padronizado) -->
           <div class="custom-color-control">
-            <span class="label-sm">Personalizado:</span>
+            <span class="label-sm">{{ t('graphBuilder.categoryModal.color_custom') }}</span>
             
             <div class="input-group">
               <!-- Preview Visual -->
@@ -197,7 +199,7 @@ const handleDelete = () => {
                 class="color-preview" 
                 :style="{ backgroundColor: categoryColor }"
                 @click="openNativePicker"
-                title="Clique para escolher uma cor"
+                :title="t('graphBuilder.categoryModal.color_click_pick')"
               ></div>
 
               <!-- Input Hexadecimal (Padrão Universal) -->
@@ -213,7 +215,7 @@ const handleDelete = () => {
               </div>
 
               <!-- Botão Gatilho do Seletor Nativo -->
-              <button class="btn-picker-trigger" @click="openNativePicker" title="Abrir seletor de cores">
+              <button class="btn-picker-trigger" @click="openNativePicker" :title="t('graphBuilder.categoryModal.color_open_picker')">
                 <Palette class="icon-sm" />
               </button>
             </div>
@@ -236,8 +238,8 @@ const handleDelete = () => {
       <div class="form-section">
         <div class="section-header">
           <Settings2 class="icon-xs" />
-          <span>Utilizar formulário nesta categoria</span>
-          <label class="switch" :title="formExists ? 'Esta categoria já possui um formulário vinculado' : ''">
+          <span>{{ t('graphBuilder.categoryModal.form_use') }}</span>
+          <label class="switch" :title="formExists ? t('graphBuilder.categoryModal.form_exists_tooltip') : ''">
             <input 
               type="checkbox" 
               v-model="formEnabled" 
@@ -248,17 +250,17 @@ const handleDelete = () => {
         </div>
 
         <p v-if="formExists" class="lock-notice">
-          Vínculo com formulário ativo. Para remover, exclua a categoria.
+          {{ t('graphBuilder.categoryModal.form_lock_notice') }}
         </p>
 
         <div v-if="formEnabled" class="form-config-box">
           <div class="form-group sm">
-            <label>Pergunta do Formulário</label>
-            <input v-model="formNameFieldLabel" type="text" placeholder="Ex: Qual seu nome?">
+            <label>{{ t('graphBuilder.categoryModal.form_question_label') }}</label>
+            <input v-model="formNameFieldLabel" type="text" :placeholder="t('graphBuilder.categoryModal.form_question_placeholder')">
           </div>
 
           <div class="form-group sm">
-            <label>Conectar com Categorias:</label>
+            <label>{{ t('graphBuilder.categoryModal.form_connect_categories') }}</label>
             <div class="target-list">
               <label v-for="cat in eligibleCategories" :key="cat.id" class="target-item">
                 <input type="checkbox" :value="cat.id" v-model="formTargetCategories">
@@ -271,32 +273,32 @@ const handleDelete = () => {
           <div class="link-manager">
             
             <div v-if="!canActivateLink" class="warning-box">
-              Atenção: Para gerar o link público, salve a categoria e o projeto na nuvem.
+              {{ t('graphBuilder.categoryModal.link_warning_save') }}
             </div>
             
             <!-- Estado de Carregamento da API -->
             <div v-else-if="isLoadingStatus" class="loading-status-box">
               <Loader2 class="icon-spin icon-sm" />
-              <span>Verificando status do link...</span>
+              <span>{{ t('graphBuilder.categoryModal.link_checking') }}</span>
             </div>
 
             <div v-else>
               <div v-if="!formIsActive" class="activate-box">
-                <p class="hint">A configuração viaja com o arquivo. Ative o link para começar a receber dados desta turma.</p>
+                <p class="hint">{{ t('graphBuilder.categoryModal.link_hint') }}</p>
                 <button class="btn-activate" @click="handleToggleLink(true)" :disabled="isTogglingLink">
-                  <Link class="icon-xs" /> {{ isTogglingLink ? 'Processando...' : 'Ativar Link Público' }}
+                  <Link class="icon-xs" /> {{ isTogglingLink ? t('graphBuilder.categoryModal.link_processing') : t('graphBuilder.categoryModal.link_activate') }}
                 </button>
               </div>
               
               <div v-else class="active-link-box">
-                <label class="active-label">Link Ativo e recebendo respostas</label>
+                <label class="active-label">{{ t('graphBuilder.categoryModal.link_active_label') }}</label>
                 <div class="link-input-group">
                   <input type="text" readonly :value="formUrl">
-                  <button @click="copyLink" title="Copiar link" class="btn-subtle"><Copy class="icon-xs" /></button>
-                  <a :href="formUrl" target="_blank" class="btn-subtle" title="Abrir Form"><ExternalLink class="icon-xs" /></a>
+                  <button @click="copyLink" :title="t('graphBuilder.categoryModal.link_copy')" class="btn-subtle"><Copy class="icon-xs" /></button>
+                  <a :href="formUrl" target="_blank" class="btn-subtle" :title="t('graphBuilder.categoryModal.link_open_form')"><ExternalLink class="icon-xs" /></a>
                 </div>
                 <button class="btn-deactivate" @click="handleToggleLink(false)" :disabled="isTogglingLink">
-                  <Unlink class="icon-xs" /> Desativar Link
+                  <Unlink class="icon-xs" /> {{ t('graphBuilder.categoryModal.link_deactivate') }}
                 </button>
               </div>
             </div>
@@ -307,13 +309,13 @@ const handleDelete = () => {
 
       <div class="actions">
         <!-- Botão excluir só aparece na edição -->
-        <button v-if="isEditing" class="btn-delete" @click="handleDelete">Excluir</button>
+        <button v-if="isEditing" class="btn-delete" @click="handleDelete">{{ t('global.delete') }}</button>
         <div v-else></div> <!-- Spacer -->
 
         <div class="right-actions">
-          <button class="btn-cancel" @click="emit('close')">Cancelar</button>
+          <button class="btn-cancel" @click="emit('close')">{{ t('global.cancel') }}</button>
           <button class="btn-save" @click="handleSave">
-            {{ isEditing ? 'Salvar' : 'Criar' }}
+            {{ isEditing ? t('global.save') : t('graphBuilder.categoryModal.btn_create') }}
           </button>
         </div>
       </div>

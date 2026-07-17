@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Home, ChevronRight } from '@lucide/vue';
 
+const { t } = useI18n();
 const store = useProjectStore();
 
 // Agrupa nós por categoria e garante a ordem visual
@@ -37,7 +39,7 @@ const handleSelect = (nodeId: string) => {
   <aside class="preview-sidebar">
     <div class="sidebar-header">
       <h1 v-if="store.project.title" class="project-title">{{ store.project.title }}</h1>
-      <h2 class="index-label">Índice</h2>
+      <h2 class="index-label">{{ t('graphBuilder.runtime.navigation.index_label') }}</h2>
       <!-- Botão para voltar ao início (Visão Global) -->
       <button 
         v-if="store.selectedNodeId" 
@@ -45,7 +47,7 @@ const handleSelect = (nodeId: string) => {
         @click="store.selectedNodeId = null"
       >
         <Home class="icon-sm" /> 
-        <span>Ver Mapa Global</span>
+        <span>{{ t('graphBuilder.runtime.navigation.global_map') }}</span>
       </button>
     </div>
     
@@ -78,7 +80,7 @@ const handleSelect = (nodeId: string) => {
             {{ node.title }}
           </li>
           <li v-if="cat.nodes.length === 0" class="empty-cat">
-            (Vazio)
+            {{ t('graphBuilder.runtime.navigation.empty_category') }}
           </li>
         </ul>
       </div>

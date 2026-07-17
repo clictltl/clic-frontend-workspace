@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { GraphProject } from '@/shared/types';
 import { Send, CheckCircle } from '@lucide/vue';
 
@@ -8,6 +9,8 @@ const props = defineProps<{
   projectData: GraphProject;     // { categories: [], nodes:[] }
   token: string;
 }>();
+
+const { t } = useI18n();
 
 const isLoading = ref(false);
 const isSuccess = ref(false);
@@ -30,7 +33,7 @@ const questions = computed(() => {
       
     return {
       id: catId,
-      name: category?.name || 'Opção',
+      name: category?.name || t('graphBuilder.runtime.form.fallback_option'),
       color: category?.color || '#3b82f6',
       options
     };
@@ -68,7 +71,7 @@ const submitForm = async () => {
     });
 
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Erro ao enviar resposta.');
+    if (!data.success) throw new Error(data.error || t('graphBuilder.runtime.form.error_submit'));
 
     isSuccess.value = true;
   } catch (err: any) {
@@ -90,27 +93,27 @@ const reloadPage = () => {
       <!-- TELA DE SUCESSO -->
       <div v-if="isSuccess" class="success-screen">
         <CheckCircle class="icon-success" :size="64" />
-        <h2>Resposta Enviada!</h2>
-        <p>Obrigado, {{ studentName }}. Sua resposta foi registrada no sistema.</p>
-        <button class="btn-primary" @click="reloadPage">Enviar outra resposta</button>
+        <h2>{{ t('graphBuilder.runtime.form.success_title') }}</h2>
+        <p>{{ t('graphBuilder.runtime.form.success_message', { name: studentName }) }}</p>
+        <button class="btn-primary" @click="reloadPage">{{ t('graphBuilder.runtime.form.btn_submit_another') }}</button>
       </div>
 
       <!-- TELA DO FORMULÁRIO -->
       <div v-else class="form-content">
         <div class="form-header">
-          <h2>Pesquisa</h2>
-          <p>Preencha os campos abaixo para participar do mapeamento.</p>
+          <h2>{{ t('graphBuilder.runtime.form.survey_title') }}</h2>
+          <p>{{ t('graphBuilder.runtime.form.survey_desc') }}</p>
         </div>
 
         <div v-if="errorMsg" class="error-banner">{{ errorMsg }}</div>
 
         <!-- Pergunta 1: Nome -->
         <div class="question-block">
-          <label class="question-title">{{ formConfig.config.nameFieldLabel || 'Qual o seu nome?' }}</label>
+          <label class="question-title">{{ formConfig.config.nameFieldLabel || t('graphBuilder.runtime.form.default_name_label') }}</label>
           <input 
             type="text" 
             v-model="studentName" 
-            placeholder="Digite sua resposta..." 
+            :placeholder="t('graphBuilder.runtime.form.placeholder_name')" 
             class="input-text"
             :disabled="isLoading"
           />
@@ -124,7 +127,7 @@ const reloadPage = () => {
         >
           <label class="question-title">
             <span class="color-dot" :style="{ backgroundColor: question.color }"></span>
-            Escolha uma opção de: {{ question.name }}
+            {{ t('graphBuilder.runtime.form.choose_option', { category: question.name }) }}
           </label>
           
           <div class="options-grid">
@@ -154,7 +157,7 @@ const reloadPage = () => {
             @click="submitForm"
           >
             <Send v-if="!isLoading" :size="18" />
-            {{ isLoading ? 'Enviando...' : 'Enviar Resposta' }}
+            {{ isLoading ? t('graphBuilder.runtime.form.btn_submitting') : t('graphBuilder.runtime.form.btn_submit') }}
           </button>
         </div>
       </div>

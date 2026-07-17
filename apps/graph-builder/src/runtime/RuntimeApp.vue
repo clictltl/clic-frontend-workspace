@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import ReaderLayout from './layouts/ReaderLayout.vue';
 import FormLayout from './layouts/FormLayout.vue';
 import { ToastContainer, RuntimeHeader } from '@clic/shared';
@@ -7,6 +8,7 @@ import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
 import appLogo from '@/assets/logo_grafite.svg';
 
+const { t } = useI18n();
 const isLoading = ref(true);
 const fatalError = ref<string | null>(null);
 const store = useProjectStore();
@@ -97,15 +99,15 @@ onMounted(() => {
   loadData();
 });
 
-const errorMessage = () => {
+const errorMessageKey = computed(() => {
   switch (fatalError.value) {
-    case 'INVALID_TOKEN': return 'Grafo não encontrado ou link inválido.';
-    case 'FORM_NOT_FOUND': return 'Este formulário não existe ou foi desativado pelo professor.';
-    case 'INVALID_DATA': return 'O arquivo de dados está corrompido.';
-    case 'NETWORK_ERROR': return 'Erro de conexão. Verifique sua internet.';
-    default: return 'Ocorreu um erro desconhecido.';
+    case 'INVALID_TOKEN': return 'graphBuilder.messages.invalid_token';
+    case 'FORM_NOT_FOUND': return 'graphBuilder.messages.form_not_found';
+    case 'INVALID_DATA': return 'graphBuilder.messages.invalid_data';
+    case 'NETWORK_ERROR': return 'graphBuilder.messages.network_error';
+    default: return 'graphBuilder.messages.unknown_error';
   }
-};
+});
 </script>
 
 <template>
@@ -122,14 +124,14 @@ const errorMessage = () => {
     <!-- ESTADO: CARREGANDO -->
     <div v-if="isLoading" class="feedback-screen">
       <Loader2 class="spinner" :size="48" color="#3b82f6" />
-      <p>Carregando...</p>
+      <p>{{ t('graphBuilder.messages.loading') }}</p>
     </div>
 
     <!-- ESTADO: ERRO FATAL -->
     <div v-else-if="fatalError" class="feedback-screen error">
       <AlertCircle :size="48" color="#ef4444" />
-      <h2>Ops!</h2>
-      <p>{{ errorMessage() }}</p>
+      <h2>{{ t('graphBuilder.messages.oops') }}</h2>
+      <p>{{ t(errorMessageKey) }}</p>
     </div>
 
     <!-- ESTADO: SUCESSO (Renderiza baseado na URL) -->

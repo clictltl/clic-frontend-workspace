@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Category } from '@/shared/types';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
@@ -12,6 +13,7 @@ const props = defineProps<{
   category: Category;
 }>();
 
+const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
 
@@ -90,7 +92,7 @@ onUnmounted(() => {
   <div class="category-column">
     <div class="column-header" :style="{ borderTopColor: category.color }">
       <div class="title-wrapper">
-        <Database v-if="isFormEnabled" class="icon-form-indicator" title="Alimentada por formulário" />
+        <Database v-if="isFormEnabled" class="icon-form-indicator" :title="t('graphBuilder.category.form_powered')" />
         <h3 :style="{ color: category.color }">
           {{ category.name }}
         </h3>
@@ -104,12 +106,12 @@ onUnmounted(() => {
           class="btn-icon" 
           @click="checkPendingAnswers" 
           :class="{ 'spinning': isFetching }"
-          title="Verificar novas respostas"
+          :title="t('graphBuilder.category.check_answers')"
         >
           <RefreshCw class="icon-xs" />
         </button>
         
-        <button class="btn-icon" @click="showEditModal = true" title="Editar Categoria">
+        <button class="btn-icon" @click="showEditModal = true" :title="t('graphBuilder.category.edit_category')">
           <Pencil class="icon-xs" />
         </button>
       </div>
@@ -119,11 +121,11 @@ onUnmounted(() => {
     <div v-if="pendingAnswers.length > 0" class="sync-banner">
       <div class="sync-info">
         <span class="sync-count">{{ pendingAnswers.length }}</span>
-        <span class="sync-text">novas respostas</span>
+        <span class="sync-text">{{ t('graphBuilder.category.new_answers') }}</span>
       </div>
       <button class="btn-sync" @click="handleSyncAnswers" :disabled="isSyncing">
         <DownloadCloud class="icon-xs" />
-        {{ isSyncing ? 'Importando...' : 'Importar' }}
+        {{ isSyncing ? t('graphBuilder.category.importing') : t('graphBuilder.category.import') }}
       </button>
     </div>
 
@@ -144,7 +146,7 @@ onUnmounted(() => {
 
     <div class="column-footer">
       <button class="btn-add" @click="handleAddNode">
-        + Adicionar Item
+        {{ t('graphBuilder.category.add_item') }}
       </button>
     </div>
 

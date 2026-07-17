@@ -87,7 +87,7 @@ onMounted(async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   } else if (previewId) {
     const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert(t('emojiCoder.messages.preview_denied'));
+    if (!success) alert(t('global.messages.preview_denied'));
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
@@ -126,7 +126,7 @@ onUnmounted(() => {
     >
       <template #file-menu>
         <FileMenu 
-          item-name="Projeto"
+          :item-name="t('global.project')"
           file-extension=".ccr"
           file-accept=".ccr"
           :projectsStore="projects"
@@ -281,7 +281,7 @@ onUnmounted(() => {
     </main>
 
     <ToastContainer />
-    <InvalidShareLinkModal v-if="showInvalidShareModal" item-name="Projeto" @close="showInvalidShareModal = false" />
+    <InvalidShareLinkModal v-if="showInvalidShareModal" :item-name="t('global.project')" @close="showInvalidShareModal = false" />
   </div>
 </template>
 

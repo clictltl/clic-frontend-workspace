@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import type { GraphProject, Category, Node, Edge, CategoryFormConfig } from '../types';
+import { i18n } from '@clic/shared';
 
 export const CATEGORY_COLORS = [
   '#ef4444', // Red
@@ -50,19 +51,19 @@ export const useProjectStore = defineStore('project', {
     ignoreActions: ['markAsSaved', 'updateNodeSilent', 'updateTitleSilent'],
     clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
     actionLabels: {
-      updateTitle: 'Alteração do título do grafo',
-      saveNodeContent: 'Edição do conteúdo',
-      addNode: 'Criação de item',
-      deleteNode: 'Exclusão de item',
-      updateNode: 'Atualização de item',
-      reorderNodesInCategory: 'Reordenação de item',
-      addCategory: 'Criação de categoria',
-      deleteCategory: 'Exclusão de categoria',
-      updateCategory: 'Atualização de categoria',
-      reorderCategories: 'Reordenação de categoria',
-      addEdge: 'Conexão',
-      removeEdge: 'Remoção de conexão',
-      updateCategoryFormConfig: 'Configuração de Formulário'
+      updateTitle: 'graphBuilder.history.updateTitle',
+      saveNodeContent: 'graphBuilder.history.saveNodeContent',
+      addNode: 'graphBuilder.history.addNode',
+      deleteNode: 'graphBuilder.history.deleteNode',
+      updateNode: 'graphBuilder.history.updateNode',
+      reorderNodesInCategory: 'graphBuilder.history.reorderNodesInCategory',
+      addCategory: 'graphBuilder.history.addCategory',
+      deleteCategory: 'graphBuilder.history.deleteCategory',
+      updateCategory: 'graphBuilder.history.updateCategory',
+      reorderCategories: 'graphBuilder.history.reorderCategories',
+      addEdge: 'graphBuilder.history.addEdge',
+      removeEdge: 'graphBuilder.history.removeEdge',
+      updateCategoryFormConfig: 'graphBuilder.history.updateCategoryFormConfig'
     }
   },
 
@@ -196,7 +197,7 @@ export const useProjectStore = defineStore('project', {
       const newNode: Node = {
         id: id,
         categoryId,
-        title: 'Novo Item',
+        title: i18n.global.t('graphBuilder.node.default_title'),
         content: '',
         order: maxOrder + 1000,
       };
@@ -294,7 +295,7 @@ export const useProjectStore = defineStore('project', {
         const newNode: Node = {
           id: newNodeId,
           categoryId,
-          title: name || 'Sem Nome',
+          title: name || i18n.global.t('graphBuilder.node.no_name'),
           content: '', // Conteúdo inicial vazio
           order: currentMaxOrder,
         };

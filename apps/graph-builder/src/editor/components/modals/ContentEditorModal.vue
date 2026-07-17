@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
 import { 
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['close']);
+const { t } = useI18n();
 const store = useProjectStore();
 
 const content = ref('');
@@ -63,16 +65,16 @@ const insertMarkdown = (prefix: string, suffix: string = '') => {
 
 // Ações da Toolbar
 const actions = [
-  { icon: Bold, label: 'Negrito', action: () => insertMarkdown('**', '**') },
-  { icon: Italic, label: 'Itálico', action: () => insertMarkdown('*', '*') },
-  { icon: Heading, label: 'Título', action: () => insertMarkdown('## ') }, // Título nível 2 padrão
+  { icon: Bold, labelKey: 'graphBuilder.contentEditor.format_bold', action: () => insertMarkdown('**', '**') },
+  { icon: Italic, labelKey: 'graphBuilder.contentEditor.format_italic', action: () => insertMarkdown('*', '*') },
+  { icon: Heading, labelKey: 'graphBuilder.contentEditor.format_heading', action: () => insertMarkdown('## ') }, // Título nível 2 padrão
   { type: 'separator' },
-  { icon: List, label: 'Lista', action: () => insertMarkdown('- ') },
-  { icon: ListOrdered, label: 'Numérica', action: () => insertMarkdown('1. ') },
+  { icon: List, labelKey: 'graphBuilder.contentEditor.format_list', action: () => insertMarkdown('- ') },
+  { icon: ListOrdered, labelKey: 'graphBuilder.contentEditor.format_ordered', action: () => insertMarkdown('1. ') },
   { type: 'separator' },
-  { icon: Link, label: 'Link', action: () => insertMarkdown('[', '](url)') },
-  { icon: Image, label: 'Imagem', action: () => insertMarkdown('![alt](', ')') },
-  { icon: Quote, label: 'Citação', action: () => insertMarkdown('> ') },
+  { icon: Link, labelKey: 'graphBuilder.contentEditor.format_link', action: () => insertMarkdown('[', '](url)') },
+  { icon: Image, labelKey: 'graphBuilder.contentEditor.format_image', action: () => insertMarkdown('![alt](', ')') },
+  { icon: Quote, labelKey: 'graphBuilder.contentEditor.format_quote', action: () => insertMarkdown('> ') },
 ];
 </script>
 
@@ -84,7 +86,7 @@ const actions = [
       <header class="editor-header">
         <div class="header-left">
           <div class="title-group">
-            <span class="label">Editando:</span>
+            <span class="label">{{ t('graphBuilder.contentEditor.editing') }}</span>
             <h2>{{ nodeTitle }}</h2>
           </div>
           
@@ -97,7 +99,7 @@ const actions = [
               <button 
                 v-else 
                 class="btn-format" 
-                :title="btn.label" 
+                :title="t(btn.labelKey!)"
                 @click="btn.action"
               >
                 <component :is="btn.icon" class="icon-sm" />
@@ -111,7 +113,7 @@ const actions = [
           <button 
             class="btn-icon-only" 
             @click="showPreview = !showPreview"
-            :title="showPreview ? 'Esconder Preview' : 'Mostrar Preview'"
+            :title="showPreview ? t('graphBuilder.contentEditor.hide_preview') : t('graphBuilder.contentEditor.show_preview')"
           >
             <component :is="showPreview ? PanelLeft : Columns" class="icon-sm" />
           </button>
@@ -119,9 +121,9 @@ const actions = [
           <div class="toolbar-separator"></div>
 
           <button class="btn-save" @click="handleSave">
-            <Save class="icon-sm" /> Salvar
+            <Save class="icon-sm" /> {{ t('global.save') }}
           </button>
-          <button class="btn-close" @click="emit('close')" title="Cancelar e Fechar">
+          <button class="btn-close" @click="emit('close')" :title="t('graphBuilder.contentEditor.cancel_close')">
             <X class="icon-sm" />
           </button>
         </div>
@@ -135,7 +137,7 @@ const actions = [
           <textarea 
             ref="textareaRef"
             v-model="content" 
-            placeholder="# Comece a escrever aqui..."
+            :placeholder="t('graphBuilder.contentEditor.placeholder')"
             spellcheck="false"
           ></textarea>
         </div>
