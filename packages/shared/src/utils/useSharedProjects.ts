@@ -2,15 +2,16 @@ import { ref } from 'vue';
 import type { ClicAsset } from '@clic/shared';
 import { useAuth } from '../auth/auth';
 import { i18n } from '../i18n';
+import { telemetryService } from '../analytics/telemetry';
+import type { ClicBaseProject } from '../types/project';
 
 export interface UseProjectsConfig {
   appSlug: string; // Ex: 'chatbot' ou 'graph-builder'
-  getProjectData: () => any;
+  getProjectData: () => ClicBaseProject;
   setProjectData: (data: any) => void;
   markAsSaved: () => void;
   assetStore: any; // A instância do useSharedAssetStore
   getActiveFormReferences?: () => string[]; // Retorna array de IDs (reference_id)
-  flushLogs?: () => any[];
 }
 
 async function clicFetch(url: string, options?: RequestInit) {
@@ -46,6 +47,9 @@ export function createSharedProjects(config: UseProjectsConfig) {
   // 2. Rota do Core WP (para upload de mídia nativo)
   const wpRestRoot = window.CLIC_CORE?.wp_rest_root ?? '/wp-json/';
   const nonce = window.CLIC_AUTH?.nonce ?? '';
+
+  // Configura a Telemetria com a rota REST criada no Core WP
+  telemetryService.configApi(pluginRestRoot + 'telemetry', nonce);
 
   /**
    * ---------------------------------------------------
@@ -187,13 +191,12 @@ export function createSharedProjects(config: UseProjectsConfig) {
         await uploadPendingAssets();
       }
 
-      // 2. Prepara o JSON (agora contendo apenas URLs remotas)
+      // 2. Prepara o JSON
       const body = {
         id: currentProjectId.value,
         name: name ?? currentProjectName.value,
         data: config.getProjectData(),
-        active_form_references: config.getActiveFormReferences ? config.getActiveFormReferences() : [],
-        logs: config.flushLogs ? config.flushLogs() : []
+        active_form_references: config.getActiveFormReferences ? config.getActiveFormReferences() : []
       };
 
       // 3. Salva o projeto
@@ -218,6 +221,11 @@ export function createSharedProjects(config: UseProjectsConfig) {
       currentProjectName.value = data.name;
 
       config.markAsSaved();
+
+      // --- INTEGRAÇÃO TELEMETRIA ---
+      // Força o envio do lote de logs acumulados sincronizado com o salvamento
+      telemetryService.flush();
+
       return data;
 
     } catch (err: any) {

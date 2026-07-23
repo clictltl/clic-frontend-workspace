@@ -1,7 +1,7 @@
 import type { Block, Connection, Variable } from './chatbot';
-import type { ClicAsset } from '@clic/shared';
+import type { ClicAsset, ClicBaseProject } from '@clic/shared';
 
-export interface ProjectData {
+export interface ProjectData extends ClicBaseProject {
   blocks: Block[];
   connections: Connection[];
   variables: Record<string, Variable>;

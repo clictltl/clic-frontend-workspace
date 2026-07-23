@@ -18,7 +18,7 @@ import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts, telemetryService } from '@clic/shared';
 import appLogo from '@/assets/logo_novelo.svg'
 import { CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
 import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from '@lucide/vue';
@@ -96,6 +96,10 @@ onMounted(async () => {
   if (loginBackup) {
     try {
       const parsedSaved = JSON.parse(loginBackup);
+
+      if (parsedSaved.telemetryQueue) {
+        telemetryService.restoreQueue(parsedSaved.telemetryQueue);
+      }
       
       await assetStore.restoreFromDisk();
       store.setProjectData(parsedSaved.data, !!parsedSaved.wasDirty);
@@ -107,6 +111,9 @@ onMounted(async () => {
     } catch (e) {
       console.error("Erro ao restaurar backup local:", e);
     }
+  } else if (!shareToken && !remixToken && !previewId) {
+    // SE NÃO VEIO DE NENHUM LUGAR, INICIE EXPLICITAMENTE O PROJETO LIMPO:
+    store.resetProjectData();
   }
 
   // 3. Lógica local da UI do Chatbot
@@ -317,7 +324,8 @@ async function handleLoginSuccess() {
     id: projects.currentProjectId.value,
     name: projects.currentProjectName.value,
     data: store.getProjectData(),
-    wasDirty: store.hasUnsavedChanges
+    wasDirty: store.hasUnsavedChanges,
+    telemetryQueue: telemetryService.getOfflineQueue()
   };
 
   sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(backup));

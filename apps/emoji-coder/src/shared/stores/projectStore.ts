@@ -1,37 +1,40 @@
 import { defineStore } from 'pinia';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUUID } from '@clic/shared';
 import type { EmojiProject } from '../types';
 
 const now = () => new Date().toISOString();
 
-const createEmptyProject = (): EmojiProject => ({
-  title: '',
-  meta: {
-    id: uuidv4(),
-    name: 'Novo Projeto',
-    version: '1.0.0',
-    createdAt: now(),
-    updatedAt: now(),
-  },
-  config: {
-    libraryId: null,
-    gridWidth: 8,
-    gridHeight: 8,
-    startX: 0,
-    startY: 0,
-    targetCells: {},
-    activeChallengeIndex: 0,
-    tutorialSavedWorkspaces: {}
-  },
-  blocksWorkspace: {},
-  compiledAST: [],
-  assets: {}
-});
+const createEmptyProject = (): EmojiProject => {
+  const nowTime = now();
+  return {
+    uuid: generateUUID(), // <-- ID na raiz!
+    title: '',
+    meta: {
+      version: '1.0.0',
+      createdAt: nowTime,
+      updatedAt: nowTime,
+    },
+    config: {
+      libraryId: null,
+      gridWidth: 8,
+      gridHeight: 8,
+      startX: 0,
+      startY: 0,
+      targetCells: {},
+      activeChallengeIndex: 0,
+      tutorialSavedWorkspaces: {}
+    },
+    blocksWorkspace: {},
+    compiledAST: [],
+    assets: {}
+  };
+};
 
 export const useProjectStore = defineStore('emoji-coder-project', {
   // --- INTEGRAÇÃO COM O PLUGIN DE HISTÓRICO ---
   history: {
     stateKey: 'project',
+    telemetry: { appSlug: 'emoji-coder', sessionActions: ['createNew', 'loadProject', 'setupEnvironment'] },
     ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
@@ -72,8 +75,12 @@ export const useProjectStore = defineStore('emoji-coder-project', {
     },
 
     loadProject(json: any, markAsUnsaved: boolean = false) {
+      const nowTime = now();
+      
       // HIDRATAÇÃO DO ESTADO COM BLINDAGEM DO PHP:
+      json.uuid = json.uuid || (json.meta && json.meta.id) || generateUUID();
       json.title = json.title || ''; 
+      json.meta = json.meta || { version: '1.0.0', createdAt: nowTime, updatedAt: nowTime };
       
       // Garante que o PHP não corrompeu os objetos do Blockly
       json.blocksWorkspace = Array.isArray(json.blocksWorkspace) ? {} : (json.blocksWorkspace || {});

@@ -170,7 +170,7 @@ onUnmounted(() => {
 // --- REATIVIDADE COMBINADA DE ROTAS E DESAFIOS ---
 // Observamos tanto o ID do projeto quanto o índice do desafio num lugar só!
 watch(
-  () => [projectStore.project.meta.id, projectStore.activeChallengeIndex],
+  () => [projectStore.project.uuid, projectStore.activeChallengeIndex],
   () => {
     reloadWorkspace();
   }

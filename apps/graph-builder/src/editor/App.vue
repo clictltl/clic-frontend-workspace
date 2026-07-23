@@ -6,7 +6,7 @@ import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts, telemetryService } from '@clic/shared';
 import { Pencil, Eye } from '@lucide/vue';
 import appLogo from '@/assets/logo_grafite.svg';
 
@@ -27,7 +27,8 @@ async function handleLoginSuccess() {
     id: projects.currentProjectId.value,
     name: projects.currentProjectName.value,
     data: store.project,
-    wasDirty: store.hasUnsavedChanges
+    wasDirty: store.hasUnsavedChanges,
+    telemetryQueue: telemetryService.getOfflineQueue()
   };
 
   sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(backup));
@@ -74,6 +75,10 @@ onMounted(async () => {
   if (loginBackup) {
     try {
       const parsedSaved = JSON.parse(loginBackup);
+
+      if (parsedSaved.telemetryQueue) {
+        telemetryService.restoreQueue(parsedSaved.telemetryQueue);
+      }
       
       store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
       projects.currentProjectId.value = parsedSaved.id;
@@ -86,9 +91,12 @@ onMounted(async () => {
     } catch (e) {
       console.error("Erro ao restaurar backup local:", e);
     }
+  } else if (!shareToken && !remixToken && !previewId) {
+    // SE NÃO VEIO DE NENHUM LUGAR, INICIE EXPLICITAMENTE O PROJETO LIMPO:
+    store.createNew();
   }
 
-  // 2. Proteção contra fechar a aba sem salvar
+  // 3. Proteção contra fechar a aba sem salvar
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 

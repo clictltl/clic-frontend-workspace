@@ -13,8 +13,7 @@ const sharedProjectsInstance = createSharedProjects({
     return Object.values(useProjectStore().project.categories)
       .filter(c => c.formConfig?.enabled)
       .map(c => c.id);
-  },
-  flushLogs: () => useProjectStore().flushLogs()
+  }
 });
 
 export function useProjects() {

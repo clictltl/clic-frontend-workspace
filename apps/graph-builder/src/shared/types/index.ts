@@ -1,4 +1,4 @@
-import type { ClicAsset } from '@clic/shared';
+import type { ClicAsset, ClicBaseProject } from '@clic/shared';
 
 /**
  * CATEGORIA: O agrupador visual (ex: "Introdução", "Conceitos Básicos")
@@ -48,15 +48,8 @@ export interface Edge {
 /**
  * PROJETO: O arquivo salvo
  */
-export interface GraphProject {
+export interface GraphProject extends ClicBaseProject {
   title: string;
-  meta: {
-    id: string;
-    name: string;
-    version: string;
-    createdAt: string;
-    updatedAt: string;
-  };
   categories: Record<string, Category>;
   nodes: Record<string, Node>;
   edges: Record<string, Edge>;

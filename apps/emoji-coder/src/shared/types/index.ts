@@ -1,4 +1,4 @@
-import type { ClicAsset } from '@clic/shared';
+import type { ClicAsset, ClicBaseProject } from '@clic/shared';
 
 /**
  * CONFIGURAÇÃO DO AMBIENTE
@@ -19,15 +19,8 @@ export interface ProjectConfig {
 /**
  * PROJETO EMOJI CODER: O arquivo salvo (JSON Limpo)
  */
-export interface EmojiProject {
+export interface EmojiProject extends ClicBaseProject {
   title: string;
-  meta: {
-    id: string;
-    name: string;
-    version: string;
-    createdAt: string;
-    updatedAt: string;
-  };
   config: ProjectConfig;
   blocksWorkspace: any;               // O estado visual dos blocos (Blockly JSON)
   compiledAST: any[];                 // A lista de comandos gerados para a tartaruga executar

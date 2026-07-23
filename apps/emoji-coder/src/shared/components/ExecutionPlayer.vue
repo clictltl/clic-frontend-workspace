@@ -305,7 +305,7 @@ const updateEngineHandlers = () => {
 };
 
 watch(
-  () => projectStore.project.meta.id,
+  () => projectStore.project.uuid,
   () => {
     const c = projectStore.project.config;
     engine.reset(c.startX || 0, c.startY || 0, c.gridWidth, c.gridHeight);

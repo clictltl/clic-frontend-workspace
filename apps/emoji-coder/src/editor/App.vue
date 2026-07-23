@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, telemetryService } from '@clic/shared';
 import { Turtle, BookOpen, Play, Compass, LayoutGrid, Leaf, Rocket } from '@lucide/vue';
 import appLogo from '@/assets/logo_caramelo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
@@ -53,7 +53,8 @@ async function handleLoginSuccess() {
     id: projects.currentProjectId.value,
     name: projects.currentProjectName.value,
     data: store.project,
-    wasDirty: store.hasUnsavedChanges
+    wasDirty: store.hasUnsavedChanges,
+    telemetryQueue: telemetryService.getOfflineQueue()
   };
 
   sessionStorage.setItem('clic-emoji-coder:login-backup', JSON.stringify(backup));
@@ -96,10 +97,17 @@ onMounted(async () => {
   if (loginBackup) {
     try {
       const parsedSaved = JSON.parse(loginBackup);
+
+      if (parsedSaved.telemetryQueue) {
+        telemetryService.restoreQueue(parsedSaved.telemetryQueue);
+      }
+
       store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
       projects.currentProjectId.value = parsedSaved.id;
       projects.currentProjectName.value = parsedSaved.name || '';
+
       await assetStore.restoreFromDisk();
+      
       sessionStorage.removeItem('clic-emoji-coder:login-backup');
       await assetStore.clearDisk();
     } catch (e) {

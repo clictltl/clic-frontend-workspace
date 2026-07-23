@@ -4,6 +4,7 @@ export { default as logoClic } from './assets/logo-clic.svg';
 // types
 export * from './types/global.d';
 export * from './types/asset';
+export * from './types/project';
 
 // auth
 export { useAuth, checkLogin } from './auth/auth';
@@ -20,6 +21,7 @@ export { decodeHtml } from './utils/decodeHtml';
 export { exportClicFile, importClicFile } from './utils/projectIO';
 export { useSharedAssetStore } from './utils/useSharedAssetStore';
 export { createSharedProjects } from './utils/useSharedProjects';
+export * from './utils/id';
 
 // ui
 export { default as AppHeader } from './ui/AppHeader.vue';
@@ -41,6 +43,7 @@ export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkMo
 
 // analytics
 export * from './analytics/matomo';
+export * from './analytics/telemetry';
 
 // i18n
 export { i18n, setLocale, availableLocales, ENABLE_LANGUAGE_SWITCHER } from './i18n';

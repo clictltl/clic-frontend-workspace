@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
-import { v4 as uuidv4 } from 'uuid';
 import type { GraphProject, Category, Node, Edge, CategoryFormConfig } from '../types';
-import { i18n } from '@clic/shared';
+import { i18n, generateUUID } from '@clic/shared';
 
 export const CATEGORY_COLORS = [
   '#ef4444', // Red
@@ -19,20 +18,22 @@ const DEFAULT_COLOR = '#64748b';
 
 const now = () => new Date().toISOString();
 
-const createEmptyProject = (): GraphProject => ({
-  title: '',
-  meta: {
-    id: uuidv4(),
-    name: 'Novo Projeto',
-    version: '1.0.0',
-    createdAt: now(),
-    updatedAt: now(),
-  },
-  categories: {},
-  nodes: {},
-  edges: {},
-  assets: {},
-});
+const createEmptyProject = (): GraphProject => {
+  const nowTime = now();
+  return {
+    uuid: generateUUID(),
+    title: '',
+    meta: {
+      version: '1.0.0',
+      createdAt: nowTime,
+      updatedAt: nowTime,
+    },
+    categories: {},
+    nodes: {},
+    edges: {},
+    assets: {},
+  };
+};
 
 const validateCategoryName = (categoriesObj: Record<string, Category>, name: string, excludeId?: string) => {
   const normalizedName = name.trim().toLowerCase();
@@ -48,6 +49,7 @@ const validateCategoryName = (categoriesObj: Record<string, Category>, name: str
 export const useProjectStore = defineStore('project', {
   history: {
     stateKey: 'project',
+    telemetry: { appSlug: 'graph-builder', sessionActions: ['createNew', 'loadProject'] },
     ignoreActions: ['markAsSaved', 'updateNodeSilent', 'updateTitleSilent'],
     clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
     actionLabels: {
@@ -107,9 +109,12 @@ export const useProjectStore = defineStore('project', {
     },
 
     loadProject(json: any, markAsUnsaved: boolean = false) {
-      // HIDRATAÇÃO DO ESTADO COM BLINDAGEM DO PHP:
+      const nowTime = now();
       
-      json.title = json.title || ''; // Fallback para projetos antigos
+      // HIDRATAÇÃO DO ESTADO COM BLINDAGEM DO PHP:
+      json.uuid = json.uuid || generateUUID();
+      json.title = json.title || '';
+      json.meta = json.meta || { version: '1.0.0', createdAt: nowTime, updatedAt: nowTime };
 
       // O PHP transforma objetos vazios {} em arrays [] ao salvar no banco.
       // Forçamos a conversão de volta para Dicionários ({}) para evitar perda de dados no JSON.stringify.
@@ -147,7 +152,7 @@ export const useProjectStore = defineStore('project', {
       const catArray = Object.values(this.project.categories);
       const minOrder = catArray.length > 0 ? Math.min(...catArray.map(c => c.order)) : 1000;
 
-      const id = uuidv4();
+      const id = generateUUID();
       const newCategory: Category = {
         id: id,
         name,
@@ -193,7 +198,7 @@ export const useProjectStore = defineStore('project', {
       const nodesInCategory = Object.values(this.project.nodes).filter(n => n.categoryId === categoryId);
       const maxOrder = nodesInCategory.length > 0 ? Math.max(...nodesInCategory.map(n => n.order)) : 0;
 
-      const id = uuidv4();
+      const id = generateUUID();
       const newNode: Node = {
         id: id,
         categoryId,
@@ -248,7 +253,7 @@ export const useProjectStore = defineStore('project', {
 
       const exists = Object.values(this.project.edges).some(e => e.source === sourceId && e.target === targetId);
       if (!exists) {
-        const id = uuidv4();
+        const id = generateUUID();
         const newEdge: Edge = {
           id: id,
           source: sourceId,
@@ -288,7 +293,7 @@ export const useProjectStore = defineStore('project', {
       answers.forEach((answer) => {
         // 1. Extrai os dados (vêm da tabela genérica data: { name, connections })
         const { name, connections } = answer.data;
-        const newNodeId = uuidv4();
+        const newNodeId = generateUUID();
         currentMaxOrder += 1000;
 
         // 2. Cria o novo Nó na categoria alvo

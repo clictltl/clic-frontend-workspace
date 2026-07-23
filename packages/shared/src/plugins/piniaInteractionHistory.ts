@@ -1,6 +1,7 @@
 import type { PiniaPluginContext, PiniaPlugin } from 'pinia';
 import { ref, computed, toRaw } from 'vue';
 import * as jsonpatch from 'fast-json-patch';
+import { telemetryService } from '../analytics/telemetry';
 
 declare module 'pinia' {
   export interface DefineStoreOptionsBase<S, Store> {
@@ -10,6 +11,10 @@ declare module 'pinia' {
       clearHistoryActions?: string[];
       actionLabels?: Record<string, string>;
       maxLimit?: number;
+      telemetry?: {
+        appSlug: string;
+        sessionActions: string[]; // Ações que iniciam uma nova sessão (Frame Zero)
+      };
     };
   }
   
@@ -17,10 +22,8 @@ declare module 'pinia' {
     undo: () => string | void;
     redo: () => string | void;
     clearHistory: () => void;
-    flushLogs: () => any[];
     canUndo: boolean;
     canRedo: boolean;
-    interactionLogs: any[];
   }
 }
 
@@ -42,7 +45,6 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
   }
   const undoStack = ref<HistoryEntry[]>([]);
   const redoStack = ref<HistoryEntry[]>([]);
-  const interactionLogs = ref<any[]>([]);
 
   // String base para não perdermos a referência ao comparar
   let previousStateStr = JSON.stringify(store.$state[stateKey as keyof typeof store.$state]);
@@ -54,13 +56,25 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
   };
 
   store.$onAction(({ name, args, after }) => {
-    if (['undo', 'redo', 'clearHistory', 'flushLogs', ...ignoreActions].includes(name)) return;
+    // 1. Inicia a Sessão Automática (Frame Zero)
+    if (options.history?.telemetry?.sessionActions.includes(name)) {
+      after(() => {
+        const projectData = toRaw(store.$state[stateKey as keyof typeof store.$state]);
+        const uuid = projectData.uuid || (projectData as any).meta?.id || '';
+        telemetryService.startSession(uuid, options.history!.telemetry!.appSlug, projectData);
+      });
+    }
 
+    // 2. Ignora ações silenciosas
+    if (['undo', 'redo', 'clearHistory', ...ignoreActions].includes(name)) return;
+      
+    // 3. Limpa o histórico se for uma ação de reset
     if (clearHistoryActions.includes(name)) {
       after(() => clearHistory());
       return;
     }
 
+    // 4. Mutações
     after(() => {
       const currentStateRaw = toRaw(store.$state[stateKey as keyof typeof store.$state]);
       const currentStateStr = JSON.stringify(currentStateRaw);
@@ -80,19 +94,10 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
 
           redoStack.value =[]; 
           
-          // Sanitiza os argumentos para não estourar a memória RAM (Pruning)
-          const sanitizedArgs = args.map((arg: any) => {
-            if (arg === null || typeof arg !== 'object') return arg;
-            if (Array.isArray(arg)) return `[Array(${arg.length})]`;
-            if (arg.id) return { _pruned: true, id: arg.id };
-            return '[Object]';
-          });
-          
-          interactionLogs.value.push({
-            action: name,
-            args: sanitizedArgs,
-            mutations: forwardPatch,
-            timestamp: new Date().toISOString()
+          // Despacha o log com a mutação estrutural (Sem poda)
+          telemetryService.addMutation(name, {
+            args: args,
+            mutations: forwardPatch
           });
 
           previousStateStr = currentStateStr;
@@ -110,9 +115,9 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
     });
     previousStateStr = JSON.stringify(nextStateObj);
     
-    interactionLogs.value.push({ 
-      action: isUndo ? 'UNDO' : 'REDO', 
-      timestamp: new Date().toISOString() 
+    // Registra a reversão da mutação
+    telemetryService.addMutation(isUndo ? 'UNDO' : 'REDO', {
+      mutations: patch
     });
   };
 
@@ -146,19 +151,11 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
     return actionLabels[entry.actionName] || entry.actionName;
   };
 
-  const flushLogs = () => {
-    const logsToSend =[...interactionLogs.value];
-    interactionLogs.value =[];
-    return logsToSend;
-  };
-
   return {
     undo,
     redo,
     clearHistory,
-    flushLogs,
     canUndo: computed(() => undoStack.value.length > 0) as unknown as boolean,
     canRedo: computed(() => redoStack.value.length > 0) as unknown as boolean,
-    interactionLogs: computed(() => interactionLogs.value) as unknown as any[],
   };
 }

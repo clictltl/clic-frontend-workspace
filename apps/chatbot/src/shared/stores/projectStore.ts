@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
-import type { Block, Connection, Variable, BlockType } from '@/shared/types/chatbot';
+import type { Block, Connection, BlockType } from '@/shared/types/chatbot';
 import type { ProjectData } from '@/shared/types/project';
-import type { ClicAsset } from '@clic/shared';
-import { i18n } from '@clic/shared';
+import { i18n, generateUUID } from '@clic/shared';
 
 // IDs fixos para o fluxo inicial
 const START_ID = 'start';
@@ -61,6 +60,7 @@ export const useProjectStore = defineStore('chatbot-project', {
   // --- CONFIGURAÇÃO DO HISTÓRICO (UNDO/REDO) ---
   history: {
     stateKey: 'document',
+    telemetry: { appSlug: 'chatbot', sessionActions: ['setProjectData', 'resetProjectData'] },
     ignoreActions:[
       'markAsSaved', 
       'getProjectData', 
@@ -87,7 +87,15 @@ export const useProjectStore = defineStore('chatbot-project', {
   },
 
   state: () => {
-    const initialDocument = {
+    const now = new Date().toISOString();
+
+    const initialDocument: ProjectData = {
+      uuid: generateUUID(),
+      meta: {
+        version: '1.0.0',
+        createdAt: now,
+        updatedAt: now,
+      },
       blocks:[
         { ...startBlock, position: { ...startBlock.position } },
         { ...firstMessageBlock, position: { ...firstMessageBlock.position } }
@@ -95,8 +103,8 @@ export const useProjectStore = defineStore('chatbot-project', {
       connections:[
         { ...initialConnection, id: `conn_${Date.now()}` }
       ],
-      variables: {} as Record<string, Variable>,
-      assets: {} as Record<string, ClicAsset>,
+      variables: {},
+      assets: {},
     };
 
     return {
@@ -116,26 +124,45 @@ export const useProjectStore = defineStore('chatbot-project', {
 
   actions: {
     // --- FUNÇÕES DE INFRAESTRUTURA ---
-    markAsSaved() { this.meta.lastSavedState = JSON.stringify(this.document); },
+    markAsSaved() { 
+      this.document.meta.updatedAt = new Date().toISOString();
+      this.meta.lastSavedState = JSON.stringify(this.document); 
+    },
+
     getProjectData(): ProjectData { return JSON.parse(JSON.stringify(this.document)); },
+
     setProjectData(data: ProjectData, markAsUnsaved: boolean = false) {
+      const now = new Date().toISOString();
+
       this.document = {
+        uuid: data.uuid || generateUUID(),
+        meta: data.meta || { version: '1.0.0', createdAt: now, updatedAt: now },
         blocks: Array.isArray(data.blocks) ? data.blocks :[],
         connections: Array.isArray(data.connections) ? data.connections :[],
         variables: typeof data.variables === 'object' ? data.variables : {},
         assets: typeof data.assets === 'object' ? data.assets : {},
       };
       this.ui.selectedBlockId = null;
-      if (markAsUnsaved) { this.meta.lastSavedState = 'FORCED_UNSAVED'; } else { this.markAsSaved(); }
+      
+      if (markAsUnsaved) {
+        this.meta.lastSavedState = 'FORCED_UNSAVED'; }
+      else {
+        this.meta.lastSavedState = JSON.stringify(this.document);
+      }
     },
+
     resetProjectData() {
+      const now = new Date().toISOString();
+      
       this.document = {
+        uuid: generateUUID(), // Renova a alma ao criar projeto novo
+        meta: { version: '1.0.0', createdAt: now, updatedAt: now },
         blocks:[ { ...startBlock, position: { ...startBlock.position } }, { ...firstMessageBlock, position: { ...firstMessageBlock.position } } ],
         connections:[ { ...initialConnection, id: `conn_${Date.now()}` } ],
         variables: {}, assets: {},
       };
       this.ui.selectedBlockId = null;
-      this.markAsSaved();
+      this.meta.lastSavedState = JSON.stringify(this.document);
     },
 
     // --- AÇÕES DE SELEÇÃO E UI ---
