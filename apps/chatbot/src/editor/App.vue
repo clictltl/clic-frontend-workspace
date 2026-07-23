@@ -97,8 +97,13 @@ onMounted(async () => {
     try {
       const parsedSaved = JSON.parse(loginBackup);
 
-      if (parsedSaved.telemetryQueue) {
-        telemetryService.restoreQueue(parsedSaved.telemetryQueue);
+      if (parsedSaved.telemetryQueue && parsedSaved.telemetrySession) {
+        telemetryService.resumeSession(
+          parsedSaved.telemetrySession.sessionId,
+          parsedSaved.telemetrySession.projectUuid,
+          parsedSaved.telemetrySession.appType,
+          parsedSaved.telemetryQueue
+        );
       }
       
       await assetStore.restoreFromDisk();
@@ -325,7 +330,8 @@ async function handleLoginSuccess() {
     name: projects.currentProjectName.value,
     data: store.getProjectData(),
     wasDirty: store.hasUnsavedChanges,
-    telemetryQueue: telemetryService.getOfflineQueue()
+    telemetryQueue: telemetryService.getOfflineQueue(),
+    telemetrySession: telemetryService.getSessionInfo()
   };
 
   sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(backup));

@@ -12,6 +12,7 @@ class TelemetryManager {
   private sessionId: string = '';
   private projectUuid: string = '';
   private appType: string = '';
+  private ignoreNextStart = false;
   
   // Configurações de API e Sincronização
   private endpoint: string = '';
@@ -37,6 +38,11 @@ class TelemetryManager {
    * Inicia uma nova sessão (Frame Zero). Chamado ao carregar um projeto.
    */
   public startSession(projectUuid: string, appType: string, initialProjectData: any) {
+    if (this.ignoreNextStart) {
+      this.ignoreNextStart = false;
+      return;
+    }
+
     // Se já havia uma sessão rodando, tenta enviar o que sobrou
     if (this.queue.length > 0) {
       this.flush();
@@ -77,7 +83,7 @@ class TelemetryManager {
     this.queue.push({
       event_type: type,
       action_name: actionName,
-      payload: payload,
+      payload: structuredClone(payload),
       timestamp: new Date().toISOString() // ISO 8601 com milissegundos
     });
   }
@@ -90,12 +96,30 @@ class TelemetryManager {
   }
 
   /**
-   * Restaura uma fila salva (usado na transição de Login)
+   * Retorna a identidade atual (usado para salvar o backup antes do login)
    */
-  public restoreQueue(rescuedQueue: TelemetryEvent[]) {
+  public getSessionInfo() {
+    return {
+      sessionId: this.sessionId,
+      projectUuid: this.projectUuid,
+      appType: this.appType
+    };
+  }
+
+  /**
+   * Retoma uma sessão interrompida pelo recarregamento da página (Login)
+   */
+  public resumeSession(sessionId: string, projectUuid: string, appType: string, rescuedQueue: TelemetryEvent[]) {
+    this.sessionId = sessionId;
+    this.projectUuid = projectUuid;
+    this.appType = appType;
+    
     if (rescuedQueue && Array.isArray(rescuedQueue)) {
-      this.queue = [...rescuedQueue, ...this.queue];
+      this.queue = rescuedQueue;
     }
+    
+    this.ignoreNextStart = true; // <-- ATIVA O ESCUDO! O próximo startSession será ignorado.
+    this.startAutoSync();
   }
 
   /**

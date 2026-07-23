@@ -28,7 +28,8 @@ async function handleLoginSuccess() {
     name: projects.currentProjectName.value,
     data: store.project,
     wasDirty: store.hasUnsavedChanges,
-    telemetryQueue: telemetryService.getOfflineQueue()
+    telemetryQueue: telemetryService.getOfflineQueue(),
+    telemetrySession: telemetryService.getSessionInfo()
   };
 
   sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(backup));
@@ -76,8 +77,13 @@ onMounted(async () => {
     try {
       const parsedSaved = JSON.parse(loginBackup);
 
-      if (parsedSaved.telemetryQueue) {
-        telemetryService.restoreQueue(parsedSaved.telemetryQueue);
+      if (parsedSaved.telemetryQueue && parsedSaved.telemetrySession) {
+        telemetryService.resumeSession(
+          parsedSaved.telemetrySession.sessionId,
+          parsedSaved.telemetrySession.projectUuid,
+          parsedSaved.telemetrySession.appType,
+          parsedSaved.telemetryQueue
+        );
       }
       
       store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
