@@ -122,6 +122,44 @@ onMounted(async () => {
   await loadBlocklyLocale(locale.value);
   registerFieldColour();
 
+  // --- CUSTOMIZAÇÃO DO CONTEXT MENU (DUPLICAR PILHA) ---
+  if (Blockly.ContextMenuRegistry.registry.getItem('blockDuplicate')) {
+    Blockly.ContextMenuRegistry.registry.unregister('blockDuplicate');
+    
+    Blockly.ContextMenuRegistry.registry.register({
+      id: 'blockDuplicateStack',
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+      weight: 1,
+      displayText: () => Blockly.Msg['DUPLICATE_BLOCK'] || 'Duplicar',
+      preconditionFn: (scope) => {
+        const block = scope.block;
+        if (block && !block.isInFlyout && block.isDeletable() && block.isMovable()) {
+          return 'enabled';
+        }
+        return 'hidden';
+      },
+      callback: (scope) => {
+        if (!scope.block) return;
+        const block = scope.block;
+        const targetWorkspace = block.workspace;
+        
+        // O método 'save' captura o bloco, seus inputs internos E os blocos conectados abaixo (next)
+        const state = Blockly.serialization.blocks.save(block) as any;
+        
+        // Pega a posição real do bloco na tela para aplicar o offset visual
+        const xy = block.getRelativeToSurfaceXY();
+        state.x = xy.x + 40;
+        state.y = xy.y + 40;
+        
+        // Recria a árvore inteira na workspace (o Blockly já cuida de gerar novos UUIDs para a cópia)
+        const newBlock = Blockly.serialization.blocks.append(state, targetWorkspace);
+        if (newBlock instanceof Blockly.BlockSvg) {
+          newBlock.select();
+        }
+      }
+    });
+  }
+
   // Injeta o Blockly inicialmente VAZIO e Genérico
   workspace = Blockly.inject(blocklyDiv.value, {
     toolbox: '<xml></xml>',
