@@ -80,10 +80,21 @@ class TelemetryManager {
   private addEvent(type: 'mutation' | 'semantic' | 'system', actionName: string, payload: any) {
     if (!this.sessionId) return; // Ignora se não houver sessão ativa
 
+    let safePayload = {};
+
+    try {
+      // O stringify nativamente remove Funções e propriedades inválidas de forma segura.
+      // Substituímos o structuredClone por ele para suportar Proxies do Vue e Eventos sem quebrar o app.
+      safePayload = JSON.parse(JSON.stringify(payload));
+    } catch (e) {
+      console.warn(`[CLIC Telemetry] Payload não serializável ignorado na ação: ${actionName}`);
+      safePayload = { error: 'unserializable_payload' };
+    }
+
     this.queue.push({
       event_type: type,
       action_name: actionName,
-      payload: structuredClone(payload),
+      payload: safePayload,
       timestamp: new Date().toISOString() // ISO 8601 com milissegundos
     });
   }
