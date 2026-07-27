@@ -67,8 +67,15 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       this.lastSavedState = JSON.stringify(this.project);
     },
 
-    createNew() {
+    createNew(preserveConfig: boolean = false) {
+      const currentConfig = preserveConfig ? JSON.parse(JSON.stringify(this.project.config)) : null;
+
       this.project = createEmptyProject();
+      
+      if (currentConfig && currentConfig.libraryId) {
+        this.project.config = currentConfig;
+      }
+
       this.activeChallengeIndex = 0;
       this.activeBlockId = null;
       this.markAsSaved();

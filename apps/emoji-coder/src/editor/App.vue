@@ -20,9 +20,52 @@ const isPreview = ref(false);
 // Controle de tamanho da grade exclusivo para o nível Avançado
 const advancedGridSize = ref(8);
 
+// --- MINI ROUTER (VANILLA JS HASH) ---
+let isRevertingHash = false;
+let lastHash = window.location.hash;
+
+const handleHashChange = () => {
+  // 1. Se fomos nós mesmos revertendo a URL, ignora o evento para não causar loop infinito
+  if (isRevertingHash) {
+    isRevertingHash = false;
+    lastHash = window.location.hash;
+    return;
+  }
+
+  const currentHash = window.location.hash;
+
+  // 2. Proteção de Saída (Botão Voltar do Navegador)
+  if (store.isConfigured && store.hasUnsavedChanges) {
+    if (!window.confirm(t('emojiCoder.messages.unsaved_confirm'))) {
+      isRevertingHash = true;
+      window.location.hash = lastHash; // Força a URL de volta silenciosamente
+      return;
+    }
+  }
+
+  lastHash = currentHash;
+
+  // 3. Roteamento: Parse do Link
+  if (currentHash.startsWith('#lib=')) {
+    const params = new URLSearchParams(currentHash.substring(1));
+    const lib = params.get('lib');
+    const grid = parseInt(params.get('grid') || '8', 10);
+
+    if (lib) {
+      store.setupEnvironment(lib, grid, grid);
+      store.markAsSaved(); 
+    }
+  } else if (!currentHash || currentHash === '#') {
+    // 4. Retornou para o Dashboard
+    store.createNew();
+    projects.currentProjectId.value = null;
+    projects.currentProjectName.value = '';
+  }
+};
+
 const handleStartProject = (libraryId: string, gridSize: number) => {
-  store.setupEnvironment(libraryId, gridSize, gridSize);
-  store.markAsSaved(); // Define essa configuração inicial como o "marco zero" limpo
+  // Ao invés de iniciar direto, apenas mudamos a URL. O listener de hash fará o resto!
+  window.location.hash = `lib=${libraryId}&grid=${gridSize}`;
 };
 
 const handleHomeClick = () => {
@@ -33,14 +76,12 @@ const handleHomeClick = () => {
   }
   
   store.createNew(); 
-  
-  // Limpa o vínculo com o banco de dados para evitar sobrescrever o projeto anterior!
   projects.currentProjectId.value = null;
   projects.currentProjectName.value = '';
 
-  if (window.location.search) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
+  // Limpa a URL inteira (Search Params e Hash) SEM disparar eventos
+  window.history.pushState({}, document.title, window.location.pathname);
+  lastHash = '';
 };
 
 // Distribui a função de navegação blindada para toda a árvore de componentes
@@ -121,10 +162,17 @@ onMounted(async () => {
     }
   }
 
+  // 3. Inicialização Direta via Link (Hash)
+  if (!shareToken && !remixToken && !previewId && !loginBackup && window.location.hash.startsWith('#lib=')) {
+    handleHashChange();
+  }
+
+  window.addEventListener('hashchange', handleHashChange);
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 onUnmounted(() => {
+  window.removeEventListener('hashchange', handleHashChange);
   window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
@@ -147,7 +195,7 @@ onUnmounted(() => {
           :assetStore="assetStore"
           :has-unsaved-changes="store.hasUnsavedChanges"
           :getProjectData="() => store.project"
-          @new-project="store.createNew"
+          @new-project="store.createNew(true)"
           @import-project="store.loadProject"
         />
       </template>
