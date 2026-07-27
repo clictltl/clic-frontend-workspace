@@ -1,121 +1,10 @@
 <template>
   <div class="execution-panel" :class="{ 'runtime-mode': isRuntime }">
     
-    <!-- MISSÃO DO TUTORIAL (Sanfona Inteligente) -->
-    <div 
-      v-if="projectStore.isTutorialMode && currentChallenge" 
-      class="tutorial-mission-card"
-      :class="{ 'collapsed': isMissionCollapsed }"
-    >
-      <div class="mission-header" @click="toggleMission" :style="isMobile ? 'cursor: pointer' : ''">
-        <div class="mission-header-left">
-          <span class="mission-progress">{{ t('emojiCoder.player.challenge', { number: projectStore.activeChallengeIndex + 1 }) }}</span>
-          <span class="mission-title-inline" v-show="isMissionCollapsed">{{ currentChallenge.title }}</span>
-        </div>
-
-        <div class="mission-navigation" v-show="!isMissionCollapsed">
-          <div class="nav-arrows">
-            <button 
-              class="nav-arrow" 
-              :disabled="projectStore.activeChallengeIndex === 0"
-              @click.stop="goToChallenge(projectStore.activeChallengeIndex - 1)"
-            >
-              <ChevronLeft :size="18" />
-            </button>
-            <button 
-              class="nav-arrow" 
-              :disabled="isLastChallenge"
-              @click.stop="goToChallenge(projectStore.activeChallengeIndex + 1)"
-            >
-              <ChevronRight :size="18" />
-            </button>
-          </div>
-          <div class="mission-dots">
-            <span 
-              v-for="(_, i) in totalChallenges" 
-              :key="i" 
-              class="dot" 
-              :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }"
-              @click.stop="goToChallenge(i)"
-              :title="t('emojiCoder.player.go_to_challenge')"
-            ></span>
-          </div>
-        </div>
-
-        <button class="toggle-btn" v-show="isMobile">
-          <ChevronDown v-if="isMissionCollapsed" :size="20"/>
-          <ChevronUp v-else :size="20"/>
-        </button>
-      </div>
-
-      <div class="mission-body" v-show="!isMissionCollapsed">
-        <h3 class="mission-title">{{ currentChallenge.title }}</h3>
-        <p class="mission-desc">{{ currentChallenge.description }}</p>
-        
-        <div class="mission-tip-container" v-if="currentChallenge.tip">
-          <button v-if="!showTip" class="reveal-tip-btn" @click.stop="showTip = true">
-            <Lightbulb :size="16" class="inline-icon" /> {{ t('emojiCoder.player.need_hint') }}
-          </button>
-          <div v-else class="mission-tip">
-            <strong><Lightbulb :size="16" class="inline-icon" /> {{ t('emojiCoder.player.hint') }}</strong> {{ currentChallenge.tip }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- O Palco Principal -->
-    <div class="canvas-container">
-      <GridCanvas :engine="engine" :speed-ms="currentSpeedMs" />
-      
-      <!-- OVERLAY DE SUCESSO DO TUTORIAL -->
-      <div v-if="showSuccess" class="success-overlay">
-        <div class="success-card">
-          <h2 class="title-with-icon"><PartyPopper :size="28" /> {{ t('emojiCoder.player.success') }}</h2>
-          <p>{{ currentChallenge?.successMsg }}</p>
-          <button class="next-challenge-btn" @click="handleNextChallenge">
-            {{ isLastChallenge ? t('emojiCoder.player.finish_tutorial') : t('emojiCoder.player.next_challenge') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- OVERLAY DE CONCLUSÃO DO TUTORIAL -->
-      <div v-if="showTutorialComplete" class="success-overlay final-overlay">
-        <div class="success-card final-card">
-          <h2 class="title-with-icon"><Trophy :size="32" /> {{ t('emojiCoder.player.tutorial_completed') }}</h2>
-          <p>{{ t('emojiCoder.player.tutorial_completed_desc') }}</p>
-          
-          <div class="save-tip" v-if="!isRuntime">
-            <Lightbulb :size="18" class="inline-icon-top" /> 
-            <span v-html="t('emojiCoder.player.save_tip')"></span>
-          </div>
-
-          <button class="next-challenge-btn btn-home" @click="goHome">
-            {{ t('emojiCoder.player.back_home') }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- O Painel de Controle (Dividido em 2 Linhas) -->
+    <!-- O Painel de Controle (Topo: Ações -> Configurações) -->
     <div class="control-board">
-      <div class="settings-row">
-        <div class="step-indicator" v-if="engine.state.totalSteps > 0">
-          <span class="label">{{ t('emojiCoder.player.step') }}</span>
-          <span class="current">{{ engine.state.currentStep }}</span>
-          <span class="divider">/</span>
-          <span class="total">{{ engine.state.totalSteps }}</span>
-        </div>
-        <div class="step-indicator empty" v-else>
-          <span class="label">{{ t('emojiCoder.player.waiting_code') }}</span>
-        </div>
-
-        <div class="speed-control">
-          <TurtleIcon :size="16" class="speed-icon"/>
-          <input type="range" min="1" max="5" v-model="executionSpeed" :title="t('emojiCoder.player.speed')" />
-          <Rabbit :size="16" class="speed-icon"/>
-        </div>
-      </div>
-
+      
+      <!-- 1. Linha de Ações (Play) no Topo -->
       <div class="actions-row">
         <div class="action-group left">
           <button class="btn icon-btn reset-btn" :title="t('emojiCoder.player.reset_world')" @click="handleReset" :disabled="showSuccess">
@@ -154,12 +43,65 @@
           </button>
         </div>
       </div>
+
+      <!-- 2. Linha de Configurações (Slider de Velocidade) Logo Abaixo -->
+      <div class="settings-row">
+        <div class="step-indicator" v-if="engine.state.totalSteps > 0">
+          <span class="label">{{ t('emojiCoder.player.step') }}</span>
+          <span class="current">{{ engine.state.currentStep }}</span>
+          <span class="divider">/</span>
+          <span class="total">{{ engine.state.totalSteps }}</span>
+        </div>
+        <div class="step-indicator empty" v-else>
+          <span class="label">{{ t('emojiCoder.player.waiting_code') }}</span>
+        </div>
+
+        <div class="speed-control">
+          <TurtleIcon :size="16" class="speed-icon"/>
+          <input type="range" min="1" max="5" v-model="executionSpeed" :title="t('emojiCoder.player.speed')" />
+          <Rabbit :size="16" class="speed-icon"/>
+        </div>
+      </div>
     </div>
+
+    <!-- 3. O Palco Principal -->
+    <div class="canvas-container">
+      <GridCanvas :engine="engine" :speed-ms="currentSpeedMs" />
+      
+      <!-- OVERLAY DE SUCESSO DO TUTORIAL -->
+      <div v-if="showSuccess" class="success-overlay">
+        <div class="success-card">
+          <h2 class="title-with-icon"><PartyPopper :size="28" /> {{ t('emojiCoder.player.success') }}</h2>
+          <p>{{ currentChallenge?.successMsg }}</p>
+          <button class="next-challenge-btn" @click="handleNextChallenge">
+            {{ isLastChallenge ? t('emojiCoder.player.finish_tutorial') : t('emojiCoder.player.next_challenge') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- OVERLAY DE CONCLUSÃO DO TUTORIAL -->
+      <div v-if="showTutorialComplete" class="success-overlay final-overlay">
+        <div class="success-card final-card">
+          <h2 class="title-with-icon"><Trophy :size="32" /> {{ t('emojiCoder.player.tutorial_completed') }}</h2>
+          <p>{{ t('emojiCoder.player.tutorial_completed_desc') }}</p>
+          
+          <div class="save-tip" v-if="!isRuntime">
+            <Lightbulb :size="18" class="inline-icon-top" /> 
+            <span v-html="t('emojiCoder.player.save_tip')"></span>
+          </div>
+
+          <button class="next-challenge-btn btn-home" @click="goHome">
+            {{ t('emojiCoder.player.back_home') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue';
+import { ref, computed, onMounted, watch, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { TurtleEngine } from '@/shared/engine/interpreter';
@@ -167,7 +109,7 @@ import { getLibrary } from '@/libraries';
 import { getTutorialChallenges } from '@/tutorials';
 import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
 
-import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, PartyPopper, Trophy, Lightbulb, Camera } from '@lucide/vue';
+import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, PartyPopper, Trophy, Lightbulb, Camera } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
 import { exportToImage } from '@/shared/utils/exportImage';
 
@@ -176,9 +118,6 @@ defineEmits(['toggle-preview']);
 
 const { t } = useI18n();
 const projectStore = useProjectStore();
-
-const isMobile = ref(window.innerWidth <= 768);
-const isMissionCollapsed = ref(isMobile.value);
 
 // Descobre qual código rodar sem precisar do Blockly!
 const getActiveAST = () => {
@@ -189,22 +128,8 @@ const getActiveAST = () => {
   return projectStore.project.compiledAST;
 };
 
-const handleResize = () => {
-  isMobile.value = window.innerWidth <= 768;
-  if (!isMobile.value) {
-    isMissionCollapsed.value = false;
-  }
-};
-
-const toggleMission = () => {
-  if (isMobile.value) {
-    isMissionCollapsed.value = !isMissionCollapsed.value;
-  }
-};
-
 const showSuccess = ref(false);
 const showTutorialComplete = ref(false);
-const showTip = ref(false);
 
 const activeChallengeList = computed(() => {
   if (!projectStore.isTutorialMode) return [];
@@ -223,17 +148,11 @@ const isLastChallenge = computed(() => {
 });
 
 onMounted(() => {
-  window.addEventListener('resize', handleResize);
-  
   if (projectStore.isTutorialMode && currentChallenge.value) {
     const wasClean = !projectStore.hasUnsavedChanges;
     projectStore.loadChallenge(projectStore.activeChallengeIndex, currentChallenge.value);
     if (wasClean) projectStore.markAsSaved();
   }
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
 });
 
 const goToChallenge = (index: number) => {
@@ -242,12 +161,10 @@ const goToChallenge = (index: number) => {
 
   const wasClean = !projectStore.hasUnsavedChanges;
   showSuccess.value = false;
-  showTip.value = false;
   const targetChal = activeChallengeList.value[index];
   
   if (targetChal) {
     projectStore.loadChallenge(index, targetChal);
-    engine.reset(targetChal.startPos.x, targetChal.startPos.y);
   }
 
   if (wasClean) projectStore.markAsSaved();
@@ -257,11 +174,22 @@ const handleNextChallenge = () => {
   showSuccess.value = false;
   if (!isLastChallenge.value) {
     goToChallenge(projectStore.activeChallengeIndex + 1);
-    if (isMobile.value) isMissionCollapsed.value = true;
   } else {
     showTutorialComplete.value = true;
   }
 };
+
+// Se o novo TutorialHeader alterar o índice do desafio, reagimos atualizando o motor visual aqui
+watch(
+  () => projectStore.activeChallengeIndex,
+  (newIdx) => {
+    showSuccess.value = false;
+    const targetChal = activeChallengeList.value[newIdx];
+    if (targetChal) {
+      engine.reset(targetChal.startPos.x, targetChal.startPos.y);
+    }
+  }
+);
 
 // Consome a função blindada direto do App.vue (ou RuntimeApp.vue)
 const goHome = inject<() => void>('goHomeAction', () => { 
@@ -332,7 +260,6 @@ updateEngineHandlers();
 const handlePlay = () => {
   showSuccess.value = false;
   const c = projectStore.project.config;
-  if (isMobile.value) isMissionCollapsed.value = true; 
   engine.play(getActiveAST(), c.gridWidth, c.gridHeight, c.startX, c.startY);
 };
 
@@ -362,32 +289,6 @@ const handleExportImage = () => {
 .execution-panel { display: flex; flex-direction: column; height: 100%; background: #fff; }
 .execution-panel:not(.runtime-mode) { border-left: 1px solid #e5e7eb; }
 
-/* === CARTÃO DE MISSÃO DO TUTORIAL === */
-.tutorial-mission-card { padding: 1rem 1.25rem; background-color: #f0fdf4; border-bottom: 1px solid #bbf7d0; flex-shrink: 0; transition: padding 0.2s ease; }
-.tutorial-mission-card.collapsed { padding: 0.6rem 1rem; }
-.mission-header { display: flex; justify-content: space-between; align-items: center; user-select: none; }
-.tutorial-mission-card:not(.collapsed) .mission-header { margin-bottom: 0.5rem; }
-.mission-header-left { display: flex; align-items: center; gap: 0.5rem; }
-.mission-progress { font-size: 0.75rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.05em; }
-.mission-title-inline { font-size: 0.9rem; font-weight: 600; color: #14532d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-.toggle-btn { background: none; border: none; color: #16a34a; display: flex; align-items: center; padding: 0; }
-.mission-navigation { display: flex; align-items: center; gap: 10px; }
-.nav-arrows { display: flex; align-items: center; gap: 2px; }
-.nav-arrow { background: none; border: none; padding: 2px; display: flex; align-items: center; justify-content: center; color: #15803d; cursor: pointer; border-radius: 4px; transition: background-color 0.2s, opacity 0.2s; }
-.nav-arrow:hover:not(:disabled) { background-color: #dcfce7; }
-.nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
-.mission-dots { display: flex; gap: 4px; }
-.mission-dots .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #dcfce7; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s; }
-.mission-dots .dot:hover { transform: scale(1.4); }
-.mission-dots .dot.done { background-color: #22c55e; }
-.mission-dots .dot.active { background-color: #16a34a; transform: scale(1.2); }
-.mission-title { margin: 0 0 0.25rem 0; font-size: 1.1rem; color: #14532d; }
-.mission-desc { margin: 0; font-size: 0.9rem; color: #166534; line-height: 1.4; }
-.mission-tip-container { margin-top: 0.75rem; }
-.reveal-tip-btn { display: inline-flex; align-items: center; background: none; border: 1px dashed #86efac; color: #15803d; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
-.reveal-tip-btn:hover { background-color: #dcfce7; border-color: #22c55e; }
-.mission-tip { padding: 0.5rem; background-color: #dcfce7; border-radius: 6px; font-size: 0.85rem; color: #15803d; border-left: 3px solid #22c55e; animation: fadeIn 0.3s ease; }
-
 /* === PALCO === */
 .canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #f3f4f6; padding: 1rem; overflow: hidden; min-height: 0; position: relative; }
 
@@ -408,9 +309,11 @@ const handleExportImage = () => {
 .btn-home { background: #eab308; margin-top: 1rem; }
 .btn-home:hover { background: #ca8a04; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4); }
 
-/* === O RODAPÉ === */
-.control-board { display: flex; flex-direction: column; border-top: 1px solid #e5e7eb; }
-.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background-color: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+/* === O PAINEL DE CONTROLE (TOPO) === */
+.control-board { display: flex; flex-direction: column; border-bottom: 1px solid #e5e7eb; z-index: 10; }
+.actions-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: #ffffff; border-bottom: 1px solid #f1f5f9; }
+
+.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background-color: #f8fafc; }
 .step-indicator { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; color: #64748b; }
 .step-indicator.empty { opacity: 0.6; }
 .step-indicator .label { text-transform: uppercase; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px; }
@@ -420,7 +323,6 @@ const handleExportImage = () => {
 .speed-icon { color: #9ca3af; }
 input[type="range"] { max-width: 120px; cursor: pointer; accent-color: #3b82f6; }
 
-.actions-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: #ffffff; }
 .action-group { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
 .action-group.center { justify-content: center; gap: 1rem; }
 .action-group.right { justify-content: flex-end; }
@@ -446,8 +348,5 @@ input[type="range"] { max-width: 120px; cursor: pointer; accent-color: #3b82f6; 
   .actions-row { padding: 0.5rem; }
   .btn { width: 36px; height: 36px; }
   .play-btn, .pause-btn { width: 44px; height: 44px; }
-  .mission-title-inline { font-size: 0.85rem; max-width: 200px; }
-  .mission-title { font-size: 1rem; }
-  .mission-desc { font-size: 0.85rem; }
 }
 </style>

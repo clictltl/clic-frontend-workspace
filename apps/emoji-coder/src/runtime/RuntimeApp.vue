@@ -5,6 +5,7 @@ import { ToastContainer, RuntimeHeader } from '@clic/shared';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { Loader2, AlertCircle } from '@lucide/vue';
 import ExecutionPlayer from '@/shared/components/ExecutionPlayer.vue';
+import TutorialHeader from '@/shared/components/TutorialHeader.vue';
 import appLogo from '@/assets/logo_caramelo.svg';
 
 const { t } = useI18n();
@@ -105,8 +106,10 @@ const errorMessage = () => {
     </div>
 
     <!-- ESTADO: SUCESSO -->
-    <!-- Renderizamos o Player Universal marcando-o como isRuntime = true -->
-    <ExecutionPlayer v-else :is-runtime="true" />
+    <div v-else class="runtime-content">
+      <TutorialHeader />
+      <ExecutionPlayer :is-runtime="true" />
+    </div>
 
     <ToastContainer />
   </div>
@@ -132,6 +135,14 @@ html, body, #app {
 .feedback-screen h2 { margin: 0; font-size: 24px; color: #1f2937; }
 .feedback-screen p { margin: 0; font-size: 16px; text-align: center; max-width: 400px; }
 .feedback-screen.error { color: #ef4444; }
+
+.runtime-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
 
 .spinner { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

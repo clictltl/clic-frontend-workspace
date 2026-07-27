@@ -7,7 +7,8 @@
     
     <!-- Painel Esquerdo: Lógica -->
     <div class="panel-logic" v-show="!isPreview">
-      <BlockEditor />
+      <TutorialHeader />
+      <BlockEditor class="flex-grow-block" />
     </div>
 
     <!-- O Divisor Arrastável -->
@@ -34,6 +35,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BlockEditor from './BlockEditor.vue';
 import ExecutionPanel from './ExecutionPanel.vue';
+import TutorialHeader from '@/shared/components/TutorialHeader.vue';
 
 const { t } = useI18n();
 
@@ -76,7 +78,8 @@ const stopDrag = () => {
 }
 
 /* No Desktop, a largura é controlada pela variável reativa do Vue */
-.panel-logic { width: var(--logic-w); height: 100%; min-width: 0; }
+.panel-logic { width: var(--logic-w); height: 100%; min-width: 0; display: flex; flex-direction: column; }
+.flex-grow-block { flex: 1; min-height: 0; }
 .panel-execution { width: calc(100% - var(--logic-w) - 6px); height: 100%; min-width: 0; }
 
 /* Modo Visualização esconde a lógica e o Canvas toma 100% */
