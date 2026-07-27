@@ -307,11 +307,22 @@ const updateEngineHandlers = () => {
 watch(
   () => projectStore.project.uuid,
   () => {
+
+    const wasClean = !projectStore.hasUnsavedChanges;
+
+    // Se for um tutorial, injeta as regras do desafio atual (tamanho da grade, maçãs, etc)
+    if (projectStore.isTutorialMode && currentChallenge.value) {
+      projectStore.loadChallenge(projectStore.activeChallengeIndex, currentChallenge.value);
+    }
+
     const c = projectStore.project.config;
     engine.reset(c.startX || 0, c.startY || 0, c.gridWidth, c.gridHeight);
     updateEngineHandlers();
     showSuccess.value = false;
     showTutorialComplete.value = false;
+
+    // Garante que o projeto continue constando como limpo (recém-criado) após aplicar as regras!
+    if (wasClean) projectStore.markAsSaved();
   }
 );
 

@@ -68,12 +68,16 @@ export const useProjectStore = defineStore('emoji-coder-project', {
     },
 
     createNew(preserveConfig: boolean = false) {
-      const currentConfig = preserveConfig ? JSON.parse(JSON.stringify(this.project.config)) : null;
+      const libraryId = preserveConfig ? this.project.config.libraryId : null;
+      const gridWidth = preserveConfig ? this.project.config.gridWidth : 8;
+      const gridHeight = preserveConfig ? this.project.config.gridHeight : 8;
 
       this.project = createEmptyProject();
       
-      if (currentConfig && currentConfig.libraryId) {
-        this.project.config = currentConfig;
+      if (libraryId) {
+        this.project.config.libraryId = libraryId;
+        this.project.config.gridWidth = gridWidth;
+        this.project.config.gridHeight = gridHeight;
       }
 
       this.activeChallengeIndex = 0;
