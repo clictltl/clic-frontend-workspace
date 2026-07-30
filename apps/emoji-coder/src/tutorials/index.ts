@@ -1,21 +1,36 @@
-import { getChallengesGrade4 } from './tutorialGrade4';
-import { getChallengesGrade5 } from './tutorialGrade5';
+import { getLibrary } from '@/libraries';
 
-export interface TutorialChallenge {
+export interface SequenceStep {
   id: number;
   title: string;
   description: string;
-  tip: string;
+  tip?: string;
   grid: { cols: number; rows: number };
   startPos: { x: number; y: number };
-  blocks: string[];
+  blocks: Record<string, string[]>;
   targetCells: Record<string, string>;
   initialWorkspace?: any;
+}
+
+export interface TutorialChallenge extends SequenceStep {
   validate: (engineState: any, ast: any[]) => boolean;
   successMsg: string;
 }
 
-export const getTutorialChallenges = (libraryId: string | null, t: any) => {
-  if (libraryId === 'turtle-tutorial-5') return getChallengesGrade5(t);
-  return getChallengesGrade4(t); // Default para Grade 4
+export interface ActivityStep extends SequenceStep {
+  validate?: never;
+  successMsg?: never;
+}
+
+export type AnySequenceStep = TutorialChallenge | ActivityStep;
+
+export const getTutorialChallenges = (libraryId: string | null, t: any): AnySequenceStep[] => {
+  if (!libraryId) return [];
+  const library = getLibrary(libraryId);
+  
+  if (library.getSequenceSteps) {
+    return library.getSequenceSteps(t);
+  }
+  
+  return [];
 };

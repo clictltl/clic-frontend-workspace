@@ -556,7 +556,7 @@ export default {
       grid_size: 'Tamanho do Grid:',
       placeholder: '(O Blockly e o Canvas serão renderizados aqui)',
       drag_resize: 'Arrastar para redimensionar',
-      actor_alt: 'Tartaruga'
+      actor_alt: 'Caramelo'
     },
     blocks: {
       start: 'Quando iniciar',
@@ -585,6 +585,7 @@ export default {
     },
     player: {
       challenge: 'Desafio {number}',
+      activity: 'Atividade {number}',
       go_to_challenge: 'Ir para este desafio',
       need_hint: 'Precisa de uma dica?',
       hint: 'Dica:',
@@ -592,7 +593,7 @@ export default {
       finish_tutorial: 'Finalizar Tutorial',
       next_challenge: 'Próximo Desafio →',
       tutorial_completed: 'Tutorial Concluído!',
-      tutorial_completed_desc: 'Você completou todos os desafios com excelência. Você já é um(a) mestre da Tartaruga e está pronto(a) para criar seus próprios projetos livres!',
+      tutorial_completed_desc: 'Você completou todos os desafios com excelência. Você já entendeu o Caramelo e está pronto(a) para criar seus próprios projetos livres!',
       save_tip: 'Lembre-se de usar o menu <strong>Arquivo > Salvar</strong> para guardar suas soluções antes de sair!',
       back_home: 'Voltar ao Início',
       step: 'Passo',
@@ -612,9 +613,9 @@ export default {
       grade4: {
         c1: {
           title: 'Vá para a direita!',
-          desc: 'A tartaruga precisa chegar até o bloco verde. Use o bloco → Direita para mover!',
+          desc: 'O Caramelo precisa chegar até o bloco verde. Use o bloco → Direita para mover!',
           tip: 'Cada → Direita avança 1 célula. Quantas vezes você precisa usar para chegar ao verde?',
-          success: 'Parabéns! Você moveu a tartaruga até o objetivo!'
+          success: 'Parabéns! Você moveu o Caramelo até o objetivo!'
         },
         c2: {
           title: 'Pinte uma linha!',
@@ -644,9 +645,9 @@ export default {
       grade5: {
         c1: {
           title: 'Chegue ao objetivo!',
-          desc: 'A tartaruga precisa chegar até o bloco verde no final da linha. Use o bloco Avançar para avançar!',
+          desc: 'O Caramelo precisa chegar até o bloco verde no final da linha. Use o bloco Avançar para avançar!',
           tip: 'Cada Avançar avança 1 passo. Quantos passos até o bloco verde?',
-          success: 'Você chegou ao objetivo! Aprendeu a mover a tartaruga com precisão.'
+          success: 'Você chegou ao objetivo! Aprendeu a mover o Caramelo com precisão.'
         },
         c2: {
           title: 'Pinte a linha!',

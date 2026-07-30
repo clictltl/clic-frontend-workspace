@@ -1,42 +1,49 @@
 <template>
   <div 
-    v-if="projectStore.isTutorialMode && currentChallenge" 
+    v-if="projectStore.isSequenceMode && currentChallenge" 
     class="tutorial-mission-card"
-    :class="{ 'collapsed': isMissionCollapsed }"
+    :class="[{ 'collapsed': isMissionCollapsed, 'activity-mode': projectStore.isActivityMode }]"
   >
     <div class="mission-header" @click="toggleMission" :style="isMobile ? 'cursor: pointer' : ''">
       <div class="mission-header-left">
-        <span class="mission-progress">{{ t('emojiCoder.player.challenge', { number: projectStore.activeChallengeIndex + 1 }) }}</span>
+        <span class="mission-progress">
+          {{ projectStore.isActivityMode 
+             ? t('emojiCoder.player.activity', { number: projectStore.activeChallengeIndex + 1 }) 
+             : t('emojiCoder.player.challenge', { number: projectStore.activeChallengeIndex + 1 }) 
+          }}
+        </span>
         <span class="mission-title-inline" v-show="isMissionCollapsed">{{ currentChallenge.title }}</span>
       </div>
 
       <div class="mission-navigation" v-show="!isMissionCollapsed">
-        <div class="nav-arrows">
-          <button 
-            class="nav-arrow" 
-            :disabled="projectStore.activeChallengeIndex === 0"
-            @click.stop="goToChallenge(projectStore.activeChallengeIndex - 1)"
-          >
-            <ChevronLeft :size="18" />
-          </button>
-          <button 
-            class="nav-arrow" 
-            :disabled="isLastChallenge"
-            @click.stop="goToChallenge(projectStore.activeChallengeIndex + 1)"
-          >
-            <ChevronRight :size="18" />
-          </button>
-        </div>
-        <div class="mission-dots">
-          <span 
-            v-for="(_, i) in totalChallenges" 
-            :key="i" 
-            class="dot" 
-            :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }"
-            @click.stop="goToChallenge(i)"
-            :title="t('emojiCoder.player.go_to_challenge')"
-          ></span>
-        </div>
+        
+        <!-- MODO TUTORIAL: Navegação Verde com Bolinhas -->
+        <template v-if="projectStore.isTutorialMode">
+          <div class="nav-arrows">
+            <button class="nav-arrow" :disabled="projectStore.activeChallengeIndex === 0" @click.stop="goToChallenge(projectStore.activeChallengeIndex - 1)">
+              <ChevronLeft :size="18" />
+            </button>
+            <button class="nav-arrow" :disabled="isLastChallenge" @click.stop="goToChallenge(projectStore.activeChallengeIndex + 1)">
+              <ChevronRight :size="18" />
+            </button>
+          </div>
+          <div class="mission-dots">
+            <span v-for="(_, i) in totalChallenges" :key="i" class="dot" :class="{ active: i === projectStore.activeChallengeIndex, done: i < projectStore.activeChallengeIndex }" @click.stop="goToChallenge(i)"></span>
+          </div>
+        </template>
+
+        <!-- MODO ATIVIDADE: Navegação Azul Simples (Botões Circulares) -->
+        <template v-else-if="projectStore.isActivityMode">
+          <div class="activity-nav-arrows">
+            <button class="activity-arrow" :disabled="projectStore.activeChallengeIndex === 0" @click.stop="goToChallenge(projectStore.activeChallengeIndex - 1)">
+              <ArrowLeft :size="20" />
+            </button>
+            <button class="activity-arrow" :disabled="isLastChallenge" @click.stop="goToChallenge(projectStore.activeChallengeIndex + 1)">
+              <ArrowRight :size="20" />
+            </button>
+          </div>
+        </template>
+
       </div>
 
       <button class="toggle-btn" v-show="isMobile">
@@ -66,7 +73,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { getTutorialChallenges } from '@/tutorials';
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb } from '@lucide/vue';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb, ArrowLeft, ArrowRight } from '@lucide/vue';
 
 const { t } = useI18n();
 const projectStore = useProjectStore();
@@ -97,14 +104,14 @@ onUnmounted(() => {
 });
 
 const activeChallengeList = computed(() => {
-  if (!projectStore.isTutorialMode) return [];
+  if (!projectStore.isSequenceMode) return [];
   return getTutorialChallenges(projectStore.project.config.libraryId, t);
 });
 
 const totalChallenges = computed(() => activeChallengeList.value.length);
 
 const currentChallenge = computed(() => {
-  if (!projectStore.isTutorialMode) return null;
+  if (!projectStore.isSequenceMode) return null;
   return activeChallengeList.value[projectStore.activeChallengeIndex] || activeChallengeList.value[0];
 });
 
@@ -154,6 +161,73 @@ const goToChallenge = (index: number) => {
 .reveal-tip-btn:hover { background-color: #dcfce7; border-color: #22c55e; }
 .mission-tip { padding: 0.5rem; background-color: #dcfce7; border-radius: 6px; font-size: 0.85rem; color: #15803d; border-left: 3px solid #22c55e; animation: fadeIn 0.3s ease; }
 .inline-icon { vertical-align: text-bottom; margin-right: 4px; }
+
+/* =========================================
+   VARIANTE: MODO ATIVIDADE (AZUL)
+========================================== */
+.tutorial-mission-card.activity-mode { 
+  background-color: #eff6ff; 
+  border-bottom-color: #bfdbfe; 
+}
+.tutorial-mission-card.activity-mode .mission-progress { 
+  color: #2563eb; 
+}
+.tutorial-mission-card.activity-mode .mission-title-inline,
+.tutorial-mission-card.activity-mode .mission-title { 
+  color: #1e3a8a; 
+}
+.tutorial-mission-card.activity-mode .mission-desc { 
+  color: #1d4ed8; 
+}
+.tutorial-mission-card.activity-mode .toggle-btn { 
+  color: #2563eb; 
+}
+
+/* Dicas no Modo Atividade */
+.tutorial-mission-card.activity-mode .reveal-tip-btn { 
+  border-color: #93c5fd; 
+  color: #1d4ed8; 
+}
+.tutorial-mission-card.activity-mode .reveal-tip-btn:hover { 
+  background-color: #dbeafe; 
+  border-color: #3b82f6; 
+}
+.tutorial-mission-card.activity-mode .mission-tip { 
+  background-color: #dbeafe; 
+  color: #1d4ed8; 
+  border-left-color: #3b82f6; 
+}
+
+/* Navegação Exclusiva do Modo Atividade */
+.activity-nav-arrows { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+}
+.activity-arrow { 
+  background-color: #3b82f6; 
+  color: white; 
+  border: none; 
+  width: 34px; 
+  height: 34px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+}
+.activity-arrow:hover:not(:disabled) { 
+  background-color: #2563eb; 
+  transform: scale(1.05); 
+}
+.activity-arrow:disabled { 
+  background-color: #bfdbfe; 
+  color: #eff6ff; 
+  cursor: not-allowed; 
+  box-shadow: none; 
+}
 
 @media (max-width: 768px) {
   .mission-title-inline { font-size: 0.85rem; max-width: 200px; }

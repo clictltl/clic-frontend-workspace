@@ -121,7 +121,7 @@ const projectStore = useProjectStore();
 
 // Descobre qual código rodar sem precisar do Blockly!
 const getActiveAST = () => {
-  if (projectStore.isTutorialMode && projectStore.project.config.tutorialSavedASTs) {
+  if (projectStore.isSequenceMode && projectStore.project.config.tutorialSavedASTs) {
     // Se tiver código salvo pro desafio atual, usa ele. Se não, usa o global como fallback.
     return projectStore.project.config.tutorialSavedASTs[projectStore.activeChallengeIndex] || projectStore.project.compiledAST;
   }
@@ -132,14 +132,14 @@ const showSuccess = ref(false);
 const showTutorialComplete = ref(false);
 
 const activeChallengeList = computed(() => {
-  if (!projectStore.isTutorialMode) return [];
+  if (!projectStore.isSequenceMode) return [];
   return getTutorialChallenges(projectStore.project.config.libraryId, t);
 });
 
 const totalChallenges = computed(() => activeChallengeList.value.length);
 
 const currentChallenge = computed(() => {
-  if (!projectStore.isTutorialMode) return null;
+  if (!projectStore.isSequenceMode) return null;
   return activeChallengeList.value[projectStore.activeChallengeIndex] || activeChallengeList.value[0];
 });
 
@@ -148,7 +148,7 @@ const isLastChallenge = computed(() => {
 });
 
 onMounted(() => {
-  if (projectStore.isTutorialMode && currentChallenge.value) {
+  if (projectStore.isSequenceMode && currentChallenge.value) {
     const wasClean = !projectStore.hasUnsavedChanges;
     projectStore.loadChallenge(projectStore.activeChallengeIndex, currentChallenge.value);
     if (wasClean) projectStore.markAsSaved();
@@ -207,9 +207,12 @@ engine.onHighlight = (blockId) => {
 };
 
 engine.onExecutionComplete = () => {
+  // O modo atividade não possui validação automática nem modal verde de sucesso
   if (projectStore.isTutorialMode && currentChallenge.value) {
-    const passed = currentChallenge.value.validate(engine.state, getActiveAST());
-    if (passed) showSuccess.value = true;
+    if (typeof currentChallenge.value.validate === 'function') {
+      const passed = currentChallenge.value.validate(engine.state, getActiveAST());
+      if (passed) showSuccess.value = true;
+    }
   }
 };
 
@@ -238,8 +241,8 @@ watch(
 
     const wasClean = !projectStore.hasUnsavedChanges;
 
-    // Se for um tutorial, injeta as regras do desafio atual (tamanho da grade, maçãs, etc)
-    if (projectStore.isTutorialMode && currentChallenge.value) {
+    // Se for um modo sequenciado, injeta as regras do desafio atual (tamanho da grade, maçãs, etc)
+    if (projectStore.isSequenceMode && currentChallenge.value) {
       projectStore.loadChallenge(projectStore.activeChallengeIndex, currentChallenge.value);
     }
 

@@ -14,7 +14,10 @@ export const turtleTutorial5: BlockLibrary = {
   id: 'turtle-tutorial-5',
   name: 'Tutorial 5ª Série',
   isToolboxDynamic: true,
+  mode: 'tutorial',
   
+  getSequenceSteps: (t: TranslateFn) => getChallengesGrade5(t),
+
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
     const store = useProjectStore();
     const challengeIndex = store.activeChallengeIndex || 0;
@@ -22,31 +25,38 @@ export const turtleTutorial5: BlockLibrary = {
     
     if (!challenge) return `<xml></xml>`;
 
-    // Pega as funções já definidas no quadro para injetar os blocos de chamada
-    let callBlocks = '';
-    if (challenge.blocks.includes('procedures_callnoreturn') && workspace) {
-      const functionNames = workspace.getTopBlocks(false)
-        .filter(b => b.type === 'procedures_defnoreturn')
-        .map(b => b.getFieldValue('NAME'))
-        .filter(name => name); 
+    let blocksXml = '';
+    
+    for (const [category, blocks] of Object.entries(challenge.blocks)) {
+      blocksXml += `    <label text="${t('emojiCoder.toolbox.' + category)}"></label>\n`;
       
-      functionNames.forEach(name => {
-        callBlocks += `<block type="procedures_callnoreturn"><mutation name="${name}"></mutation></block>\n`;
-      });
+      for (const b of blocks) {
+        if (b === 'procedures_callnoreturn') {
+          // Pega as funções já definidas no quadro para injetar os blocos de chamada nesta categoria
+          if (workspace) {
+            const functionNames = workspace.getTopBlocks(false)
+              .filter(blk => blk.type === 'procedures_defnoreturn')
+              .map(blk => blk.getFieldValue('NAME'))
+              .filter(name => name); 
+            
+            functionNames.forEach(name => {
+              blocksXml += `    <block type="procedures_callnoreturn"><mutation name="${name}"></mutation></block>\n`;
+            });
+          }
+        } else if (b === 'controls_repeat_ext') {
+          blocksXml += `    <block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">4</field></shadow></value></block>\n`;
+        } else if (b === 'procedures_defnoreturn') {
+          blocksXml += `    <block type="procedures_defnoreturn"><field name="NAME">${t('emojiCoder.blocks.defaultFuncName')}</field></block>\n`;
+        } else {
+          blocksXml += `    <block type="${b}"></block>\n`;
+        }
+      }
+      blocksXml += `    <sep gap="24"></sep>\n`;
     }
-
-    // Filtra os blocos baseados no array de permitidos do desafio
-    const blocksXml = challenge.blocks.map(b => {
-      if (b === 'procedures_callnoreturn') return ''; // Já tratados acima
-      if (b === 'controls_repeat_ext') return `<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">4</field></shadow></value></block>`;
-      if (b === 'procedures_defnoreturn') return `<block type="procedures_defnoreturn"><field name="NAME">${t('emojiCoder.blocks.defaultFuncName')}</field></block>`;
-      return `<block type="${b}"></block>`;
-    }).join('\n');
 
     return `
       <xml>
         ${blocksXml}
-        ${callBlocks}
       </xml>
     `;
   },

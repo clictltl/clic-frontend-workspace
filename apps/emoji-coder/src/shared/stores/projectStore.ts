@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { generateUUID } from '@clic/shared';
 import type { EmojiProject } from '../types';
+import { getLibrary } from '@/libraries';
 
 const now = () => new Date().toISOString();
 
@@ -57,7 +58,19 @@ export const useProjectStore = defineStore('emoji-coder-project', {
   getters: {
     hasUnsavedChanges: (state) => JSON.stringify(state.project) !== state.lastSavedState,
     isConfigured: (state) => state.project.config.libraryId !== null,
-    isTutorialMode: (state) => state.project.config.libraryId?.includes('tutorial') || false,
+    currentLibrary(state) {
+      if (!state.project.config.libraryId) return null;
+      try { return getLibrary(state.project.config.libraryId); } catch { return null; }
+    },
+    isTutorialMode(): boolean {
+      return this.currentLibrary?.mode === 'tutorial';
+    },
+    isActivityMode(): boolean {
+      return this.currentLibrary?.mode === 'activity';
+    },
+    isSequenceMode(): boolean {
+      return this.isTutorialMode || this.isActivityMode;
+    }
   },
 
   actions: {
@@ -151,8 +164,8 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       this.project.blocksWorkspace = workspaceJson;
       this.project.compiledAST = ast;
 
-      // Se for tutorial, salva o state no slot do desafio atual:
-      if (this.isTutorialMode && this.activeChallengeIndex !== undefined) {
+      // Se for um modo sequenciado (tutorial ou atividade), salva o state no slot atual:
+      if (this.isSequenceMode && this.activeChallengeIndex !== undefined) {
         if (!this.project.config.tutorialSavedWorkspaces) {
           this.project.config.tutorialSavedWorkspaces = {};
         }

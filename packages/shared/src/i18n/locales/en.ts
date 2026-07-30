@@ -555,7 +555,7 @@ export default {
       grid_size: 'Grid Size:',
       placeholder: '(Blockly and Canvas will be rendered here)',
       drag_resize: 'Drag to resize',
-      actor_alt: 'Turtle'
+      actor_alt: 'Caramelo'
     },
     blocks: {
       start: 'When start',
@@ -584,6 +584,7 @@ export default {
     },
     player: {
       challenge: 'Challenge {number}',
+      activity: 'Activity {number}',
       go_to_challenge: 'Go to this challenge',
       need_hint: 'Need a hint?',
       hint: 'Hint:',
@@ -591,7 +592,7 @@ export default {
       finish_tutorial: 'Finish Tutorial',
       next_challenge: 'Next Challenge →',
       tutorial_completed: 'Tutorial Completed!',
-      tutorial_completed_desc: 'You completed all challenges with excellence. You are already a Turtle master and are ready to create your own free projects!',
+      tutorial_completed_desc: 'You completed all challenges with excellence. You understood Caramelo and are ready to create your own personal projects!',
       save_tip: 'Remember to use the <strong>File > Save</strong> menu to save your solutions before leaving!',
       back_home: 'Back to Home',
       step: 'Step',
@@ -611,9 +612,9 @@ export default {
       grade4: {
         c1: {
           title: 'Go right!',
-          desc: 'The turtle needs to reach the green block. Use the → Right block to move!',
+          desc: 'Caramelo needs to reach the green block. Use the → Right block to move!',
           tip: 'Each → Right moves 1 cell. How many times do you need to use it to reach the green?',
-          success: 'Congratulations! You moved the turtle to the goal!'
+          success: 'Congratulations! You moved Caramelo to the goal!'
         },
         c2: {
           title: 'Paint a line!',
@@ -643,9 +644,9 @@ export default {
       grade5: {
         c1: {
           title: 'Reach the goal!',
-          desc: 'The turtle needs to reach the green block at the end of the line. Use the Move Forward block to advance!',
+          desc: 'Caramelo needs to reach the green block at the end of the line. Use the Move Forward block to advance!',
           tip: 'Each Move Forward advances 1 step. How many steps to the green block?',
-          success: 'You reached the goal! You learned to move the turtle with precision.'
+          success: 'You reached the goal! You learned to move Caramelo with precision.'
         },
         c2: {
           title: 'Paint the line!',

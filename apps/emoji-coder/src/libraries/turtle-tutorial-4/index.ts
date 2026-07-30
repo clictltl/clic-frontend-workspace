@@ -12,6 +12,9 @@ export const turtleTutorial4: BlockLibrary = {
   id: 'turtle-tutorial-4',
   name: 'Tutorial 4º Ano',
   isToolboxDynamic: true, // Avisa o App.vue que a toolbox pode mudar
+  mode: 'tutorial',
+
+  getSequenceSteps: (t: TranslateFn) => getChallengesGrade4(t),
   
   getToolboxXml: (t: TranslateFn) => {
     // Lemos a store do Pinia dinamicamente para saber qual bloco renderizar
@@ -25,7 +28,12 @@ export const turtleTutorial4: BlockLibrary = {
     }
     
     // Constrói XML apenas com os blocos permitidos pelo desafio!
-    const blocksXml = challenge.blocks.map(b => `<block type="${b}"></block>`).join('\n');
+    let blocksXml = '';
+    for (const [category, blocks] of Object.entries(challenge.blocks)) {
+      blocksXml += `    <label text="${t('emojiCoder.toolbox.' + category)}"></label>\n`;
+      blocksXml += blocks.map(b => `    <block type="${b}"></block>`).join('\n') + '\n';
+      blocksXml += `    <sep gap="24"></sep>\n`;
+    }
 
     return `
       <xml>
