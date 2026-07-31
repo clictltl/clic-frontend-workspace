@@ -512,25 +512,36 @@ export default {
 
   emojiCoder: {
     setup: {
-      prepare_env: 'Choose an activity to start',
-      
-      basic_title: 'Basic Level',
-      basic_desc: 'Learn to move the caramel dog using absolute directions.',
-      intermediate_title: 'Intermediate Level',
-      intermediate_desc: 'Learn to put yourself in the dog\'s shoes using relative movements.',
-      advanced_title: 'Advanced Level',
-      advanced_desc: 'Full access to blocks, advanced functions, and custom grids.',
-      
-      tutorial_title: 'Interactive Tutorial',
-      tutorial_basic_desc: 'Learn to move the dog and paint the floor step by step.',
-      tutorial_inter_desc: 'Learn to navigate from the dog\'s perspective (Move Forward/Turn).',
-      
-      sandbox_basic_title: 'Sandbox (Basic)',
-      sandbox_basic_desc: 'Create free drawings using movement blocks.',
-      sandbox_inter_title: 'Sandbox (Relative)',
-      sandbox_inter_desc: 'Program Move Forward, Backward, and Turn movements.',
-      sandbox_adv_title: 'Sandbox (Master)',
-      sandbox_adv_desc: 'Merge absolute and relative movement in the same project. Create huge challenges!',
+      tutorials: {
+        title: 'How to Use the Tool',
+        desc: 'Learn step by step how to program Caramelo, from basic to advanced.',
+        abs_title: 'Absolute movements',
+        abs_desc: 'Learn how to use the absolute movement blocks.',
+        rel_title: 'Relative movements',
+        rel_desc: 'Learn how to use the relative movement blocks.'
+      },
+
+      sd1: {
+        title: 'Create drawings with Caramelo',
+        desc: 'This track follows the plan of the teaching sequence "Create drawings with Caramelo". To access the complete lesson plan, <a href="https://clic.tltlab.org/" target="_blank" style="color: #2563eb; text-decoration: underline;">click here</a>',
+        class1_title: 'Movements with Caramelo',
+        class1_desc: 'Recreate one of your drawings in the sandbox using absolute and relative commands.',
+        class2_title: 'Repeating patterns',
+        class2_desc: 'Discover the Staircase challenge and learn how to use the repeat block to save on commands.',
+        class3_title: 'Creating with Caramelo',
+        class3_desc: 'Create your own free drawing, mixing absolute commands, relative commands, and repetition.'
+      },
+
+      sandboxes: {
+        title: 'Create your projects',
+        desc: 'Sandboxes to create your own free projects',
+        abs_title: 'Absolute movements',
+        abs_desc: 'Create free drawings using the absolute movement blocks.',
+        rel_title: 'Relative movements',
+        rel_desc: 'Create free drawings using the Move Forward, Move Back, and Turn blocks.',
+        both_title: 'Absolute and relative movements',
+        both_desc: 'Combine absolute and relative movements in the same project.'
+      },
       
       grid_fixed: 'Size: 8x8 (Fixed)',
       grid_size: 'Board Size:',

@@ -513,25 +513,36 @@ export default {
 
   emojiCoder: {
     setup: {
-      prepare_env: 'Escolha uma atividade para começar',
-      
-      basic_title: 'Nível Básico',
-      basic_desc: 'Aprenda a mover o caramelo usando direções absolutas.',
-      intermediate_title: 'Nível Intermediário',
-      intermediate_desc: 'Aprenda a se colocar no lugar do caramelo usando movimentos relativos.',
-      advanced_title: 'Nível Avançado',
-      advanced_desc: 'Acesso total aos blocos, funções avançadas e grades customizadas.',
-      
-      tutorial_title: 'Tutorial Interativo',
-      tutorial_basic_desc: 'Aprenda a mover o caramelo e pintar o chão passo a passo.',
-      tutorial_inter_desc: 'Aprenda a navegar pela perspectiva do caramelo (Avançar/Girar).',
-      
-      sandbox_basic_title: 'Caixa de Areia (Básico)',
-      sandbox_basic_desc: 'Crie desenhos livres usando os blocos de movimento.',
-      sandbox_inter_title: 'Caixa de Areia (Relativo)',
-      sandbox_inter_desc: 'Programe movimentos de Avançar, Recuar e Giros.',
-      sandbox_adv_title: 'Caixa de Areia (Mestre)',
-      sandbox_adv_desc: 'Mescle movimento absoluto e relativo no mesmo projeto. Crie desafios enormes!',
+      tutorials: {
+        title: 'Como usar a Ferramenta',
+        desc: 'Aprenda o passo a passo para programar o Caramelo, do básico ao avançado.',
+        abs_title: 'Movimentos absolutos',
+        abs_desc: 'Aprenda a utlizar os blocos de movimentos absolutos.',
+        rel_title: 'Movimentos relativos',
+        rel_desc: 'Aprenda a utlizar os blocos de movimentos relativos.'
+      },
+
+      sd1: {
+        title: 'Crie desenhos com o Caramelo',
+        desc: 'Essa trilha segue o planejamento da sequência didática "Crie desenhos com o Caramelo". Para acessar o plano de aula completo, <a href="https://clic.tltlab.org/" target="_blank" style="color: #2563eb; text-decoration: underline;">clique aqui</a>',
+        class1_title: 'Movimentos com o Caramelo',
+        class1_desc: 'Recrie um desenho seu na caixa de areia usando comando absolutos e relativos.',
+        class2_title: 'Repetindo padrões',
+        class2_desc: 'Descubra o desafio da Escada e aprenda a usar o bloco de repetição para economizar comandos.',
+        class3_title: 'Criando com o Caramelo',
+        class3_desc: 'Crie um desenho autoral livre, misturando comandos absolutos, relativos e repetição.'
+      },
+
+      sandboxes: {
+        title: 'Crie seus projetos',
+        desc: 'Caixas de areia para criar seus projetos livres',
+        abs_title: 'Movimentos absolutos',
+        abs_desc: 'Crie desenhos livres usando os blocos de movimentos absolutos.',
+        rel_title: 'Movimentos relativos',
+        rel_desc: 'Crie desenhos livres usando os blocos Avançar, Recuar e Girar.',
+        both_title: 'Movimentos absolutos e relativos',
+        both_desc: 'Mescle movimentos absolutos e relativos no mesmo projeto.'
+      },
       
       grid_fixed: 'Tamanho: 8x8 (Fixo)',
       grid_size: 'Tamanho do Tabuleiro:',
