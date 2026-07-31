@@ -168,7 +168,7 @@ onMounted(async () => {
     theme: Blockly.Themes.Zelos,
     zoom: {
       controls: true,
-      wheel: true,
+      wheel: false,
     }
   });
 

@@ -3,6 +3,8 @@ import type { TranslateFn } from '../types';
 import { registerASTParser } from '../ASTBuilder';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 import iconRepeat from '@/assets/icons/repeat.svg';
+import iconPlus from '@/assets/icons/plus.svg';
+import iconMinus from '@/assets/icons/minus.svg';
 
 // Guarda a inicialização original do bloco nativo
 let originalRepeatInit: any = null;
@@ -17,6 +19,29 @@ export const patchLoopBlocks = () => {
   };
 };
 
+// Registra de forma segura a extensão para lidar com os cliques (HMR friendly)
+if (!Blockly.Extensions.isRegistered('turtle_repeat_buttons')) {
+  Blockly.Extensions.register('turtle_repeat_buttons', function(this: Blockly.Block) {
+    const minusField = this.getField('MINUS') as Blockly.FieldImage;
+    const plusField = this.getField('PLUS') as Blockly.FieldImage;
+    const timesField = this.getField('TIMES') as Blockly.FieldNumber;
+
+    if (minusField && timesField) {
+      minusField.setOnClickHandler(() => {
+        const current = Number(timesField.getValue()) || 0;
+        if (current > 0) timesField.setValue(current - 1);
+      });
+    }
+
+    if (plusField && timesField) {
+      plusField.setOnClickHandler(() => {
+        const current = Number(timesField.getValue()) || 0;
+        timesField.setValue(current + 1);
+      });
+    }
+  });
+}
+
 export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean, suffix?: string }) => {
   const isIcon = options?.iconOnly;
   const suffix = options?.suffix || '';
@@ -26,23 +51,28 @@ export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean,
   
   Blockly.defineBlocksWithJsonArray([{
     type: typeName,
-    message0: isIcon ? "%1 %2" : "%1 %2 %3", // Ajustado para texto
+    message0: isIcon ? "%1 %2 %3 %4" : "%1 %2 %3 %4 %5",
     args0: isIcon 
       ? [
           { type: "field_image", src: iconRepeat, width: 28, height: 28, alt: "Repetir" },
-          { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 }
+          { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 },
+          { type: "field_image", name: "MINUS", src: iconMinus, width: 28, height: 28, alt: "-" },
+          { type: "field_image", name: "PLUS", src: iconPlus, width: 28, height: 28, alt: "+" }
         ]
       : [
           { type: "field_image", src: iconRepeat, width: 20, height: 20, alt: "Repetir" },
           { type: "field_label", text: t('emojiCoder.blocks.repeat') },
-          { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 }
+          { type: "field_number", name: "TIMES", value: 4, min: 0, precision: 1 },
+          { type: "field_image", name: "MINUS", src: iconMinus, width: 20, height: 20, alt: "-" },
+          { type: "field_image", name: "PLUS", src: iconPlus, width: 20, height: 20, alt: "+" }
         ],
     message1: "%1",
     args1: [{ type: "input_statement", name: "DO" }],
     previousStatement: null,
     nextStatement: null,
     colour: "#4C6AB0",
-    tooltip: t('emojiCoder.toolbox.loops')
+    tooltip: t('emojiCoder.toolbox.loops'),
+    extensions: ["turtle_repeat_buttons"]
   }]);
 };
 

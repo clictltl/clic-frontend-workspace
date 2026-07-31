@@ -10,8 +10,7 @@ export const getActivitiesSD1Class1 = (t: any): ActivityStep[] => [
     blocks: {
       'movement': ['move_right_icon', 'move_left_icon', 'move_up_icon', 'move_down_icon'],
       'actions': ['paint_icon'],
-      'loops': ['turtle_repeat_icon'],
-      'functions': ['turtle_visual_def', 'turtle_visual_call']
+      'loops': ['turtle_repeat_icon']
     },
     targetCells: {}
   },
@@ -24,8 +23,7 @@ export const getActivitiesSD1Class1 = (t: any): ActivityStep[] => [
     blocks: {
       'movement': ['move_forward', 'move_backward', 'turn_left', 'turn_right'],
       'actions': ['paint_text'],
-      'loops': ['turtle_repeat_text'],
-      'functions': ['procedures_defnoreturn', 'procedures_callnoreturn']
+      'loops': ['turtle_repeat_text']
     },
     targetCells: {}
   }

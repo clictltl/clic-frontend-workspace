@@ -21,7 +21,7 @@ export const libSD1Class2: BlockLibrary = {
     const challengeIndex = store.activeChallengeIndex || 0;
     const challenge = getActivitiesSD1Class2(t)[challengeIndex];
     
-     if (!challenge) {
+    if (!challenge) {
       return `<xml></xml>`;
     }
     

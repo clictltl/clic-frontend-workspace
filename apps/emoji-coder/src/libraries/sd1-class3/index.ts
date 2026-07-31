@@ -1,4 +1,3 @@
-import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
@@ -7,27 +6,12 @@ import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../
 import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
 import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../core-blocks/movement-relative';
 import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
-import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 
 export const libSD1Class3: BlockLibrary = {
   id: 'sd1-class3',
   name: 'SD 1 Aula 3',
-  isToolboxDynamic: true,
   
-  getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
-    let callBlocks = '';
-    if (workspace) {
-      const functionNames = workspace.getTopBlocks(false)
-        .filter(b => b.type === 'procedures_defnoreturn')
-        .map(b => b.getFieldValue('NAME'))
-        .filter(name => name); 
-      
-      functionNames.forEach(name => {
-        callBlocks += `<block type="procedures_callnoreturn"><mutation name="${name}"></mutation></block>\n`;
-      });
-    }
-
-    return `
+  getToolboxXml: (t: TranslateFn) => `
       <xml>
         <label text="${t('emojiCoder.toolbox.movement_absolute')}"></label>
         <block type="move_up"></block>
@@ -50,15 +34,8 @@ export const libSD1Class3: BlockLibrary = {
         <label text="${t('emojiCoder.toolbox.loops')}"></label>
         <block type="turtle_repeat"></block>
         <sep gap="24"></sep>
-
-        <label text="${t('emojiCoder.toolbox.functions')}"></label>
-        <block type="procedures_defnoreturn">
-          <field name="NAME">${t('emojiCoder.blocks.defaultFuncName')}</field>
-        </block>
-        ${callBlocks}
       </xml>
-    `;
-  },
+  `,
   
   registerBlocks: (t: TranslateFn) => {
     defineStartBlock(t);
@@ -66,7 +43,6 @@ export const libSD1Class3: BlockLibrary = {
     defineRelativeMovementBlocks(t);
     defineAbsoluteMovementBlocks(t);
     defineLoopBlocks(t);
-    patchProcedureBlocks(t);
   },
 
   registerParsers: () => {
@@ -74,7 +50,6 @@ export const libSD1Class3: BlockLibrary = {
     registerRelativeMovementParsers();
     registerAbsoluteMovementParsers();
     registerLoopParsers();
-    registerProcedureParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
@@ -82,6 +57,5 @@ export const libSD1Class3: BlockLibrary = {
     registerRelativeMovementHandlers(engine);
     registerAbsoluteMovementHandlers(engine); 
     registerLoopHandlers(engine);
-    registerProcedureHandlers(engine);
   }
 };
