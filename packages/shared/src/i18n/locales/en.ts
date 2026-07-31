@@ -168,8 +168,8 @@ export default {
       success_disabled: 'Link disabled.'
     },
     unsaved: {
-      title_export: 'Do you want to export changes?',
-      title_save: 'Do you want to save changes?',
+      title_export: 'WARNING! Do you want to export changes?',
+      title_save: 'WARNING! Do you want to save changes?',
       desc_export: 'If you create a new project without exporting, all recent changes will be permanently lost.',
       desc_discard: 'If you discard, all recent changes will be permanently lost.',
       btn_discard: 'Discard',

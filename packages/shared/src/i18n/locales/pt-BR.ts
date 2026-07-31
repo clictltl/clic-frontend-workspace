@@ -169,8 +169,8 @@ export default {
       success_disabled: 'Link desativado.'
     },
     unsaved: {
-      title_export: 'Deseja exportar as alterações?',
-      title_save: 'Deseja salvar as alterações?',
+      title_export: 'ALERTA! Deseja exportar as alterações?',
+      title_save: 'ALERTA! Deseja salvar as alterações?',
       desc_export: 'Se você criar um novo projeto sem exportar, todas as alterações recentes serão perdidas permanentemente.',
       desc_discard: 'Se você descartar, todas as alterações recentes serão perdidas permanentemente.',
       btn_discard: 'Descartar',

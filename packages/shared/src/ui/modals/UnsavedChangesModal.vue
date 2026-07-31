@@ -5,8 +5,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="icon-container">
-          <Download v-if="isOffline" :size="28" color="#4b5563" />
-          <Save v-else :size="28" color="#4b5563" />
+          <AlertTriangle :size="28" color="#dc2626" />
         </div>
         <h3>{{ isOffline ? $t('modals.unsaved.title_export') : $t('modals.unsaved.title_save') }}</h3>
         <p>
@@ -30,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { Save, Download } from '@lucide/vue';
+import { AlertTriangle } from '@lucide/vue';
 
 defineProps<{
   isOffline?: boolean;
@@ -57,7 +56,7 @@ defineEmits(['cancel', 'discard', 'save']);
 }
 
 .icon-container {
-  background: #f3f4f6; width: 56px; height: 56px; border-radius: 50%;
+  background: #fef08a; width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;
 }
 .icon { font-size: 28px; }
