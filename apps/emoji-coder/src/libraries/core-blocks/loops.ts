@@ -17,13 +17,15 @@ export const patchLoopBlocks = () => {
   };
 };
 
-export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean }) => {
+export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean, suffix?: string }) => {
   const isIcon = options?.iconOnly;
+  const suffix = options?.suffix || '';
+  const typeName = `turtle_repeat${suffix}`;
   
-  if (Blockly.Blocks['turtle_repeat']) delete Blockly.Blocks['turtle_repeat'];
+  if (Blockly.Blocks[typeName]) delete Blockly.Blocks[typeName];
   
   Blockly.defineBlocksWithJsonArray([{
-    type: "turtle_repeat",
+    type: typeName,
     message0: isIcon ? "%1 %2" : "%1 %2 %3", // Ajustado para texto
     args0: isIcon 
       ? [
@@ -44,10 +46,12 @@ export const defineLoopBlocks = (t: TranslateFn, options?: { iconOnly?: boolean 
   }]);
 };
 
-export const registerLoopParsers = () => {
+export const registerLoopParsers = (options?: { suffix?: string }) => {
+  const suffix = options?.suffix || '';
+
   const parseRepeatBlock = (block: any, walkChildren: any) => {
     let count = 0;
-    if (block.type === 'turtle_repeat') {
+    if (block.type.startsWith('turtle_repeat')) {
       count = Number(block.getFieldValue('TIMES')) || 0;
     } else {
       const timesInput = block.getInputTargetBlock('TIMES');
@@ -61,7 +65,7 @@ export const registerLoopParsers = () => {
   };
 
   registerASTParser('controls_repeat_ext', parseRepeatBlock);
-  registerASTParser('turtle_repeat', parseRepeatBlock);
+  registerASTParser(`turtle_repeat${suffix}`, parseRepeatBlock);
 };
 
 export const registerLoopHandlers = (engine: TurtleEngine) => {

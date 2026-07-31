@@ -73,11 +73,11 @@ const reloadWorkspace = () => {
 
     workspace.clear();
 
-    const isTutorial = projectStore.isTutorialMode;
+    const isSequence = projectStore.isSequenceMode;
     const currentIdx = projectStore.activeChallengeIndex;
     
     let stateToLoad = null;
-    if (isTutorial) {
+    if (isSequence && currentIdx !== undefined) {
       stateToLoad = projectStore.project.config.tutorialSavedWorkspaces?.[currentIdx];
     } else {
       stateToLoad = projectStore.project.blocksWorkspace;

@@ -8,11 +8,12 @@ import iconDown from '@/assets/icons/arrow-down.svg';
 import iconLeft from '@/assets/icons/arrow-left.svg';
 import iconRight from '@/assets/icons/arrow-right.svg';
 
-export const defineAbsoluteMovementBlocks = (t: TranslateFn, options?: { iconOnly?: boolean }) => {
+export const defineAbsoluteMovementBlocks = (t: TranslateFn, options?: { iconOnly?: boolean, suffix?: string }) => {
   const isIcon = options?.iconOnly;
+  const suffix = options?.suffix || '';
 
   const buildDef = (type: string, src: string, label: string) => ({
-    type,
+    type: `${type}${suffix}`,
     message0: isIcon ? "%1" : "%1 %2",
     args0: isIcon
       ? [{ type: "field_image", src, width: 28, height: 28, alt: label }]
@@ -39,13 +40,14 @@ export const defineAbsoluteMovementBlocks = (t: TranslateFn, options?: { iconOnl
   });
 };
 
-export const registerAbsoluteMovementParsers = () => {
+export const registerAbsoluteMovementParsers = (options?: { suffix?: string }) => {
+  const suffix = options?.suffix || '';
   const createAction = (action: string) => (block: any) => ({ action, blockId: block.id });
 
-  registerASTParser('move_up', createAction('MOVE_UP'));
-  registerASTParser('move_down', createAction('MOVE_DOWN'));
-  registerASTParser('move_left', createAction('MOVE_LEFT'));
-  registerASTParser('move_right', createAction('MOVE_RIGHT'));
+  registerASTParser(`move_up${suffix}`, createAction('MOVE_UP'));
+  registerASTParser(`move_down${suffix}`, createAction('MOVE_DOWN'));
+  registerASTParser(`move_left${suffix}`, createAction('MOVE_LEFT'));
+  registerASTParser(`move_right${suffix}`, createAction('MOVE_RIGHT'));
 };
 
 export const registerAbsoluteMovementHandlers = (engine: TurtleEngine) => {

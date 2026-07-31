@@ -692,6 +692,28 @@ export default {
         }
       }
     },
+    activities: {
+      sd1_class1 : {
+        a1: {
+          title: 'Recreate your drawing!',
+          desc: 'Use absolute commands to reproduce in the sandbox the drawing you made.'
+        },
+        a2: {
+          title: 'Challenge a classmate!',
+          desc: 'Swap drawings with a classmate and try to recreate their drawing using only relative commands: Move Forward, Move Back, and Turn.'
+        }
+      },
+      sd1_class2 : {
+        a1: {
+          title: 'Discover the Staircase movement!',
+          desc: 'Now it\'s your turn, which commands make Caramelo move as if it were going down the stairs?'
+        },
+        a2: {
+          title: 'Reducing commands!',
+          desc: 'Use repeat blocks and find out how many blocks you can reduce.'
+        }
+      }
+    },
     history: {
       updateConfig: 'Grid change',
     }

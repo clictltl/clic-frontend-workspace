@@ -54,7 +54,7 @@ const initialWorkspaceChallenge4 = {
   }
 };
 
-export const getChallengesGrade5 = (t: any): TutorialChallenge[] => [
+export const getChallengesRelMov = (t: any): TutorialChallenge[] => [
   {
     id: 1,
     title: t('emojiCoder.tutorials.grade5.c1.title'),

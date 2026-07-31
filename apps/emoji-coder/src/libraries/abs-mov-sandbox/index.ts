@@ -7,9 +7,9 @@ import { defineVisualProcedureBlocks, registerVisualProcedureParsers } from '../
 import { registerProcedureHandlers } from '../core-blocks/procedures';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-export const turtleGrade4Advanced: BlockLibrary = {
-  id: 'turtle-grade-4-advanced',
-  name: '4º Ano - Avançado (Funções)',
+export const libAbsMovSandbox: BlockLibrary = {
+  id: 'abs-mov-sandbox',
+  name: 'Caixa de areia - Movimento absoluto',
   
   getToolboxXml: (t: TranslateFn) => {
     return `

@@ -693,6 +693,28 @@ export default {
         }
       }
     },
+    activities: {
+      sd1_class1 : {
+        a1: {
+          title: 'Recrie seu desenho!',
+          desc: 'Use comandos absolutos para reproduzir na caixa de areia o desenho que você fez.'
+        },
+        a2: {
+          title: 'Desafie um colega!',
+          desc: 'Troque desenhos com um colega e tente recriar o desenho dele usando só comandos relativos: Avançar, Recuar e Girar.'
+        }
+      },
+      sd1_class2 : {
+        a1: {
+          title: 'Descubra o movimento da Escada!',
+          desc: 'Agora é sua vez, quais comandos fazem o Caramelo se mover como se estivesse descendo a escada?'
+        },
+        a2: {
+          title: 'Diminuindo comandos!',
+          desc: 'Use blocos de repetição e descubra quantos blocos você consegue diminuir.'
+        }
+      }
+    },
     history: {
       updateConfig: 'Alteração na Grade',
     }

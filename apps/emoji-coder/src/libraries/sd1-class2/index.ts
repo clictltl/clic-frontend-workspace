@@ -1,33 +1,30 @@
 import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { getChallengesGrade4 } from '@/tutorials/tutorialGrade4';
+import { getActivitiesSD1Class2 } from '@/tutorials/activitySD1Class2';
 
-import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
 import { defineLoopBlocks, registerLoopParsers, registerLoopHandlers } from '../core-blocks/loops';
+import { defineRelativeMovementBlocks, registerRelativeMovementParsers, registerRelativeMovementHandlers } from '../core-blocks/movement-relative';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-export const turtleTutorial4: BlockLibrary = {
-  id: 'turtle-tutorial-4',
-  name: 'Tutorial 4º Ano',
-  isToolboxDynamic: true, // Avisa o App.vue que a toolbox pode mudar
-  mode: 'tutorial',
-
-  getSequenceSteps: (t: TranslateFn) => getChallengesGrade4(t),
+export const libSD1Class2: BlockLibrary = {
+  id: 'sd1-class2',
+  name: 'SD 1 Aula 2',
+  isToolboxDynamic: true,
+  mode: 'activity',
   
+  getSequenceSteps: (t: TranslateFn) => getActivitiesSD1Class2(t),
+
   getToolboxXml: (t: TranslateFn) => {
-    // Lemos a store do Pinia dinamicamente para saber qual bloco renderizar
     const store = useProjectStore();
     const challengeIndex = store.activeChallengeIndex || 0;
-    const challenge = getChallengesGrade4(t)[challengeIndex];
+    const challenge = getActivitiesSD1Class2(t)[challengeIndex];
     
-    // Fallback de segurança para o TypeScript (previne o 'possibly undefined')
-    if (!challenge) {
+     if (!challenge) {
       return `<xml></xml>`;
     }
     
-    // Constrói XML apenas com os blocos permitidos pelo desafio!
     let blocksXml = '';
     for (const [category, blocks] of Object.entries(challenge.blocks)) {
       blocksXml += `    <label text="${t('emojiCoder.toolbox.' + category)}"></label>\n`;
@@ -43,21 +40,21 @@ export const turtleTutorial4: BlockLibrary = {
   },
   
   registerBlocks: (t: TranslateFn) => {
-    defineStartBlock(t, { iconOnly: true });
-    definePaintBlock(t, { iconOnly: true });
-    defineAbsoluteMovementBlocks(t, { iconOnly: true });
-    defineLoopBlocks(t, { iconOnly: true });
+    defineStartBlock(t);
+    definePaintBlock(t);
+    defineRelativeMovementBlocks(t);
+    defineLoopBlocks(t);
   },
 
   registerParsers: () => {
     registerPaintParser();
-    registerAbsoluteMovementParsers();
+    registerRelativeMovementParsers();
     registerLoopParsers();
   },
 
   registerEngineHandlers: (engine: TurtleEngine) => {
     registerPaintHandler(engine);
-    registerAbsoluteMovementHandlers(engine);
+    registerRelativeMovementHandlers(engine);
     registerLoopHandlers(engine);
   }
 };

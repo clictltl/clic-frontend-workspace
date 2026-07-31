@@ -1,6 +1,6 @@
 import type { TutorialChallenge } from './index';
 
-export const getChallengesGrade4 = (t: any): TutorialChallenge[] => [
+export const getChallengesAbsMov = (t: any): TutorialChallenge[] => [
   {
     id: 1,
     title: t('emojiCoder.tutorials.grade4.c1.title'),

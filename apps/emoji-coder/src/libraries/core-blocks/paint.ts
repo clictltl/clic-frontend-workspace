@@ -4,10 +4,15 @@ import iconPaint from '@/assets/icons/paint.svg';
 import { registerASTParser } from '../ASTBuilder';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean }) => {
+export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean, suffix?: string }) => {
   const isIcon = options?.iconOnly;
+  const suffix = options?.suffix || '';
+  const typeName = `paint${suffix}`;
+
+  if (Blockly.Blocks[typeName]) delete Blockly.Blocks[typeName];
+
   Blockly.defineBlocksWithJsonArray([{
-    type: "paint",
+    type: typeName,
     message0: isIcon ? "%1 %2" : "%1 %2 %3", // Removemos 1 slot se for iconOnly (o field_label)
     args0: isIcon 
       ? [
@@ -26,8 +31,9 @@ export const definePaintBlock = (t: TranslateFn, options?: { iconOnly?: boolean 
   }]);
 };
 
-export const registerPaintParser = () => {
-  registerASTParser('paint', (block) => ({ 
+export const registerPaintParser = (options?: { suffix?: string }) => {
+  const suffix = options?.suffix || '';
+  registerASTParser(`paint${suffix}`, (block) => ({ 
     action: 'PAINT', 
     color: block.getFieldValue('COLOR'), // Extrai a cor do bloco visual
     blockId: block.id 

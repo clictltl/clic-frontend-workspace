@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
 import type { BlockLibrary, TranslateFn } from '../types';
 import { useProjectStore } from '@/shared/stores/projectStore';
-import { getChallengesGrade5 } from '@/tutorials/tutorialGrade5';
+import { getChallengesRelMov } from '@/tutorials/tutorialRelMov';
 
 import { defineStartBlock } from '../core-blocks/start';
 import { definePaintBlock, registerPaintParser, registerPaintHandler } from '../core-blocks/paint';
@@ -10,18 +10,18 @@ import { defineRelativeMovementBlocks, registerRelativeMovementParsers, register
 import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 import type { TurtleEngine } from '@/shared/engine/interpreter';
 
-export const turtleTutorial5: BlockLibrary = {
-  id: 'turtle-tutorial-5',
-  name: 'Tutorial 5ª Série',
+export const libRelMovTutorial: BlockLibrary = {
+  id: 'rel-mov-tutorial',
+  name: 'Tutorial - Movimento relativo',
   isToolboxDynamic: true,
   mode: 'tutorial',
   
-  getSequenceSteps: (t: TranslateFn) => getChallengesGrade5(t),
+  getSequenceSteps: (t: TranslateFn) => getChallengesRelMov(t),
 
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {
     const store = useProjectStore();
     const challengeIndex = store.activeChallengeIndex || 0;
-    const challenge = getChallengesGrade5(t)[challengeIndex];
+    const challenge = getChallengesRelMov(t)[challengeIndex];
     
     if (!challenge) return `<xml></xml>`;
 

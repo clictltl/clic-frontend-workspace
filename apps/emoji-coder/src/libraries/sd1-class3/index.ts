@@ -9,9 +9,9 @@ import { defineRelativeMovementBlocks, registerRelativeMovementParsers, register
 import { defineAbsoluteMovementBlocks, registerAbsoluteMovementParsers, registerAbsoluteMovementHandlers } from '../core-blocks/movement-absolute';
 import { patchProcedureBlocks, registerProcedureParsers, registerProcedureHandlers } from '../core-blocks/procedures';
 
-export const turtleAdvanced: BlockLibrary = {
-  id: 'turtle-advanced',
-  name: 'Avançado - Sandbox Mestre',
+export const libSD1Class3: BlockLibrary = {
+  id: 'sd1-class3',
+  name: 'SD 1 Aula 3',
   isToolboxDynamic: true,
   
   getToolboxXml: (t: TranslateFn, workspace?: Blockly.Workspace) => {

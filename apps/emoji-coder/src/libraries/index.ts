@@ -2,24 +2,41 @@ import * as Blockly from 'blockly/core';
 import type { BlockLibrary } from './types';
 import { walkAST } from './ASTBuilder';
 
-import { turtleGrade4 } from './turtle-grade-4';
-import { turtleGrade4Advanced } from './turtle-grade-4-advanced';
-import { turtleGrade5 } from './turtle-grade-5';
-import { turtleTutorial4 } from './turtle-tutorial-4';
-import { turtleTutorial5 } from './turtle-tutorial-5';
-import { turtleAdvanced } from './turtle-advanced';
+import { libAbsMovSandbox } from './abs-mov-sandbox';
+import { libRelMovSandbox } from './rel-mov-sandbox';
+import { libAbsRelMovSandbox } from './abs-rel-mov-sandbox';
+import { libAbsMovTutorial } from './abs-mov-tutorial';
+import { libRelMovTutorial } from './rel-mov-tutorial';
+import { libSD1Class1 } from './sd1-class1'
+import { libSD1Class2 } from './sd1-class2'
+import { libSD1Class3 } from './sd1-class3'
 
 const libraries: Record<string, BlockLibrary> = {
-  'turtle-grade-4': turtleGrade4,
-  'turtle-grade-4-advanced': turtleGrade4Advanced,
-  'turtle-grade-5': turtleGrade5,
-  'turtle-tutorial-4': turtleTutorial4,
-  'turtle-tutorial-5': turtleTutorial5,
-  'turtle-advanced': turtleAdvanced
+  'abs-mov-sandbox': libAbsMovSandbox,
+  'rel-mov-sandbox': libRelMovSandbox,
+  'abs-rel-mov-sandbox': libAbsRelMovSandbox,
+  'abs-mov-tutorial': libAbsMovTutorial,
+  'rel-mov-tutorial': libRelMovTutorial,
+  'sd1-class1': libSD1Class1,
+  'sd1-class2': libSD1Class2,
+  'sd1-class3': libSD1Class3,
+};
+
+// Mapa de Compatibilidade (Impede que projetos de teste quebrem)
+const legacyLibraryAliases: Record<string, string> = {
+  'turtle-grade-4-advanced': 'abs-mov-sandbox',
+  'turtle-grade-5': 'rel-mov-sandbox',
+  'turtle-advanced': 'abs-rel-mov-sandbox',
+  'turtle-tutorial-4': 'abs-mov-tutorial',
+  'turtle-tutorial-5': 'rel-mov-tutorial'
 };
 
 export function getLibrary(libraryId: string): BlockLibrary {
-  const lib = libraries[libraryId];
+  // 1. Resolve o ID: Se for um nome antigo, traduz para o novo.
+  const resolvedId = legacyLibraryAliases[libraryId] || libraryId;
+  
+  // 2. Busca a biblioteca
+  const lib = libraries[resolvedId];
   if (!lib) throw new Error(`Library ${libraryId} not found`);
   return lib;
 }
