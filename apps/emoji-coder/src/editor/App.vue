@@ -261,7 +261,7 @@ onUnmounted(() => {
 
             <div class="cards-grid">
               <!-- Aula 1 -->
-              <div class="activity-card clickable" @click="handleStartProject('sd1-class1', 8)">
+              <div class="activity-card clickable" @click="handleStartProject('sd1-class1', 5)">
                 <div class="card-icon highlight-blue"><Compass :size="32" /></div>
                 <h3>{{ t('emojiCoder.setup.sd1.class1_title') }}</h3>
                 <p>{{ t('emojiCoder.setup.sd1.class1_desc') }}</p>
