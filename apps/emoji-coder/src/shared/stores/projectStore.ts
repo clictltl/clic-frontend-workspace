@@ -35,7 +35,7 @@ export const useProjectStore = defineStore('emoji-coder-project', {
   // --- INTEGRAÇÃO COM O PLUGIN DE HISTÓRICO ---
   history: {
     stateKey: 'project',
-    telemetry: { appSlug: 'emoji-coder', sessionActions: ['createNew', 'loadProject', 'setupEnvironment'] },
+    telemetry: { appSlug: 'emoji-coder', sessionActions: ['loadProject', 'setupEnvironment'] },
     ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
