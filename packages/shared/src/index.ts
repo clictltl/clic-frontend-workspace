@@ -5,6 +5,7 @@ export { default as logoClic } from './assets/logo-clic.svg';
 export * from './types/global.d';
 export * from './types/asset';
 export * from './types/project';
+export * from './types/telemetry';
 
 // auth
 export { useAuth, checkLogin } from './auth/auth';
@@ -43,7 +44,7 @@ export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkMo
 
 // analytics
 export * from './analytics/matomo';
-export * from './analytics/telemetry';
+export { telemetryService } from './analytics/telemetry';
 export * from './analytics/telemetryApi';
 
 // i18n

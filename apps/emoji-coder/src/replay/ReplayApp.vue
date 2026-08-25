@@ -33,6 +33,7 @@
               <tr>
                 <th>Aluno</th>
                 <th>Sessão</th>
+                <th>Duração</th>
                 <th>Eventos</th>
                 <th>Ação</th>
               </tr>
@@ -40,7 +41,8 @@
             <tbody>
               <tr v-for="session in sessions" :key="session.session_id">
                 <td><strong>{{ session.student_name }}</strong></td>
-                <td>{{ new Date(session.session_start).toLocaleString() }}</td>
+                <td>{{ formatSessionTime(session.session_start) }}</td>
+                <td>{{ getDurationMinutes(session.session_start, session.session_end) }}</td>
                 <td>{{ session.event_count }}</td>
                 <td>
                   <button class="btn-play" @click="openTimeline(session.session_id)">Replay</button>
@@ -62,6 +64,7 @@
         <div class="player-controls">
           <button class="btn-control play-btn" @click="engine.play()" v-if="!engine.isPlaying.value">▶ Play</button>
           <button class="btn-control pause-btn" @click="engine.pause()" v-else>⏸ Pause</button>
+          <button class="btn-control restart-btn" @click="engine.reset()">⏪ Restart</button>
           
           <div class="scrubber">
             <span class="time-label">{{ formatTime(engine.currentTime.value) }}</span>
@@ -128,6 +131,7 @@
 import { ref, nextTick, onUnmounted, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { telemetryApi } from '@clic/shared';
+import type { TelemetrySession, TelemetryEvent } from '@clic/shared';
 import { useReplayEngine } from './composables/useReplayEngine';
 
 import * as Blockly from 'blockly/core';
@@ -153,7 +157,7 @@ const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
 const startDate = ref(formatDate(lastWeek));
 const endDate = ref(formatDate(today));
-const sessions = ref<any[]>([]);
+const sessions = ref<TelemetrySession[]>([]);
 const loading = ref(false);
 const limitReached = ref(false);
 const error = ref<string | null>(null);
@@ -174,6 +178,36 @@ const fetchSessions = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// Helper para consertar o DATETIME do MySQL (Recupera o UTC) e suportar Safari/iOS
+const parseMySQLDate = (dateStr: string) => {
+  if (!dateStr) return new Date();
+  return new Date(dateStr.replace(' ', 'T') + 'Z');
+};
+
+// Helper para formatar a hora na tabela com o Fuso do Pesquisador (ex: BRT)
+const formatSessionTime = (dateStr: string) => {
+  if (!dateStr) return '-';
+  const date = parseMySQLDate(dateStr);
+  return date.toLocaleString(undefined, { 
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+    timeZoneName: 'short' 
+  });
+};
+
+// Helper de Duração atualizado para usar o parse seguro
+const getDurationMinutes = (startStr: string, endStr: string) => {
+  if (!startStr || !endStr) return '-';
+  const start = parseMySQLDate(startStr).getTime();
+  const end = parseMySQLDate(endStr).getTime();
+  
+  const diffMs = Math.max(end - start, 0);
+  const diffMins = Math.round(diffMs / 60000);
+  
+  if (diffMins < 1) return '< 1 min';
+  return `${diffMins} min`;
 };
 
 // --- PLAYER STATE ---
@@ -197,8 +231,17 @@ const findStartBlockId = (fromTime: number) => {
   
   for (const ev of futureEvents) {
     const name = ev.action_name;
-    // Se mudou de fase no futuro, paramos de procurar
-    if (name === 'challenge_navigate' || name === 'challenge_next_button' || name === 'loadChallenge') break;
+    
+    // Identifica se é um evento de mudança de fase
+    const isPhaseChange = name === 'challenge_navigate' || name === 'challenge_next_button' || name === 'loadChallenge';
+    
+    if (isPhaseChange) {
+      // Eventos de mudança de fase disparam em "rajadas" (ex: o clique e a mutação do Pinia ocorrem milissegundos de diferença).
+      // Se a mudança de fase ocorreu a menos de 1 segundo (1000ms) do início desta transição, faz parte do mesmo pacote.
+      // Se ocorreu muito tempo depois, o aluno foi para a PRÓXIMA fase, então abortamos a busca.
+      if ((ev._relativeTime - fromTime) < 1000) continue;
+      break; 
+    }
     
     const p = ev.payload;
     if (!p) continue;
@@ -243,7 +286,7 @@ watch(engine.isPlaying, (playing) => {
   }
 });
 
-const eventFeed = ref<any[]>([]);
+const eventFeed = ref<TelemetryEvent[]>([]);
 const feedListEl = ref<HTMLElement | null>(null);
 
 const formatTime = (ms: number) => {
@@ -254,7 +297,7 @@ const formatTime = (ms: number) => {
 };
 
 // Mapeia eventos priorizando o dado bruto e detalhando as mutações do Blockly
-const getEventFormat = (ev: any) => {
+const getEventFormat = (ev: TelemetryEvent) => {
   const type = ev.event_type; // 'mutation', 'semantic' ou 'system'
   const p = ev.payload;
   
@@ -315,6 +358,9 @@ const getEventFormat = (ev: any) => {
 // --- O CORAÇÃO DO FANTASMA ---
 let lastRenderedChallenge = -1;
 
+// Registra extensões do Blockly de forma global apenas uma vez
+registerFieldColour();
+
 engine.onFrameZero((initialState) => {
   eventFeed.value = [];
   lastRenderedChallenge = -1;
@@ -322,16 +368,15 @@ engine.onFrameZero((initialState) => {
   if (!blocklyDiv.value) return;
   if (workspace) workspace.dispose();
 
-  registerFieldColour();
-
   workspace = Blockly.inject(blocklyDiv.value, {
     readOnly: true,
     scrollbars: true,
     zoom: { controls: true, wheel: false } 
   });
 
-  // 1. Hidrata a Store em memória para que o GridCanvas renderize maçãs e alvos
-  projectStore.loadProject(initialState);
+  // 1. Hidrata a Store quebrando a referência (Deep Clone) para o Replay não corromper o log original
+  const safeInitialState = JSON.parse(JSON.stringify(initialState));
+  projectStore.loadProject(safeInitialState);
   currentLibId = initialState.config?.libraryId || 'turtle-grade-4';
 
   // Força o carregamento do cenário exato (maçãs, paredes e posições) do desafio inicial
@@ -374,13 +419,20 @@ engine.onFrameZero((initialState) => {
   }
 });
 
+let isScrollPending = false;
+
 engine.onEvent((event) => {
   if (!workspace) return;
 
   eventFeed.value.push(event);
-  nextTick(() => {
-    if (feedListEl.value) feedListEl.value.scrollTop = feedListEl.value.scrollHeight;
-  });
+  
+  if (!isScrollPending) {
+    isScrollPending = true;
+    nextTick(() => {
+      if (feedListEl.value) feedListEl.value.scrollTop = feedListEl.value.scrollHeight;
+      isScrollPending = false;
+    });
+  }
 
   const name = event.action_name;
 
@@ -520,6 +572,8 @@ onUnmounted(() => {
 .play-btn:hover { background: #059669; }
 .pause-btn { background: #f59e0b; color: white; }
 .pause-btn:hover { background: #d97706; }
+.restart-btn { background: #64748b; color: white; }
+.restart-btn:hover { background: #475569; }
 
 .scrubber { display: flex; align-items: center; gap: 1rem; flex: 1; font-family: monospace; font-size: 1.1rem; }
 .time-label { min-width: 50px; text-align: center; }

@@ -1,4 +1,5 @@
 import { clicFetch } from '../utils/api';
+import type { TelemetrySessionsResponse, TelemetryEvent } from '../types/telemetry';
 
 export const telemetryApi = {
   get baseUrl() {
@@ -9,7 +10,7 @@ export const telemetryApi = {
     return window.CLIC_AUTH?.nonce ?? '';
   },
 
-  async getSessions(startDate: string, endDate: string) {
+  async getSessions(startDate: string, endDate: string): Promise<TelemetrySessionsResponse> {
     try {
       const res = await clicFetch(`${this.baseUrl}telemetry/sessions?start_date=${startDate}&end_date=${endDate}`, {
         method: 'GET',
@@ -17,14 +18,14 @@ export const telemetryApi = {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Error fetching sessions');
-      return data; // { success, meta, sessions }
+      return data as TelemetrySessionsResponse;
     } catch (err) {
       console.error('[Telemetry API] getSessions error:', err);
       throw err;
     }
   },
 
-  async getSessionTimeline(sessionId: string) {
+  async getSessionTimeline(sessionId: string): Promise<TelemetryEvent[]> {
     try {
       const res = await clicFetch(`${this.baseUrl}telemetry/sessions/${sessionId}/timeline`, {
         method: 'GET',
@@ -32,7 +33,7 @@ export const telemetryApi = {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Error fetching timeline');
-      return data.timeline;
+      return data.timeline as TelemetryEvent[];
     } catch (err) {
       console.error('[Telemetry API] getSessionTimeline error:', err);
       throw err;

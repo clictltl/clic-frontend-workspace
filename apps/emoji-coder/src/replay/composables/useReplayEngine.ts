@@ -1,7 +1,8 @@
 import { ref, shallowRef } from 'vue';
+import type { TelemetryEvent } from '@clic/shared';
 
 export function useReplayEngine() {
-  const timeline = shallowRef<any[]>([]);
+  const timeline = shallowRef<TelemetryEvent[]>([]);
   const isPlaying = ref(false);
   
   // O relógio virtual em milissegundos
@@ -14,19 +15,23 @@ export function useReplayEngine() {
   let eventIndex = 0;
 
   // Ganchos para a interface (Callbacks)
-  let onEventCallback: ((event: any) => void) | null = null;
+  let onEventCallback: ((event: TelemetryEvent) => void) | null = null;
   let onFrameZeroCallback: ((state: any) => void) | null = null;
 
-  const onEvent = (cb: (event: any) => void) => { onEventCallback = cb; };
+  const onEvent = (cb: (event: TelemetryEvent) => void) => { onEventCallback = cb; };
   const onFrameZero = (cb: (state: any) => void) => { onFrameZeroCallback = cb; };
 
-  const loadTimeline = (events: any[]) => {
+  const loadTimeline = (events: TelemetryEvent[]) => {
     timeline.value = events;
     if (events.length === 0) return;
 
+    const firstEvent = events[0];
+    const lastEvent = events[events.length - 1];
+    if (!firstEvent || !lastEvent) return;
+
     // Converte os timestamps em milissegundos absolutos para calcularmos o tempo relativo
-    const startTime = new Date(events[0].client_timestamp).getTime();
-    const endTime = new Date(events[events.length - 1].client_timestamp).getTime();
+    const startTime = new Date(firstEvent.client_timestamp).getTime();
+    const endTime = new Date(lastEvent.client_timestamp).getTime();
     duration.value = Math.max(endTime - startTime, 1000); // Mínimo de 1 segundo
 
     // Injeta o tempo relativo (T=0) em cada evento para facilitar a leitura no Loop
@@ -43,8 +48,9 @@ export function useReplayEngine() {
     eventIndex = 0;
 
     // O Frame Zero (project_loaded) dita como o mundo estava antes do aluno mexer
-    if (timeline.value.length > 0 && timeline.value[0].action_name === 'project_loaded') {
-      if (onFrameZeroCallback) onFrameZeroCallback(timeline.value[0].payload.initial_state);
+    const firstEvent = timeline.value[0];
+    if (firstEvent && firstEvent.action_name === 'project_loaded') {
+      if (onFrameZeroCallback) onFrameZeroCallback(firstEvent.payload?.initial_state);
       eventIndex = 1; // Pula o Frame Zero no loop normal
     }
   };
@@ -73,8 +79,12 @@ export function useReplayEngine() {
     currentTime.value += delta;
 
     // Dispara todos os eventos que ficaram no passado em relação ao cursor de tempo atual
-    while (eventIndex < timeline.value.length && timeline.value[eventIndex]._relativeTime <= currentTime.value) {
-      if (onEventCallback) onEventCallback(timeline.value[eventIndex]);
+    while (eventIndex < timeline.value.length) {
+      const currentEvent = timeline.value[eventIndex];
+      // Se não houver evento ou ele ainda estiver no futuro, quebra o loop
+      if (!currentEvent || currentEvent._relativeTime > currentTime.value) break;
+      
+      if (onEventCallback) onEventCallback(currentEvent);
       eventIndex++;
     }
 
