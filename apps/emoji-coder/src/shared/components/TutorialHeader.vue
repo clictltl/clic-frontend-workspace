@@ -57,7 +57,7 @@
       <p class="mission-desc">{{ currentChallenge.description }}</p>
       
       <div class="mission-tip-container" v-if="currentChallenge.tip">
-        <button v-if="!showTip" class="reveal-tip-btn" @click.stop="showTip = true">
+        <button v-if="!showTip" class="reveal-tip-btn" @click.stop="handleRevealTip">
           <Lightbulb :size="16" class="inline-icon" /> {{ t('emojiCoder.player.need_hint') }}
         </button>
         <div v-else class="mission-tip">
@@ -74,6 +74,7 @@ import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { getTutorialChallenges } from '@/tutorials';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb, ArrowLeft, ArrowRight } from '@lucide/vue';
+import { telemetryService } from '@clic/shared';
 
 const { t } = useI18n();
 const projectStore = useProjectStore();
@@ -119,9 +120,19 @@ const isLastChallenge = computed(() => {
   return projectStore.activeChallengeIndex >= totalChallenges.value - 1;
 });
 
+const handleRevealTip = () => {
+  showTip.value = true;
+  telemetryService.addSemantic('reveal_tip', { challengeIndex: projectStore.activeChallengeIndex });
+};
+
 const goToChallenge = (index: number) => {
   if (index === projectStore.activeChallengeIndex) return;
   if (index < 0 || index >= totalChallenges.value) return;
+
+  telemetryService.addSemantic('challenge_navigate', { 
+    fromIndex: projectStore.activeChallengeIndex, 
+    toIndex: index 
+  });
 
   const wasClean = !projectStore.hasUnsavedChanges;
   showTip.value = false;

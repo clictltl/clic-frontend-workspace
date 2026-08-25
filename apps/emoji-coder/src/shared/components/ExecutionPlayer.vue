@@ -112,6 +112,7 @@ import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
 import { Play, Pause, StepForward, RotateCcw, Maximize, Minimize, Turtle as TurtleIcon, Rabbit, PartyPopper, Trophy, Lightbulb, Camera } from '@lucide/vue';
 import iconStart from '@/assets/icons/start.svg';
 import { exportToImage } from '@/shared/utils/exportImage';
+import { telemetryService } from '@clic/shared';
 
 const props = defineProps<{ isPreview?: boolean; isRuntime?: boolean }>();
 defineEmits(['toggle-preview']);
@@ -173,8 +174,13 @@ const goToChallenge = (index: number) => {
 const handleNextChallenge = () => {
   showSuccess.value = false;
   if (!isLastChallenge.value) {
+    telemetryService.addSemantic('challenge_next_button', { 
+      fromIndex: projectStore.activeChallengeIndex, 
+      toIndex: projectStore.activeChallengeIndex + 1 
+    });
     goToChallenge(projectStore.activeChallengeIndex + 1);
   } else {
+    telemetryService.addSemantic('tutorial_complete', { totalChallenges: totalChallenges.value });
     showTutorialComplete.value = true;
   }
 };
@@ -211,8 +217,20 @@ engine.onExecutionComplete = () => {
   if (projectStore.isTutorialMode && currentChallenge.value) {
     if (typeof currentChallenge.value.validate === 'function') {
       const passed = currentChallenge.value.validate(engine.state, getActiveAST());
-      if (passed) showSuccess.value = true;
+      if (passed) {
+        showSuccess.value = true;
+        telemetryService.addSemantic('engine_success', { challengeIndex: projectStore.activeChallengeIndex });
+      } else {
+        // Rodou até o fim, mas a hipótese não atendeu a validação do desafio ainda
+        telemetryService.addSemantic('engine_complete', { 
+          challengeIndex: projectStore.activeChallengeIndex, 
+          stepsCompleted: engine.state.currentStep 
+        });
+      }
     }
+  } else {
+    // Modo Sandbox ou Atividade: apenas registra que a execução concluiu
+    telemetryService.addSemantic('engine_complete', { stepsCompleted: engine.state.currentStep });
   }
 };
 
@@ -262,25 +280,32 @@ updateEngineHandlers();
 
 const handlePlay = () => {
   showSuccess.value = false;
+  telemetryService.addSemantic('engine_play', { speed: executionSpeed.value });
   const c = projectStore.project.config;
   engine.play(getActiveAST(), c.gridWidth, c.gridHeight, c.startX, c.startY);
 };
 
-const handlePause = () => engine.pause();
+const handlePause = () => {
+  telemetryService.addSemantic('engine_pause', { step: engine.state.currentStep });
+  engine.pause();
+};
 
 const handleStep = () => {
   showSuccess.value = false;
+  telemetryService.addSemantic('engine_step', { step: engine.state.currentStep });
   const c = projectStore.project.config;
   engine.step(getActiveAST(), c.gridWidth, c.gridHeight, c.startX, c.startY);
 };
 
 const handleReset = () => {
   showSuccess.value = false;
+  telemetryService.addSemantic('engine_reset', { step: engine.state.currentStep });
   const c = projectStore.project.config;
   engine.reset(c.startX, c.startY, c.gridWidth, c.gridHeight);
 };
 
 const handleExportImage = () => {
+  telemetryService.addSemantic('export_image', { stepsCompleted: engine.state.currentStep });
   const c = projectStore.project.config;
   const safeTitle = projectStore.project.title ? projectStore.project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : t('emojiCoder.player.default_drawing_name');
   const timestamp = Date.now(); 

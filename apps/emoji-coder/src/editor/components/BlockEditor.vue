@@ -14,6 +14,7 @@ import { registerFieldColour } from '@blockly/field-colour';
 
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { getLibrary, compileWorkspaceToAST } from '@/libraries';
+import { telemetryService } from '@clic/shared';
 
 const { t, locale, fallbackLocale } = useI18n(); 
 const projectStore = useProjectStore();
@@ -174,7 +175,20 @@ onMounted(async () => {
 
   // O Change Listener fica restrito apenas às interações MANUAIS do usuário
   workspace.addChangeListener((event) => {
-    if (event.isUiEvent || event.type === Blockly.Events.FINISHED_LOADING) return;
+    if (
+      event.isUiEvent || 
+      event.type === Blockly.Events.FINISHED_LOADING ||
+      event.type === 'block_field_intermediate_change' // <-- Ignora digitação em tempo real
+    ) return;
+
+    // --- TELEMETRIA: Captura a mutação estrutural exata do Blockly para o Session Replay ---
+    try {
+      const eventJson = event.toJson();
+      // Incorpora o tipo de evento (ex: blockly_create, blockly_move, blockly_change)
+      telemetryService.addMutation(`blockly_${event.type}`, eventJson);
+    } catch (e) {
+      console.warn('[Emoji Coder] Falha ao serializar evento do Blockly para telemetria', e);
+    }
 
     if (workspace) {
       const ast = compileWorkspaceToAST(workspace);
