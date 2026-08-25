@@ -1,9 +1,9 @@
 import { ref } from 'vue';
 import type { ClicAsset } from '@clic/shared';
-import { useAuth } from '../auth/auth';
 import { i18n } from '../i18n';
 import { telemetryService } from '../analytics/telemetry';
 import type { ClicBaseProject } from '../types/project';
+import { clicFetch } from './api';
 
 export interface UseProjectsConfig {
   appSlug: string; // Ex: 'chatbot' ou 'graph-builder'
@@ -12,19 +12,6 @@ export interface UseProjectsConfig {
   markAsSaved: () => void;
   assetStore: any; // A instância do useSharedAssetStore
   getActiveFormReferences?: () => string[]; // Retorna array de IDs (reference_id)
-}
-
-async function clicFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, options);
-  
-  // Se der erro de sessão E estiver no ambiente do Editor (WP)
-  if ((res.status === 401 || res.status === 403) && window.CLIC_AUTH) {
-    const auth = useAuth();
-    auth.state.showLoginModal = true; // Abre o modal na tela automaticamente
-    throw new Error(i18n.global.t('messages.session_expired'));
-  }
-  
-  return res;
 }
 
 export function createSharedProjects(config: UseProjectsConfig) {
