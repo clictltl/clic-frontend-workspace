@@ -60,15 +60,26 @@
       
       <!-- CABEÇALHO DO REPRODUTOR -->
       <header class="player-header">
-        <button class="btn-back" @click="closePlayer">← Voltar</button>
+        <button class="btn-back" @click="closePlayer">
+          <ArrowLeft :size="16" /> Voltar
+        </button>
         <div class="player-controls">
-          <button class="btn-control play-btn" @click="engine.play()" v-if="!engine.isPlaying.value">▶ Play</button>
-          <button class="btn-control pause-btn" @click="engine.pause()" v-else>⏸ Pause</button>
-          <button class="btn-control restart-btn" @click="engine.reset()">⏪ Restart</button>
+          <button class="btn-control play-btn" @click="engine.play()" v-if="!engine.isPlaying.value">
+            <Play :size="16" /> Play
+          </button>
+          <button class="btn-control pause-btn" @click="engine.pause()" v-else>
+            <Pause :size="16" /> Pause
+          </button>
+          <button class="btn-control restart-btn" @click="engine.reset()">
+            <SkipBack :size="16" /> Restart
+          </button>
           
           <div class="scrubber">
             <span class="time-label">{{ formatTime(engine.currentTime.value) }}</span>
-            <input type="range" :max="engine.duration.value" v-model="engine.currentTime.value" disabled />
+            <input type="range" 
+                   :max="engine.duration.value" 
+                   :value="engine.currentTime.value" 
+                   @input="handleTimeTravel(Number(($event.target as HTMLInputElement).value))" />
             <span class="time-label">{{ formatTime(engine.duration.value) }}</span>
           </div>
 
@@ -98,10 +109,16 @@
         <aside class="player-feed">
           <div class="feed-header">
             <h3>Linha do Tempo</h3>
-            <span class="badge">{{ eventFeed.length }} eventos passados</span>
+            <span class="badge">{{ displayTimeline.length }} eventos</span>
           </div>
           <ul class="feed-list" ref="feedListEl">
-            <li v-for="(ev, idx) in eventFeed" :key="idx" class="feed-item" :class="getEventFormat(ev).class">
+            <li v-for="(ev, idx) in displayTimeline" :key="idx" 
+                class="feed-item" 
+                :class="[
+                  getEventFormat(ev).class, 
+                  ev._relativeTime <= engine.currentTime.value ? 'is-past' : 'is-future'
+                ]"
+                @click="handleTimeTravel(ev._relativeTime)">
               
               <div class="feed-main">
                 <span class="feed-time">[{{ formatTime(ev._relativeTime) }}]</span>
@@ -117,7 +134,7 @@
               </div>
 
             </li>
-            <li v-if="eventFeed.length === 0" class="feed-empty">Aguardando início...</li>
+            <li v-if="displayTimeline.length === 0" class="feed-empty">Aguardando início...</li>
           </ul>
         </aside>
 
@@ -140,7 +157,7 @@ import { getLibrary, compileWorkspaceToAST } from '@/libraries';
 import { getTutorialChallenges } from '@/tutorials'; // <-- Adicionado
 import { useProjectStore } from '@/shared/stores/projectStore'; // <-- Adicionado
 import { registerFieldColour } from '@blockly/field-colour'; 
-import { Puzzle, Zap, Settings, Pin } from '@lucide/vue';
+import { Puzzle, Zap, Settings, Pin, ArrowLeft, Play, Pause, SkipBack } from '@lucide/vue';
 
 // Importações do Motor da Tartaruga
 import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
@@ -286,7 +303,10 @@ watch(engine.isPlaying, (playing) => {
   }
 });
 
-const eventFeed = ref<TelemetryEvent[]>([]);
+const displayTimeline = computed(() => {
+  // Exibimos todos os eventos exceto o frame zero para não poluir o visual
+  return engine.timeline.value.filter(e => e.action_name !== 'project_loaded');
+});
 const feedListEl = ref<HTMLElement | null>(null);
 
 const formatTime = (ms: number) => {
@@ -362,7 +382,6 @@ let lastRenderedChallenge = -1;
 registerFieldColour();
 
 engine.onFrameZero((initialState) => {
-  eventFeed.value = [];
   lastRenderedChallenge = -1;
 
   if (!blocklyDiv.value) return;
@@ -419,17 +438,35 @@ engine.onFrameZero((initialState) => {
   }
 });
 
+// 1. Extraímos a lógica de scroll para podermos reutilizá-la
+const scrollToLastActiveEvent = () => {
+  if (!feedListEl.value) return;
+  const activeItems = feedListEl.value.querySelectorAll('.is-past');
+  const lastItem = activeItems[activeItems.length - 1];
+  if (lastItem) {
+    lastItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
+
+// 2. Criamos o Wrapper que viaja no tempo e arrasta a câmera junto
+const handleTimeTravel = (targetTime: number) => {
+  engine.seekTo(targetTime);
+  // nextTick espera o Vue repintar as classes CSS (is-past/is-future) antes de procurar
+  nextTick(() => {
+    scrollToLastActiveEvent();
+  });
+};
+
 let isScrollPending = false;
 
-engine.onEvent((event) => {
+engine.onEvent((event, isSeeking) => {
   if (!workspace) return;
 
-  eventFeed.value.push(event);
-  
-  if (!isScrollPending) {
+  // 3. Em reprodução normal (Play), usamos a mesma função otimizada
+  if (!isSeeking && !isScrollPending) {
     isScrollPending = true;
-    nextTick(() => {
-      if (feedListEl.value) feedListEl.value.scrollTop = feedListEl.value.scrollHeight;
+    requestAnimationFrame(() => {
+      scrollToLastActiveEvent();
       isScrollPending = false;
     });
   }
@@ -453,6 +490,7 @@ engine.onEvent((event) => {
   } 
   // ... (Deixe os if/else do engine_play, engine_pause, engine_step e engine_reset INTACTOS aqui no meio) ...
   else if (name === 'engine_play') {
+    if (isSeeking) return; // <-- MÁGICA: Evita que a tartaruga corra loucamente durante viagens temporais
     if (event.payload && event.payload.speed) studentSpeedLevel.value = event.payload.speed;
     const ast = compileWorkspaceToAST(workspace);
     turtleEngine.play(ast, worldConfig.value.gridWidth, worldConfig.value.gridHeight, worldConfig.value.startX, worldConfig.value.startY);
@@ -564,10 +602,10 @@ onUnmounted(() => {
 /* REPRODUTOR (PLAYER) */
 .replay-player { display: flex; flex-direction: column; height: 100vh; }
 .player-header { display: flex; align-items: center; gap: 1.5rem; background: #0f172a; padding: 0.75rem 1.5rem; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10; }
-.btn-back { background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-back { display: flex; align-items: center; gap: 0.4rem; background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
 .btn-back:hover { background: #334155; color: white; }
 .player-controls { display: flex; align-items: center; gap: 1rem; flex: 1; }
-.btn-control { border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; cursor: pointer; width: 90px; }
+.btn-control { display: flex; align-items: center; justify-content: center; gap: 0.4rem; border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; cursor: pointer; min-width: 105px; }
 .play-btn { background: #10b981; color: white; }
 .play-btn:hover { background: #059669; }
 .pause-btn { background: #f59e0b; color: white; }
@@ -631,4 +669,10 @@ onUnmounted(() => {
 .event-mutation { background-color: #ffffff; border-left: 3px solid #3b82f6; } /* Azul para o Blockly */
 .event-semantic { background-color: #f0fdf4; border-left: 3px solid #22c55e; } /* Verde para Ações */
 .event-system { background-color: #f8fafc; border-left: 3px solid #94a3b8; }   /* Cinza para Sistema */
+
+.scrubber input[type="range"] { cursor: pointer; }
+.feed-item { cursor: pointer; transition: opacity 0.2s, background-color 0.2s; }
+.feed-item:hover { filter: brightness(0.95); }
+.is-future { opacity: 0.4; filter: grayscale(100%); }
+.is-past { opacity: 1; }
 </style>

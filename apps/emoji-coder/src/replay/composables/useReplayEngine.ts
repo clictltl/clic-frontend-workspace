@@ -15,10 +15,11 @@ export function useReplayEngine() {
   let eventIndex = 0;
 
   // Ganchos para a interface (Callbacks)
-  let onEventCallback: ((event: TelemetryEvent) => void) | null = null;
+  const isSeeking = ref(false); // Flag para desativar animações pesadas durante o Fast-Forward
+  let onEventCallback: ((event: TelemetryEvent, isSeeking: boolean) => void) | null = null;
   let onFrameZeroCallback: ((state: any) => void) | null = null;
 
-  const onEvent = (cb: (event: TelemetryEvent) => void) => { onEventCallback = cb; };
+  const onEvent = (cb: (event: TelemetryEvent, isSeeking: boolean) => void) => { onEventCallback = cb; };
   const onFrameZero = (cb: (state: any) => void) => { onFrameZeroCallback = cb; };
 
   const loadTimeline = (events: TelemetryEvent[]) => {
@@ -84,7 +85,7 @@ export function useReplayEngine() {
       // Se não houver evento ou ele ainda estiver no futuro, quebra o loop
       if (!currentEvent || currentEvent._relativeTime > currentTime.value) break;
       
-      if (onEventCallback) onEventCallback(currentEvent);
+      if (onEventCallback) onEventCallback(currentEvent, false);
       eventIndex++;
     }
 
@@ -97,9 +98,34 @@ export function useReplayEngine() {
     }
   };
 
+  const seekTo = (targetTime: number) => {
+    if (timeline.value.length === 0) return;
+    
+    const wasPlaying = isPlaying.value;
+    pause();
+    isSeeking.value = true;
+    
+    reset(); // Reseta o mundo para o Frame Zero
+    
+    // Fast-Forward: Aplica os eventos instantaneamente até o tempo alvo
+    while (eventIndex < timeline.value.length) {
+      const currentEvent = timeline.value[eventIndex];
+      if (!currentEvent || currentEvent._relativeTime > targetTime) break;
+      
+      if (onEventCallback) onEventCallback(currentEvent, true);
+      eventIndex++;
+    }
+    
+    currentTime.value = targetTime;
+    isSeeking.value = false;
+    
+    if (wasPlaying) play(); // Retoma a reprodução se estava rodando
+  };
+
   return {
     timeline,
     isPlaying,
+    isSeeking,
     currentTime,
     duration,
     playbackSpeed,
@@ -107,6 +133,7 @@ export function useReplayEngine() {
     play,
     pause,
     reset,
+    seekTo,
     onEvent,
     onFrameZero
   };
