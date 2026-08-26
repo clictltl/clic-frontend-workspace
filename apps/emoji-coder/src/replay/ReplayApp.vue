@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onUnmounted, computed, watch } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { telemetryApi } from '@clic/shared';
 import type { TelemetrySession, TelemetryEvent } from '@clic/shared';
@@ -165,8 +165,6 @@ import { Puzzle, Zap, Settings, Pin, ArrowLeft, Play, Pause, SkipBack } from '@l
 import GridCanvas from '@/editor/components/canvas/GridCanvas.vue';
 import { TurtleEngine } from '@/shared/engine/interpreter';
 
-const { t } = useI18n();
-
 // --- DASHBOARD STATE ---
 const viewMode = ref<'dashboard' | 'player'>('dashboard');
 const today = new Date();
@@ -181,6 +179,53 @@ const loading = ref(false);
 const limitReached = ref(false);
 const error = ref<string | null>(null);
 const hasSearched = ref(false);
+
+const { t, locale, fallbackLocale } = useI18n(); 
+
+const loadBlocklyLocale = async (vueLocale: string) => {
+  const blocklyLocalesMap: Record<string, () => Promise<any>> = {
+    'pt-br': () => import('blockly/msg/pt-br'),
+    'en': () => import('blockly/msg/en')
+  };
+
+  const tryLoad = async (langPath: string) => {
+    const loader = blocklyLocalesMap[langPath];
+    if (loader) {
+      const msgModule = await loader();
+      Blockly.setLocale(msgModule.default || msgModule);
+    }
+  };
+
+  const lowerLocale = vueLocale.toLowerCase();
+
+  try {
+    await tryLoad(lowerLocale);
+  } catch (error) {
+    try {
+      const prefix = lowerLocale.split('-')[0] || 'en';
+      await tryLoad(prefix);
+    } catch (e) {
+      try {
+        const fallback = (fallbackLocale.value as string).toLowerCase();
+        await tryLoad(fallback);
+      } catch (critical) {}
+    }
+  }
+  
+  // Evita campos vazios na customização das funções
+  Blockly.Msg['PROCEDURES_DEFNORETURN_TITLE'] = (t('emojiCoder.blocks.define') as string);
+};
+
+onMounted(async () => {
+  // Hidrata a memória global do Blockly ANTES do relógio do Fantasma começar!
+  await loadBlocklyLocale(locale.value);
+  // Registra extensões do Blockly de forma global apenas uma vez
+  registerFieldColour();
+});
+
+watch(locale, async (newLocale) => {
+  await loadBlocklyLocale(newLocale);
+});
 
 const fetchSessions = async () => {
   loading.value = true;
@@ -242,7 +287,7 @@ const syncPhantomToStore = () => {
   projectStore.updateWorkspaceSilent(workspaceJson, ast);
 };
 
-// MÁGICA: Olha para o futuro na linha do tempo para descobrir qual ID o Blockly
+// Olha para o futuro na linha do tempo para descobrir qual ID o Blockly
 // deu para o bloco "Start" na tela do aluno, garantindo que as conexões funcionem!
 const findStartBlockId = (fromTime: number) => {
   const futureEvents = engine.timeline.value.filter(e => e._relativeTime >= fromTime);
@@ -380,9 +425,6 @@ const getEventFormat = (ev: TelemetryEvent) => {
 // --- O CORAÇÃO DO FANTASMA ---
 let lastRenderedChallenge = -1;
 
-// Registra extensões do Blockly de forma global apenas uma vez
-registerFieldColour();
-
 engine.onFrameZero((initialState) => {
   lastRenderedChallenge = -1;
 
@@ -417,20 +459,33 @@ engine.onFrameZero((initialState) => {
   };
   turtleEngine.reset(worldConfig.value.startX, worldConfig.value.startY, worldConfig.value.gridWidth, worldConfig.value.gridHeight);
 
-  // 2. Carrega a Biblioteca e injeta no Blockly E na TurtleEngine
+  // 3. Carrega a Biblioteca e injeta no Blockly E na TurtleEngine
   const libId = conf.libraryId || 'turtle-grade-4';
   try {
     const activeLibrary = getLibrary(libId);
     activeLibrary.registerBlocks(t as any);
-    activeLibrary.registerParsers(); // <-- CORREÇÃO: Essencial para gerar a AST!
+    activeLibrary.registerParsers();
     turtleEngine.clearHandlers();
     activeLibrary.registerEngineHandlers(turtleEngine);
   } catch (e) {
     console.warn("Biblioteca não encontrada.", e);
   }
 
-  if (initialState.blocksWorkspace && Object.keys(initialState.blocksWorkspace).length > 0) {
-    Blockly.serialization.workspaces.load(initialState.blocksWorkspace, workspace);
+  if (safeInitialState.blocksWorkspace && Object.keys(safeInitialState.blocksWorkspace).length > 0) {
+    const stateToLoad = safeInitialState.blocksWorkspace;
+    
+    // ORDENAÇÃO DE SEGURANÇA: Garante que as Definições sejam lidas antes das Chamadas no Frame Zero
+    if (stateToLoad.blocks && Array.isArray(stateToLoad.blocks.blocks)) {
+      stateToLoad.blocks.blocks.sort((a: any, b: any) => {
+        const aIsDef = a.type && a.type.startsWith('procedures_def');
+        const bIsDef = b.type && b.type.startsWith('procedures_def');
+        if (aIsDef && !bIsDef) return -1;
+        if (!aIsDef && bIsDef) return 1;
+        return 0;
+      });
+    }
+
+    Blockly.serialization.workspaces.load(stateToLoad, workspace);
   } else {
     const startBlockId = findStartBlockId(0);
     const startBlock = workspace.newBlock('start', startBlockId); 
@@ -532,15 +587,32 @@ engine.onEvent((event, isSeeking) => {
         };
         turtleEngine.reset(worldConfig.value.startX, worldConfig.value.startY, worldConfig.value.gridWidth, worldConfig.value.gridHeight);
 
-        // 3. Limpa a tela do Fantasma!
+        // 3. Limpa a tela do Fantasma (Eventos desligados só no clear)
         Blockly.Events.disable();
         workspace.clear();
         
-        // 4. Se o aluno já havia trabalhado nesta fase antes, recupera a memória!
-        const stateToLoad = projectStore.project.config.tutorialSavedWorkspaces?.[toIndex];
+        // REATIVAMOS OS EVENTOS: O Blockly exige isso para registrar Funções (Procedures).
+        Blockly.Events.enable();
         
-        if (stateToLoad && Object.keys(stateToLoad).length > 0) {
-          Blockly.serialization.workspaces.load(stateToLoad, workspace);
+        // 4. Se o aluno já havia trabalhado nesta fase antes, recupera a memória!
+        const rawState = projectStore.project.config.tutorialSavedWorkspaces?.[toIndex];
+        
+        if (rawState && Object.keys(rawState).length > 0) {
+          // Deep clone para não mutar a Store
+          const safeState = JSON.parse(JSON.stringify(rawState));
+          
+          // ORDENAÇÃO DE SEGURANÇA: Garante que as Definições sejam lidas antes das Chamadas
+          if (safeState.blocks && Array.isArray(safeState.blocks.blocks)) {
+            safeState.blocks.blocks.sort((a: any, b: any) => {
+              const aIsDef = a.type && a.type.startsWith('procedures_def');
+              const bIsDef = b.type && b.type.startsWith('procedures_def');
+              if (aIsDef && !bIsDef) return -1;
+              if (!aIsDef && bIsDef) return 1;
+              return 0;
+            });
+          }
+          
+          Blockly.serialization.workspaces.load(safeState, workspace);
         } else {
           // Fase virgem: cria o Start com o ID "Vidente"
           const startBlockId = findStartBlockId(event._relativeTime);
@@ -550,7 +622,6 @@ engine.onEvent((event, isSeeking) => {
           startBlock.moveBy(40, 40);
         }
         
-        Blockly.Events.enable();
         syncPhantomToStore();
       }
     }
