@@ -35,7 +35,7 @@ export const useProjectStore = defineStore('emoji-coder-project', {
   // --- INTEGRAÇÃO COM O PLUGIN DE HISTÓRICO ---
   history: {
     stateKey: 'project',
-    telemetry: { appSlug: 'emoji-coder', sessionActions: ['loadProject', 'setupEnvironment'] },
+    telemetry: { appSlug: 'emoji-coder', sessionActions: ['loadProject', 'setupEnvironment', 'restartProject'] },
     ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
@@ -96,6 +96,11 @@ export const useProjectStore = defineStore('emoji-coder-project', {
       this.activeChallengeIndex = 0;
       this.activeBlockId = null;
       this.markAsSaved();
+    },
+
+    restartProject() {
+      // Ação exclusiva chamada pelo menu "Novo Projeto" para disparar uma nova sessão
+      this.createNew(true);
     },
 
     loadProject(json: any, markAsUnsaved: boolean = false) {
