@@ -1,6 +1,7 @@
 export interface TelemetrySession {
   session_id: string;
   student_name: string;
+  student_login: string;
   session_start: string;
   session_end: string;
   event_count: number;

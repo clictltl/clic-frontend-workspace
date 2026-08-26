@@ -32,6 +32,7 @@
             <thead>
               <tr>
                 <th>Aluno</th>
+                <th>Usuário</th>
                 <th>Sessão</th>
                 <th>Duração</th>
                 <th>Eventos</th>
@@ -41,6 +42,7 @@
             <tbody>
               <tr v-for="session in sessions" :key="session.session_id">
                 <td><strong>{{ session.student_name }}</strong></td>
+                <td>{{ session.student_login }}</td>
                 <td>{{ formatSessionTime(session.session_start) }}</td>
                 <td>{{ getDurationMinutes(session.session_start, session.session_end) }}</td>
                 <td>{{ session.event_count }}</td>
@@ -583,6 +585,7 @@ onUnmounted(() => {
 <style scoped>
 /* DASHBOARD GERAL */
 .replay-app { height: 100vh; overflow: hidden; background-color: #f8fafc; font-family: sans-serif; }
+.replay-dashboard { height: 100%; overflow-y: auto; }
 .dashboard-header { background: #1e293b; color: white; padding: 1rem 2rem; }
 .dashboard-header h2 { margin: 0; font-size: 1.5rem; }
 .dashboard-header span { font-weight: normal; color: #94a3b8; font-size: 1rem; }
