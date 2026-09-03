@@ -52,8 +52,8 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
     if (localAssets.length === 0) return;
 
-    // Processa uploads em paralelo para maior velocidade
-    const uploadPromises = localAssets.map(async (asset) => {
+    // Processa uploads sequencialmente para proteger o servidor (Prevenção Thundering Herd)
+    for (const asset of localAssets) {
       try {
         // Recupera o Blob da memória
         const blob = await config.assetStore.getAssetBlob(asset.id);
@@ -101,11 +101,11 @@ export function createSharedProjects(config: UseProjectsConfig) {
           });
 
           const data = await res.json();
-          
+
           if (!res.ok || !data.success) {
             throw new Error(i18n.global.t('messages.upload_failed', { error: data.error || res.statusText }));
           }
-          
+
           wpMedia = data;
         }
 
@@ -116,15 +116,12 @@ export function createSharedProjects(config: UseProjectsConfig) {
           allAssets[asset.id].url = wpMedia.source_url;
           allAssets[asset.id].externalId = wpMedia.id;
         }
-
+        
       } catch (err: any) {
         console.error(`Falha no upload de ${asset.originalName}:`, err);
         throw new Error(i18n.global.t('messages.save_image_error', { name: asset.originalName, error: err.message}));
       }
-    });
-
-    // Aguarda todos os uploads terminarem. Se um falhar, o Promise.all rejeita e cancela o salvamento.
-    await Promise.all(uploadPromises);
+    }
   }
 
   /**

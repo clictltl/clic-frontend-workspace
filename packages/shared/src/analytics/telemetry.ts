@@ -149,19 +149,30 @@ class TelemetryManager {
     if (!auth.state.loggedIn) return;
 
     this.isFlushing = true;
-    const eventsToSend = [...this.queue];
+    let eventsToSend: TelemetryEvent[] = [];
     
-    // Limpa a fila principal. Se der erro abaixo, a gente devolve.
-    this.queue = []; 
-
-    const body = JSON.stringify({
-      project_uuid: this.projectUuid,
-      session_id: this.sessionId,
-      app_type: this.appType,
-      events: eventsToSend
-    });
-
     try {
+      // 1. JITTER SUAVE (1s a 4s): Invisível para o usuário, espalha a carga do servidor.
+      // Se for fechamento de aba (isClosingTab = true), ignora o atraso e manda na hora.
+      if (!isClosingTab) {
+        const jitter = Math.floor(Math.random() * 3000) + 1000;
+        await new Promise(resolve => setTimeout(resolve, jitter));
+      }
+
+      if (this.queue.length === 0) return;
+
+      // 2. CHUNKING: Manda de 50 em 50 para não pesar. Na saída, tenta mandar tudo.
+      const chunkSize = isClosingTab ? this.queue.length : 50;
+      eventsToSend = this.queue.splice(0, chunkSize);
+
+      const body = JSON.stringify({
+        project_uuid: this.projectUuid,
+        session_id: this.sessionId,
+        app_type: this.appType,
+        events: eventsToSend
+      });
+
+      // keepalive: true garante que o envio termine mesmo se a criança fechar o navegador no meio
       const res = await fetch(this.endpoint, {
         method: 'POST',
         headers: {
@@ -172,9 +183,18 @@ class TelemetryManager {
         keepalive: isClosingTab 
       });
 
-      // 4. PROTEÇÃO CONTRA 401/403/500: Se o WP rejeitou, lança erro para cair no catch
+      // 3. PROTEÇÃO CONTRA 401/403/500: Se o WP rejeitou, lança erro para cair no catch
       if (!res.ok) {
         throw new Error(`Server rejected telemetry with status: ${res.status}`);
+      }
+
+      // 4. RECURSÃO RÁPIDA: Se sobrou dados na fila, agenda o resto para daqui 1 segundo.
+      if (this.queue.length > 0 && !isClosingTab) {
+        setTimeout(() => {
+          this.isFlushing = false;
+          this.flush();
+        }, 1000);
+        return; 
       }
 
     } catch (error) {
@@ -202,7 +222,8 @@ class TelemetryManager {
   private setupWindowUnload() {
     window.addEventListener('beforeunload', () => {
       if (this.queue.length > 0) {
-        this.flush(true);
+        // Envia silenciosamente o que sobrou. O keepalive cuidará do resto.
+        this.flush(true); 
       }
     });
   }

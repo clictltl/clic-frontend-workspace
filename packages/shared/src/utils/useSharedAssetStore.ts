@@ -6,6 +6,8 @@ import { i18n } from '../i18n';
 
 // --- REGISTRO EM MEMÓRIA (Global para a sessão atual) ---
 const blobRegistry = reactive<Record<string, string>>({});
+// Guarda o arquivo real imune a expiração e sem proxy do Vue
+const rawBlobMap = new Map<string, Blob>();
 
 export interface UseAssetStoreOptions {
   appName: string; // Ex: 'chatbot' ou 'graph-builder' (Para isolar os IndexedDBs)
@@ -136,6 +138,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     const assetId = crypto.randomUUID();
     const blobUrl = URL.createObjectURL(finalFile);
     blobRegistry[assetId] = blobUrl;
+    rawBlobMap.set(assetId, finalFile);
 
     assets[assetId] = {
       id: assetId,
@@ -161,6 +164,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
       if (blobRegistry[assetId]) {
         URL.revokeObjectURL(blobRegistry[assetId]);
         delete blobRegistry[assetId];
+        rawBlobMap.delete(assetId);
       }
     }
   }
@@ -177,9 +181,16 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
 
   function registerBlob(assetId: string, blob: Blob) {
     blobRegistry[assetId] = URL.createObjectURL(blob);
+    rawBlobMap.set(assetId, blob);
   }
 
   async function getAssetBlob(assetId: string): Promise<Blob | null> {
+    // 1. Tenta pegar do cofre de memória RAM (Imediato, não falha no for...of)
+    if (rawBlobMap.has(assetId)) {
+      return rawBlobMap.get(assetId) || null;
+    }
+    
+    // 2. Fallback de segurança 
     const url = blobRegistry[assetId];
     if (!url) return null;
     try {
@@ -192,6 +203,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
   function clearRegistry() {
     Object.values(blobRegistry).forEach(url => URL.revokeObjectURL(url));
     Object.keys(blobRegistry).forEach(key => delete blobRegistry[key]);
+    rawBlobMap.clear();
   }
 
   async function persistToDisk() {
