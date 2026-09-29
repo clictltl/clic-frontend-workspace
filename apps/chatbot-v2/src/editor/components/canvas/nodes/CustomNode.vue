@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
-import { NODE_CONFIG } from '../../utils/nodeConfig';
+import { NODE_CONFIG } from '../../../utils/nodeConfig.ts';
 import { useI18n } from 'vue-i18n';
-import { useProjectStore } from '../../../shared/stores/projectStore';
+import { useProjectStore } from '../../../../shared/stores/projectStore.ts';
 import RichTextEditor from './RichTextEditor.vue';
 import { Trash2 } from '@lucide/vue';
 

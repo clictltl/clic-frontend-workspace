@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { NODE_CONFIG } from '../../utils/nodeConfig';
 import { generateUUID } from '@clic/shared';
-import RichTextEditor from '../canvas/RichTextEditor.vue';
+import RichTextEditor from '../canvas/nodes/RichTextEditor.vue';
 
 const { t } = useI18n();
 const projectStore = useProjectStore();

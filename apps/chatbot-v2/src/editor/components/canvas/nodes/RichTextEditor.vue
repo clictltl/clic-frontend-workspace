@@ -7,8 +7,8 @@ import Link from '@tiptap/extension-link';
 import { 
   Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Smile, Braces, Plus, Type, Hash
 } from '@lucide/vue';
-import { useProjectStore } from '../../../shared/stores/projectStore';
-import type { VariableType } from '../../../shared/types/project';
+import { useProjectStore } from '../../../../shared/stores/projectStore';
+import type { VariableType } from '../../../../shared/types/project';
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
