@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { CloudUpload, AlertTriangle, Plus, X } from '@lucide/vue';
+import { CloudUpload, AlertTriangle, Plus, X, Loader2 } from '@lucide/vue';
 import type { Block } from '@/shared/types/chatbot';
 import { useAssetStore } from '@/editor/composables/useAssetStore';
 import { useBlockUI } from '@/editor/composables/useBlockUI';
@@ -26,6 +26,22 @@ const assetStore = useAssetStore();
 const imageTab = ref<'url' | 'upload'>('url'); 
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploadError = ref<string | null>(null);
+const isUploading = ref(false);
+
+// Calcula e formata informações do asset salvo (tamanho e formato)
+const uploadedAssetInfo = computed(() => {
+  if (!localBlock.value?.assetId) return null;
+  const asset = assetStore.getAssets()[localBlock.value.assetId];
+  
+  if (!asset || asset.source !== 'local') return null;
+  
+  const sizeKB = (asset.size / 1024).toFixed(1);
+  const sizeText = asset.size > 1024 * 1024 
+    ? `${(asset.size / (1024 * 1024)).toFixed(2)} MB` 
+    : `${sizeKB} KB`;
+    
+  return `${sizeText} • ${asset.type}`;
+});
 
 function updateBlockSilent() {
   if (localBlock.value) emit('update:block-silent', localBlock.value);
@@ -144,9 +160,10 @@ async function handleImageUpload(event: Event) {
 
   // Captura o ID antigo antes de substituir
   const oldAssetId = localBlock.value.assetId;
+  isUploading.value = true;
 
   try {
-    // Agora aguardamos o cálculo do hash
+    // Agora aguardamos a compressão e o cálculo do hash
     const assetId = await assetStore.addAssetFile(file);
 
     // Atualiza Bloco
@@ -163,8 +180,9 @@ async function handleImageUpload(event: Event) {
   } catch (error) {
     uploadError.value = (error as Error).message || "Erro desconhecido ao carregar imagem.";
   } finally {
-    // Reset do input sempre acontece
+    // Reset do input sempre acontece e finaliza o loading
     target.value = '';
+    isUploading.value = false;
   }
 }
 
@@ -402,11 +420,30 @@ defineExpose({ focusContent });
         <!-- Conteúdo: Modo Upload -->
         <div v-if="imageTab === 'upload'" class="tab-content upload-area">
           <div class="upload-controls">
-            <button @click="openFileDialog" class="btn-primary-outline" type="button">
-              <CloudUpload :size="18" /> {{ t('chatbot.properties.image_upload_btn') }}
+            <button 
+              @click="openFileDialog" 
+              class="btn-primary-outline" 
+              type="button"
+              :disabled="isUploading"
+              :aria-busy="isUploading"
+            >
+              <Loader2 v-if="isUploading" :size="18" class="spin-icon" />
+              <CloudUpload v-else :size="18" /> 
+              
+              <span v-if="isUploading">{{ t('chatbot.properties.image_upload_processing') }}</span>
+              <span v-else-if="localBlock.assetId">{{ t('chatbot.properties.image_upload_replace') }}</span>
+              <span v-else>{{ t('chatbot.properties.image_upload_btn') }}</span>
             </button>
-            <span v-if="localBlock.assetId" class="file-status">{{ t('chatbot.properties.image_upload_success') }}</span>
-            <span v-else class="file-status">{{ t('chatbot.properties.image_upload_empty') }}</span>
+            
+            <span v-if="isUploading" class="file-status warning-text">
+              {{ t('chatbot.properties.image_upload_compressing') }}
+            </span>
+            <span v-else-if="localBlock.assetId" class="file-status success-text">
+              ✓ {{ t('chatbot.properties.image_upload_success') }}
+            </span>
+            <span v-else class="file-status">
+              {{ t('chatbot.properties.image_upload_empty') }}
+            </span>
           </div>
 
           <div v-if="uploadError" class="error-message">
@@ -419,9 +456,15 @@ defineExpose({ focusContent });
             type="file"
             accept="image/png, image/jpeg, image/gif, image/webp"
             @change="handleImageUpload"
+            :disabled="isUploading"
             style="display: none;"
           />
-          <small>{{ t('chatbot.properties.hints.image_upload') }}</small>
+          
+          <!-- Caixa com dicas e limites combinados -->
+          <div class="upload-info-box">
+            <small>{{ t('chatbot.properties.hints.image_upload') }}</small>
+            <small class="file-limits">Max 2MB (JPG, PNG, GIF, WEBP)</small>
+          </div>
         </div>
 
         <!-- Preview Unificado (Sempre visível se houver imagem) -->
@@ -429,9 +472,18 @@ defineExpose({ focusContent });
           <label>{{ t('chatbot.properties.image_preview') }}</label>
           <div class="preview-box">
             <img :src="previewSrc" alt="Preview" />
-            <button @click="clearImage" class="btn-remove-image" :title="t('chatbot.properties.delete_image')">
+            <button 
+              @click="clearImage" 
+              class="btn-remove-image" 
+              :title="t('chatbot.properties.delete_image')"
+              :disabled="isUploading"
+            >
               <X :size="16" />
             </button>
+          </div>
+          
+          <div v-if="uploadedAssetInfo && imageTab === 'upload'" class="asset-info-badge">
+            {{ uploadedAssetInfo }}
           </div>
         </div>
       </div>
@@ -658,9 +710,14 @@ defineExpose({ focusContent });
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .btn-primary-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid #4caf50;
   color: #4caf50;
   background: white;
@@ -668,13 +725,76 @@ defineExpose({ focusContent });
   border-radius: 4px;
   cursor: pointer;
 }
-.btn-primary-outline:hover {
+
+.btn-primary-outline:hover:not(:disabled) {
   background: #f1f8f1;
+}
+
+.btn-primary-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #d1d5db;
+  color: #6b7280;
+  background: #f9fafb;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .file-status {
   font-size: 0.8rem;
   color: #888;
+}
+
+.file-status.success-text {
+  color: #059669;
+  font-weight: 600;
+}
+
+.file-status.warning-text {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.upload-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 10px;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+}
+
+.upload-info-box small {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.upload-info-box .file-limits {
+  font-weight: 600;
+  color: #475569;
+}
+
+.asset-info-badge {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 6px 8px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  font-family: monospace;
 }
 
 /* Preview */

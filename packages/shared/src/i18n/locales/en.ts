@@ -285,6 +285,9 @@ export default {
       image_upload_success: 'File uploaded',
       image_preview: 'Preview:',
       delete_image: 'Remove Image',
+      image_upload_replace: 'Replace',
+      image_upload_processing: 'Processing...',
+      image_upload_compressing: 'Compressing...',
       hints: {
         variables: 'Use &#123;&#123;variable&#125;&#125; to insert variable values<br/><strong>Warning:</strong> Avoid formatting only "half" of the variable.',
         variables_other: 'Use &#123;&#123;variable&#125;&#125; to use values from other variables',

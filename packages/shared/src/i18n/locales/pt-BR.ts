@@ -286,6 +286,9 @@ export default {
       image_upload_success: 'Arquivo carregado',
       image_preview: 'Pré-visualização:',
       delete_image: 'Remover Imagem',
+      image_upload_replace: 'Substituir',
+      image_upload_processing: 'Processando...',
+      image_upload_compressing: 'Comprimindo...',
       hints: {
         variables: 'Use &#123;&#123;variavel&#125;&#125; para inserir valores de variáveis<br/><strong>Aviso:</strong> Evite formatar apenas "metade" da variável.',
         variables_other: 'Use &#123;&#123;variavel&#125;&#125; para usar valores de outras variáveis',
