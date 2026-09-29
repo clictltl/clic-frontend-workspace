@@ -183,8 +183,20 @@ function getRuleHtml(rule: any, index: number) {
 </template>
 
 <style scoped>
-.custom-node { background: white; border-radius: 8px; border: 2px solid #e5e7eb; width: 260px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s; position: relative; }
-.custom-node.is-selected { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); }
+.custom-node { 
+  background: white; border-radius: 8px; border: 2px solid #e5e7eb; width: 260px; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+  position: relative; 
+}
+.custom-node:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+.custom-node.is-selected { 
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+  transform: translateY(-2px);
+}
 .node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 .header-left { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
 .btn-delete-node { 
