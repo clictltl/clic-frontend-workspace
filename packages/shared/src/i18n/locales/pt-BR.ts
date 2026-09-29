@@ -238,14 +238,14 @@ export default {
       image: 'Imagem',
       end: 'Fim da Conversa',
       default_content: {
-        message: 'Olá! Bem-vindo ao chatbot.',
+        message: 'Olá! Bem-vindo ao Novelo.',
         openQuestion: 'Qual é o seu nome?',
         choiceQuestion: 'Escolha uma opção:',
         condition: 'Verificando condição...',
         setVariable: 'Definindo variável...',
         math: 'Operação matemática',
         image: 'Imagem',
-        end: 'Obrigado por usar o chatbot!'
+        end: 'Obrigado por usar o Novelo!'
       }
     },
     properties: {
@@ -362,7 +362,19 @@ export default {
       removeVariable: 'Exclusão de Variável',
       createConnection: 'Criação de Conexão',
       deleteConnection: 'Exclusão de Conexão',
-      updateConnection: 'Ajuste de Caminho (Linha)'
+      updateConnection: 'Ajuste de Caminho (Linha)',
+
+      updateTitle: 'chatbot.history.updateTitle',
+      addNode: 'chatbot.history.addNode',
+      updateNodePosition: 'chatbot.history.updateNodePosition',
+      deleteNode: 'chatbot.history.deleteNode',
+      updateNodeData: 'chatbot.history.updateNodeData',
+      addEdge: 'chatbot.history.addEdge',
+      removeEdge: 'chatbot.history.removeEdge',
+      updateEdgeColor: 'chatbot.history.updateEdgeColor',
+      addVariable2: 'chatbot.history.addVariable',
+      deleteVariable: 'chatbot.history.deleteVariable',
+      updateVariable: 'chatbot.history.updateVariable'
     }
   },
 
@@ -524,7 +536,7 @@ export default {
 
       sd1: {
         title: 'Crie desenhos com o Caramelo',
-        desc: 'Essa trilha segue o planejamento da sequência didática "Crie desenhos com o Caramelo". Para acessar o plano de aula completo, <a href="https://clic.tltlab.org/" target="_blank" style="color: #2563eb; text-decoration: underline;">clique aqui</a>',
+        desc: 'Essa trilha segue o planejamento da sequência didática "Crie desenhos com o Caramelo". Para acessar o plano de aula completo, <a href="https://clic.tltlab.org/unidades/612/" target="_blank" style="color: #2563eb; text-decoration: underline;">clique aqui</a>',
         class1_title: 'Movimentos com o Caramelo',
         class1_desc: 'Recrie um desenho seu na caixa de areia usando comando absolutos e relativos.',
         class2_title: 'Repetindo padrões',

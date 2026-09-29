@@ -237,14 +237,14 @@ export default {
       image: 'Image',
       end: 'End Conversation',
       default_content: {
-        message: 'Hello! Welcome to the chatbot.',
+        message: 'Hello! Welcome to the Novelo.',
         openQuestion: 'What is your name?',
         choiceQuestion: 'Choose an option:',
         condition: 'Checking condition...',
         setVariable: 'Setting variable...',
         math: 'Math operation',
         image: 'Image',
-        end: 'Thank you for using the chatbot!'
+        end: 'Thank you for using the Novelo!'
       }
     },
     properties: {
@@ -523,7 +523,7 @@ export default {
 
       sd1: {
         title: 'Create drawings with Caramelo',
-        desc: 'This track follows the plan of the teaching sequence "Create drawings with Caramelo". To access the complete lesson plan, <a href="https://clic.tltlab.org/" target="_blank" style="color: #2563eb; text-decoration: underline;">click here</a>',
+        desc: 'This track follows the plan of the teaching sequence "Create drawings with Caramelo". To access the complete lesson plan, <a href="https://clic.tltlab.org/unidades/612/" target="_blank" style="color: #2563eb; text-decoration: underline;">click here</a>',
         class1_title: 'Movements with Caramelo',
         class1_desc: 'Recreate one of your drawings in the sandbox using absolute and relative commands.',
         class2_title: 'Repeating patterns',
