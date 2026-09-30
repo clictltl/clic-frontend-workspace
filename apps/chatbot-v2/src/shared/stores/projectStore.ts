@@ -1,104 +1,76 @@
 import { defineStore } from 'pinia';
 import { generateUUID, i18n } from '@clic/shared';
-import type { 
-  ChatbotProject, 
-  ChatNode, 
-  ChatEdge,
-  Variable,
-  VariableType 
-} from '../types/project'; // Assumindo que os tipos que definimos estarão aqui
+import type {
+  ChatbotProject,
+  ChatNodeOf,
+  MathOperator,
+  NodeType,
+  Position,
+  RichText,
+  Rule,
+  Value,
+  VariableType
+} from '../types/chatbot';
+import type { DomainDeps } from '../domain/deps';
+import * as graph from '../domain/graph';
+import { createChoiceLabel, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
+import { checkVariableName } from '../domain/variables';
 
 const now = () => new Date().toISOString();
 
-const createEmptyProject = (): ChatbotProject => {
-  const nowTime = now();
-  const startNodeId = generateUUID();
-  const messageNodeId = generateUUID();
-  const edgeId = generateUUID();
-
-  return {
-    uuid: generateUUID(),
-    title: '',
-    meta: {
-      version: '1.0.0',
-      createdAt: nowTime,
-      updatedAt: nowTime,
-    },
-    variables: {},
-    nodes: {
-      [startNodeId]: {
-        id: startNodeId,
-        type: 'start',
-        position: { x: 250, y: 150 },
-        data: {}
-      },
-      [messageNodeId]: {
-        id: messageNodeId,
-        type: 'message',
-        position: { x: 250, y: 300 },
-        // Puxa o texto inicial direto do i18n
-        data: { text: i18n.global.t('chatbot.blocks.default_content.message') }
-      }
-    },
-    edges: {
-      [edgeId]: {
-        id: edgeId,
-        sourceNode: startNodeId,
-        sourceHandle: 'out_default',
-        targetNode: messageNodeId,
-        targetHandle: 'in_default',
-        color: '#9ca3af'
-      }
-    },
-    assets: {}
-  };
+const deps: DomainDeps = {
+  newId: generateUUID,
+  t: (key, params) => i18n.global.t(key, params ?? {})
 };
 
-// Helper: Retorna o conteúdo padrão baseado no tipo do nó
-function getDefaultContent(type: ChatNode['type']): string {
-  const t = i18n.global.t;
-  switch (type) {
-    case 'start': return '';
-    case 'message': return t('chatbot.blocks.default_content.message');
-    case 'open_question': return t('chatbot.blocks.default_content.openQuestion');
-    case 'choice_question': return t('chatbot.blocks.default_content.choiceQuestion');
-    case 'condition': return t('chatbot.blocks.default_content.condition');
-    case 'set_variable': return t('chatbot.blocks.default_content.setVariable');
-    case 'math': return t('chatbot.blocks.default_content.math');
-    case 'end': return t('chatbot.blocks.default_content.end');
-    default: return '';
-  }
-}
-
+/**
+ * STORE DO PROJETO
+ *
+ * Cada action tracked é um gesto do aluno: gera uma entrada de undo e um evento
+ * de telemetria com o nome da action (regra 6 do CLAUDE.md). Por isso:
+ * - uma action nunca chama outra action tracked (seleção e markAsSaved são ignoradas);
+ * - textos só chegam aqui confirmados (blur/Enter), nunca a cada tecla;
+ * - a regra de negócio fica em `domain/`; aqui só se encaminha.
+ */
 export const useProjectStore = defineStore('chatbot-project', {
   history: {
     stateKey: 'project',
     telemetry: { appSlug: 'chatbot', sessionActions: ['createNew', 'loadProject'] },
-    // Movimento no Canvas e seleção não devem poluir o Undo/Redo
     ignoreActions: ['markAsSaved', 'selectNode', 'selectEdge', 'clearSelection'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
-      updateTitle: 'chatbot.history.updateTitle',
+      renameProject: 'chatbot.history.renameProject',
       addNode: 'chatbot.history.addNode',
-      updateNodePosition: 'chatbot.history.updateNodePosition',
+      moveNodes: 'chatbot.history.moveNodes',
       deleteNode: 'chatbot.history.deleteNode',
-      updateNodeData: 'chatbot.history.updateNodeData',
-      addEdge: 'chatbot.history.addEdge',
-      removeEdge: 'chatbot.history.removeEdge',
-      updateEdgeColor: 'chatbot.history.updateEdgeColor',
-      removeEdgesByHandle: 'chatbot.history.removeEdgesByHandle',
+      setNodeContent: 'chatbot.history.setNodeContent',
+      connect: 'chatbot.history.connect',
+      disconnect: 'chatbot.history.disconnect',
+      setEdgeColor: 'chatbot.history.setEdgeColor',
+      addChoice: 'chatbot.history.addChoice',
+      renameChoice: 'chatbot.history.renameChoice',
+      removeChoice: 'chatbot.history.removeChoice',
+      addRule: 'chatbot.history.addRule',
+      removeRule: 'chatbot.history.removeRule',
+      setRuleMatch: 'chatbot.history.setRuleMatch',
+      addCondition: 'chatbot.history.addCondition',
+      updateCondition: 'chatbot.history.updateCondition',
+      removeCondition: 'chatbot.history.removeCondition',
+      setAnswerVariable: 'chatbot.history.setAnswerVariable',
+      setAssignment: 'chatbot.history.setAssignment',
+      setMathOperation: 'chatbot.history.setMathOperation',
       addVariable: 'chatbot.history.addVariable',
-      deleteVariable: 'chatbot.history.deleteVariable',
-      updateVariable: 'chatbot.history.updateVariable'
+      renameVariable: 'chatbot.history.renameVariable',
+      deleteVariable: 'chatbot.history.deleteVariable'
     }
   },
 
   state: () => {
-    const initialProject = createEmptyProject();
+    const initialProject = createProject(deps, now());
     return {
-      project: initialProject,
+      project: initialProject as ChatbotProject,
       lastSavedState: JSON.stringify(initialProject),
-      // Estados Voláteis (UI Context)
+      // Estado volátil de UI (fora do JSON)
       selectedNodeId: null as string | null,
       selectedEdgeId: null as string | null
     };
@@ -106,59 +78,40 @@ export const useProjectStore = defineStore('chatbot-project', {
 
   getters: {
     hasUnsavedChanges: (state) => JSON.stringify(state.project) !== state.lastSavedState,
-    
-    activeNode: (state) => state.selectedNodeId ? state.project.nodes[state.selectedNodeId] || null : null,
-    
-    activeEdge: (state) => state.selectedEdgeId ? state.project.edges[state.selectedEdgeId] || null : null,
+    activeNode: (state) => (state.selectedNodeId ? state.project.nodes[state.selectedNodeId] ?? null : null),
+    activeEdge: (state) => (state.selectedEdgeId ? state.project.edges[state.selectedEdgeId] ?? null : null)
   },
 
   actions: {
-    // --- CONTROLE DE SESSÃO ---
+    // --- SESSÃO (iniciam o Frame Zero da telemetria) ---
     markAsSaved() {
       this.project.meta.updatedAt = now();
       this.lastSavedState = JSON.stringify(this.project);
     },
 
     createNew() {
-      this.project = createEmptyProject();
-      this.clearSelection();
-      this.markAsSaved();
+      this.project = createProject(deps, now());
+      this.selectedNodeId = null;
+      this.selectedEdgeId = null;
+      this.lastSavedState = JSON.stringify(this.project);
     },
 
-    loadProject(json: any, markAsUnsaved: boolean = false) {
-      const nowTime = now();
-      
-      json.uuid = json.uuid || generateUUID();
-      json.title = json.title || '';
-      json.meta = json.meta || { version: '1.0.0', createdAt: nowTime, updatedAt: nowTime };
+    /** Retorna o erro sem trocar o projeto atual se o JSON for inválido ou de outra versão. */
+    loadProject(json: unknown, markAsUnsaved = false) {
+      const result = parseProject(json, deps, now());
+      if (!result.ok) return result.error;
 
-      // BLINDAGEM DO PHP: Garante que objetos vazios não virem arrays
-      json.nodes = Array.isArray(json.nodes) ? {} : (json.nodes || {});
-      json.edges = Array.isArray(json.edges) ? {} : (json.edges || {});
-      json.variables = Array.isArray(json.variables) ? {} : (json.variables || {});
-      json.assets = Array.isArray(json.assets) ? {} : (json.assets || {});
-
-      // Fallback: Se o JSON veio sem o nó 'start' (corrompido), recriamos
-      const hasStart = Object.values(json.nodes).some((n: any) => n.type === 'start');
-      if (!hasStart) {
-        const startId = generateUUID();
-        json.nodes[startId] = { id: startId, type: 'start', position: { x: 250, y: 250 }, data: {} };
-      }
-
-      this.project = json;
-      this.clearSelection();
-
-      if (markAsUnsaved) {
-        this.lastSavedState = 'FORCED_UNSAVED';
-      } else {
-        this.lastSavedState = JSON.stringify(this.project);
-      }
+      this.project = result.project;
+      this.selectedNodeId = null;
+      this.selectedEdgeId = null;
+      this.lastSavedState = markAsUnsaved ? 'FORCED_UNSAVED' : JSON.stringify(this.project);
+      return null;
     },
 
-    // --- SELEÇÃO UI (Ações Silenciosas) ---
+    // --- SELEÇÃO (ignoradas pelo histórico) ---
     selectNode(id: string | null) {
       this.selectedNodeId = id;
-      if (id) this.selectedEdgeId = null; // Só um pode estar focado no Inspetor lateral
+      if (id) this.selectedEdgeId = null;
     },
 
     selectEdge(id: string | null) {
@@ -171,122 +124,125 @@ export const useProjectStore = defineStore('chatbot-project', {
       this.selectedEdgeId = null;
     },
 
-    updateTitle(newTitle: string) {
-      this.project.title = newTitle;
+    renameProject(title: string) {
+      this.project.title = title;
     },
 
-    // --- GERENCIAMENTO DE VARIÁVEIS ---
-    addVariable(name: string, type: VariableType) {
-      const id = generateUUID();
-      this.project.variables[id] = {
-        id,
-        name,
-        type,
-        defaultValue: type === 'number' ? 0 : ''
-      };
+    // --- NÓS ---
+    addNode(type: NodeType, position: Position) {
+      const node = createNode(type, position, deps);
+      graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
     },
 
-    updateVariable(id: string, updates: Partial<Variable>) {
-      if (this.project.variables[id]) {
-        Object.assign(this.project.variables[id], updates);
-      }
-    },
-
-    deleteVariable(id: string) {
-      delete this.project.variables[id];
-      // Nota: Não apagamos os nós que usam a variável para não quebrar o grafo.
-      // A UI das propriedades mostrará um erro "Variável não encontrada", forçando o aluno a corrigir.
-    },
-
-    // --- GERENCIAMENTO DO GRAFO (NÓS) ---
-    addNode(type: ChatNode['type'], position: { x: number; y: number }) {
-      const id = generateUUID();
-      
-      // Monta o payload inicial
-      let initialData: Record<string, any> = {};
-      if (['message', 'open_question', 'choice_question', 'end'].includes(type)) {
-        initialData.text = getDefaultContent(type);
-      }
-      if (type === 'choice_question') {
-        initialData.choices = [{ id: generateUUID(), label: i18n.global.t('chatbot.properties.default_choice', { n: 1 }) }];
-      }
-      if (type === 'condition') {
-        initialData.rules = [{ 
-          id: generateUUID(), 
-          conditions: [{ id: generateUUID(), connector: 'AND', variableId: '', operator: '==', value: '' }] 
-        }];
-      }
-
-      this.project.nodes[id] = { id, type, position, data: initialData };
-      this.selectNode(id);
-    },
-
-    updateNodeData(id: string, dataUpdates: Record<string, any>) {
-      if (this.project.nodes[id]) {
-        this.project.nodes[id].data = { ...this.project.nodes[id].data, ...dataUpdates };
-      }
-    },
-
-    // Ação Silenciosa chamada constantemente pelo Vue Flow ao arrastar (não polui Undo/Redo)
-    updateNodePosition(id: string, position: { x: number; y: number }) {
-      if (this.project.nodes[id]) {
-        this.project.nodes[id].position = position;
-      }
+    moveNodes(moves: { id: string; position: Position }[]) {
+      graph.moveNodes(this.project, moves);
     },
 
     deleteNode(id: string) {
+      if (!graph.deleteNode(this.project, id)) return false;
+      if (this.selectedNodeId === id) this.selectedNodeId = null;
+      if (this.selectedEdgeId && !this.project.edges[this.selectedEdgeId]) this.selectedEdgeId = null;
+      return true;
+    },
+
+    setNodeContent(id: string, content: RichText) {
       const node = this.project.nodes[id];
-      if (!node || node.type === 'start') return; // Blindagem: Nunca deletar o START
-
-      delete this.project.nodes[id];
-      
-      // Cascata: Deleta todas as conexões (Edges) ligadas a este nó
-      Object.values(this.project.edges).forEach((edge: ChatEdge) => {
-        if (edge.sourceNode === id || edge.targetNode === id) {
-          delete this.project.edges[edge.id];
-        }
-      });
-
-      if (this.selectedNodeId === id) this.clearSelection();
+      if (node && 'content' in node.data) node.data.content = content;
     },
 
-    // --- GERENCIAMENTO DE CONEXÕES (EDGES) ---
-    addEdge(sourceNode: string, sourceHandle: string, targetNode: string, targetHandle: string) {
-      // Blindagem: Evita conectar o nó nele mesmo ou criar a mesma linha duas vezes
-      if (sourceNode === targetNode) return;
-      
-      const exists = Object.values(this.project.edges).some(
-        (e: ChatEdge) => e.sourceNode === sourceNode && e.sourceHandle === sourceHandle && e.targetNode === targetNode
-      );
-      
-      if (!exists) {
-        const id = generateUUID();
-        this.project.edges[id] = { id, sourceNode, sourceHandle, targetNode, targetHandle };
-      }
+    // --- CONEXÕES ---
+    connect(sourceNode: string, sourceHandle: string, targetNode: string) {
+      return graph.connect(this.project, sourceNode, sourceHandle, targetNode);
     },
 
-    removeEdge(id: string) {
-      delete this.project.edges[id];
-      if (this.selectedEdgeId === id) this.clearSelection();
+    disconnect(id: string) {
+      if (!graph.disconnect(this.project, id)) return false;
+      if (this.selectedEdgeId === id) this.selectedEdgeId = null;
+      return true;
     },
 
-    removeEdgesByHandle(nodeId: string, handleId: string) {
-      // Varre todas as conexões e deleta se a porta de saída (ou entrada) bater com o ID da Opção/Regra deletada
-      Object.values(this.project.edges).forEach((edge: ChatEdge) => {
-        if (
-          (edge.sourceNode === nodeId && edge.sourceHandle === handleId) ||
-          (edge.targetNode === nodeId && edge.targetHandle === handleId)
-        ) {
-          delete this.project.edges[edge.id];
-          if (this.selectedEdgeId === edge.id) this.clearSelection();
-        }
-      });
+    setEdgeColor(id: string, color: string) {
+      graph.setEdgeColor(this.project, id, color);
     },
 
-    updateEdgeColor(id: string, color: string) {
-      if (this.project.edges[id]) {
-        this.project.edges[id].color = color;
-      }
+    // --- MÚLTIPLA ESCOLHA ---
+    addChoice(nodeId: string) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'choice_question');
+      if (!node) return;
+      graph.addChoice(this.project, nodeId, { id: deps.newId(), label: createChoiceLabel(deps, node.data.choices.length + 1) });
+    },
+
+    renameChoice(nodeId: string, choiceId: string, label: string) {
+      graph.renameChoice(this.project, nodeId, choiceId, label);
+    },
+
+    removeChoice(nodeId: string, choiceId: string) {
+      return graph.removeChoice(this.project, nodeId, choiceId);
+    },
+
+    // --- CONDIÇÃO ---
+    addRule(nodeId: string) {
+      graph.addRule(this.project, nodeId, createRule(deps));
+    },
+
+    removeRule(nodeId: string, ruleId: string) {
+      return graph.removeRule(this.project, nodeId, ruleId);
+    },
+
+    setRuleMatch(nodeId: string, ruleId: string, match: Rule['match']) {
+      graph.setRuleMatch(this.project, nodeId, ruleId, match);
+    },
+
+    addCondition(nodeId: string, ruleId: string) {
+      graph.addCondition(this.project, nodeId, ruleId, createCondition(deps));
+    },
+
+    updateCondition(nodeId: string, ruleId: string, conditionId: string, changes: Parameters<typeof graph.updateCondition>[4]) {
+      graph.updateCondition(this.project, nodeId, ruleId, conditionId, changes);
+    },
+
+    removeCondition(nodeId: string, ruleId: string, conditionId: string) {
+      return graph.removeCondition(this.project, nodeId, ruleId, conditionId);
+    },
+
+    // --- DEMAIS NÓS ---
+    setAnswerVariable(nodeId: string, variableId: string | null) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'open_question');
+      if (node) node.data.variableId = variableId;
+    },
+
+    setAssignment(nodeId: string, changes: Partial<{ variableId: string | null; value: Value }>) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'set_variable');
+      if (node) Object.assign(node.data, changes);
+    },
+
+    setMathOperation(nodeId: string, changes: Partial<{ variableId: string | null; operator: MathOperator; operand: Value }>) {
+      const node: ChatNodeOf<'math'> | null = graph.getNodeOfType(this.project, nodeId, 'math');
+      if (node) Object.assign(node.data, changes);
+    },
+
+    // --- VARIÁVEIS ---
+    /** Retorna o ID criado, ou null se o nome for vazio/repetido. */
+    addVariable(name: string, type: VariableType) {
+      if (checkVariableName(this.project, name)) return null;
+      const id = deps.newId();
+      this.project.variables[id] = { id, name: name.trim(), type, defaultValue: type === 'number' ? 0 : '' };
+      return id;
+    },
+
+    renameVariable(id: string, name: string) {
+      const variable = this.project.variables[id];
+      if (!variable || checkVariableName(this.project, name, id)) return false;
+      variable.name = name.trim();
+      return true;
+    },
+
+    /** As referências continuam nos nós; a validação do fluxo aponta onde corrigir. */
+    deleteVariable(id: string) {
+      delete this.project.variables[id];
     }
   }
 });

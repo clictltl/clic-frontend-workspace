@@ -6,6 +6,8 @@ import { checkLogin, initMatomo, piniaInteractionHistoryPlugin, i18n } from '@cl
 // Já importamos o CSS base do Vue Flow aqui para garantir que o motor gráfico funcione depois
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
+import '../shared/richText/richText.css';
+import './styles/properties.css';
 
 async function init() {
   const pinia = createPinia();

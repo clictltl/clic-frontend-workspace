@@ -316,13 +316,18 @@ export default {
       rules_label: 'Rules (Routes)',
       rule_n: 'Rule {n}',
       add_rule: 'Add Rule (Route)',
+      delete_rule: 'Remove Rule',
       logic_and: 'AND',
       logic_or: 'OR',
       else: 'Otherwise',
       else_hint: 'If none of the rules above are met, the flow will follow this route.',
       set_variable_target: 'Which variable do you want to change?',
       new_value: 'New value:',
-      math_target: 'Which numeric variable to calculate?'
+      math_target: 'Which numeric variable to calculate?',
+      match_label: 'Follow this route if',
+      match_all: 'all conditions are true',
+      match_any: 'any condition is true',
+      value_literal: 'Fixed value'
     },
     variables: {
       title_new: 'New Variable',
@@ -336,7 +341,8 @@ export default {
       error_empty: 'Enter a name for the variable',
       error_exists: 'A variable with this name already exists',
       error_invalid: 'Invalid name. Use only letters, numbers, and underscore. Cannot start with a number.',
-      confirm_delete: 'Do you want to remove the variable "{name}"?'
+      confirm_delete: 'Do you want to remove the variable "{name}"?',
+      used_in: 'Used in {n} node. Delete anyway? | Used in {n} nodes. Delete anyway?'
     },
     runtime: {
       errors: {
@@ -393,17 +399,28 @@ export default {
       deleteConnection: 'Connection Deletion',
       updateConnection: 'Path Adjustment (Line)',
 
-      updateTitle: 'Title Change',
+      renameProject: 'Title Change',
       addNode: 'Node Creation',
-      updateNodePosition: 'Node Movement',
+      moveNodes: 'Node Movement',
       deleteNode: 'Node Deletion',
-      updateNodeData: 'Node Update',
-      addEdge: 'Connection Creation',
-      removeEdge: 'Connection Deletion',
-      updateEdgeColor: 'Connection Color',
-      removeEdgesByHandle: 'Connections Deletion',
-      deleteVariable: 'Variable Deletion',
-      updateVariable: 'Variable Update'
+      setNodeContent: 'Text Edit',
+      connect: 'Connection Creation',
+      disconnect: 'Connection Deletion',
+      setEdgeColor: 'Connection Color',
+      addChoice: 'Option Creation',
+      renameChoice: 'Option Edit',
+      removeChoice: 'Option Deletion',
+      addRule: 'Rule Creation',
+      removeRule: 'Rule Deletion',
+      setRuleMatch: 'Rule Change',
+      addCondition: 'Condition Creation',
+      updateCondition: 'Condition Edit',
+      removeCondition: 'Condition Deletion',
+      setAnswerVariable: 'Answer Variable',
+      setAssignment: 'Assignment Edit',
+      setMathOperation: 'Operation Edit',
+      renameVariable: 'Variable Rename',
+      deleteVariable: 'Variable Deletion'
     }
   },
 

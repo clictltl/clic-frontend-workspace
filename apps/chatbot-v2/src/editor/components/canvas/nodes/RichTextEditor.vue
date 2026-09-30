@@ -1,71 +1,52 @@
 <script setup lang="ts">
 import { watch, onBeforeUnmount, ref, nextTick, onMounted } from 'vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
-import { Node } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import { 
+import {
   Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Smile, Braces, Plus, Type, Hash
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
-import type { VariableType } from '../../../../shared/types/project';
+import type { RichText, VariableType } from '../../../../shared/types/chatbot';
+import { RICH_TEXT_NODES } from '../../../../shared/domain/richText';
+import { findVariableByName } from '../../../../shared/domain/variables';
+import { editorRichTextExtensions } from '../../../utils/richText';
 
 const props = withDefaults(defineProps<{
-  modelValue?: string;
+  modelValue: RichText;
   variant?: 'canvas' | 'sidebar';
 }>(), {
   variant: 'canvas'
 });
 
+// `commit` só dispara ao terminar a edição (blur), com o documento alterado:
+// um trecho digitado = uma action no store = um evento de telemetria (regra 6).
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
+  'commit': [value: RichText];
   'blur': [];
 }>();
 
 const { t, locale } = useI18n();
 const projectStore = useProjectStore();
 
-// Blindagem da Variável (Nó Atômico)
-const ClicVariableNode = Node.create({
-  name: 'clicVariable',
-  group: 'inline',
-  inline: true,
-  atom: true,
-  addAttributes() {
-    return {
-      id: { default: '', parseHTML: el => el.getAttribute('data-variable') },
-      name: { default: 'var', parseHTML: el => el.getAttribute('data-name') }
-    };
-  },
-  parseHTML() { return [{ tag: 'span[data-variable]' }]; },
-  renderHTML({ HTMLAttributes }) {
-    // Renderiza uma pílula visual limpa no HTML
-    return ['span', { 'data-variable': HTMLAttributes.id, 'data-name': HTMLAttributes.name, class: 'clic-variable' }, `{ ${HTMLAttributes.name} }`];
-  },
-});
+let lastCommitted = JSON.stringify(props.modelValue);
 
-// Blindagem do Emoji (Nó Atômico)
-const ClicEmojiNode = Node.create({
-  name: 'clicEmoji',
-  group: 'inline',
-  inline: true,
-  atom: true,
-  addAttributes() {
-    return {
-      emoji: {
-        default: '',
-        parseHTML: element => element.getAttribute('data-emoji'),
-      }
-    };
-  },
-  parseHTML() {
-    return [{ tag: 'span[data-emoji]' }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['span', { 'data-emoji': HTMLAttributes.emoji, class: 'clic-emoji' }, HTMLAttributes.emoji];
-  },
-});
+function commit() {
+  if (!editor.value || editor.value.isDestroyed) return;
+  const doc = editor.value.getJSON();
+  const serialized = JSON.stringify(doc);
+  if (serialized === lastCommitted) return;
+  lastCommitted = serialized;
+  emit('commit', doc);
+}
+
+function finishEditing() {
+  commit();
+  emit('blur');
+}
+
+// Registrado antes do useEditor para rodar antes de o editor ser destruído
+// (ex.: nó desselecionado com o texto ainda em edição)
+onBeforeUnmount(commit);
 
 // Lógica dos Popovers (Emoji e Variáveis)
 const showEmojiPicker = ref(false);
@@ -105,18 +86,17 @@ function closePopover(e: Event) {
     didCloseSomething = true;
   }
 
-  // Só checa se precisa fechar o editor inteiro caso o usuário tenha acabado de sair de um popover
+  // Só checa se precisa encerrar a edição caso o usuário tenha acabado de sair de um popover
   if (didCloseSomething) {
     setTimeout(() => {
-      if (editor.value && !editor.value.isFocused) emit('blur');
+      if (editor.value && !editor.value.isFocused) finishEditing();
     }, 0);
   }
 }
 
-function insertVariable(id: string, name: string) {
+function insertVariable(variableId: string) {
   if (!editor.value) return;
-  editor.value.chain().focus().insertContent({ type: 'clicVariable', attrs: { id, name } }).run();
-  emit('update:modelValue', editor.value.getHTML());
+  editor.value.chain().focus().insertContent({ type: RICH_TEXT_NODES.variable, attrs: { variableId } }).run();
   showVarPicker.value = false;
 }
 
@@ -133,17 +113,10 @@ function startCreateVariable() {
 function confirmCreateVariable() {
   const name = newVarName.value.trim();
   if (!name) return;
-  
-  const existing = Object.values(projectStore.project.variables).find(v => v.name.toLowerCase() === name.toLowerCase());
-  if (existing) {
-    insertVariable(existing.id, existing.name);
-    isCreatingVar.value = false;
-    return;
-  }
 
-  projectStore.addVariable(name, newVarType.value);
-  const newVar = Object.values(projectStore.project.variables).find(v => v.name === name);
-  if (newVar) insertVariable(newVar.id, newVar.name);
+  // Nome já existente: reaproveita a variável em vez de criar outra
+  const id = findVariableByName(projectStore.project, name)?.id ?? projectStore.addVariable(name, newVarType.value);
+  if (id) insertVariable(id);
   isCreatingVar.value = false;
 }
 
@@ -174,10 +147,9 @@ async function toggleEmojiPicker() {
         onEmojiSelect: (emoji: any) => {
           if (!editor.value || editor.value.isDestroyed) return;
           editor.value.chain().focus().insertContent({
-            type: 'clicEmoji',
+            type: RICH_TEXT_NODES.emoji,
             attrs: { emoji: emoji.native }
           }).run();
-          emit('update:modelValue', editor.value.getHTML());
           showEmojiPicker.value = false;
         }
       });
@@ -196,32 +168,24 @@ function toggleVarPicker() {
 }
 
 const editor = useEditor({
-  content: props.modelValue || '',
-  extensions: [
-    StarterKit.configure({ link: false }), // Tiptap 3 já inclui Link no StarterKit; usamos o nosso configurado abaixo
-    ClicEmojiNode,
-    ClicVariableNode,
-    Link.configure({ openOnClick: false }),
-  ],
-  onUpdate: ({ editor }) => {
-    if (editor.isDestroyed) return;
-    if (editor.isFocused) {
-      emit('update:modelValue', editor.getHTML());
-    }
-  },
+  content: props.modelValue,
+  extensions: editorRichTextExtensions,
   onBlur: ({ editor }) => {
-    // Blindagem Suprema: Ignora a perda de foco se qualquer um dos popovers estiver aberto!
+    // Ignora a perda de foco se qualquer um dos popovers estiver aberto
     if (editor.isDestroyed || showEmojiPicker.value || showVarPicker.value) return;
-    emit('blur');
+    finishEditing();
   },
 });
 
+// Mudança externa (ex.: undo com o editor aberto mas sem foco): sincroniza sem gerar commit
 watch(
   () => props.modelValue,
   (value) => {
-    if (!editor.value || editor.value.isDestroyed) return;
-    if (editor.value.getHTML() !== value) {
-      editor.value.commands.setContent(value || '', { emitUpdate: false });
+    const serialized = JSON.stringify(value);
+    if (serialized === lastCommitted) return;
+    lastCommitted = serialized;
+    if (editor.value && !editor.value.isDestroyed && !editor.value.isFocused) {
+      editor.value.commands.setContent(value, { emitUpdate: false });
     }
   }
 );
@@ -297,7 +261,7 @@ function toggleLink() {
           v-for="vari in projectStore.project.variables" 
           :key="vari.id"
           class="var-item"
-          @click="insertVariable(vari.id, vari.name)"
+          @click="insertVariable(vari.id)"
         >
           <Type v-if="vari.type === 'text'" :size="14" color="#6b7280" />
           <Hash v-else :size="14" color="#6b7280" />
@@ -391,7 +355,6 @@ function toggleLink() {
 :deep(.tiptap code) { background: #f3f4f6; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 12px; }
 
 .emoji-popover-teleported { position: fixed; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 10px; background: white; }
-:deep(.clic-emoji) { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif; display: inline-block; line-height: 1; }
 
 /* Popover de Variáveis */
 .var-popover-teleported {
@@ -411,21 +374,6 @@ function toggleLink() {
 .btn-create-var { color: #2563eb; font-weight: 500; }
 .btn-create-var:hover { background: #dbeafe; }
 .var-divider { height: 1px; background: #e5e7eb; margin: 4px 0; }
-
-/* Estilo da "Pílula" (Variável injetada no texto) */
-:deep(.clic-variable) {
-  display: inline-block;
-  background: #dbeafe;
-  color: #1d4ed8;
-  padding: 0 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  font-weight: 600;
-  font-family: monospace;
-  margin: 0 2px;
-  box-shadow: 0 0 0 1px #bfdbfe inset;
-  user-select: none;
-}
 
 /* Formulário Inline de Variáveis */
 .var-create-inline { display: flex; flex-direction: column; gap: 6px; padding: 4px; }

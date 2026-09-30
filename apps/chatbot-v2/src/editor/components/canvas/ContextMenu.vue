@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { NODE_CONFIG, CREATABLE_NODES } from '../../utils/nodeConfig';
-import type { ChatNode } from '../../../shared/types/project';
+import type { NodeType } from '../../../shared/types/chatbot';
 
 const props = defineProps<{
   x: number;
@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'select', type: ChatNode['type']): void;
+  (e: 'select', type: NodeType): void;
   (e: 'close'): void;
 }>();
 

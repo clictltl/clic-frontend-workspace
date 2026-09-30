@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core';
+import { VueFlow, useVueFlow, MarkerType, type Connection, type NodeDragEvent } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import CustomNode from './nodes/CustomNode.vue';
@@ -9,7 +9,7 @@ import GhostPath from './edges/GhostPath.vue';
 import ClickConnectionLine from './edges/ClickConnectionLine.vue';
 import ContextMenu from './ContextMenu.vue';
 import EdgeContextMenu from './edges/EdgeContextMenu.vue';
-import type { ChatEdge, ChatNode } from '../../../shared/types/project';
+import type { NodeType } from '../../../shared/types/chatbot';
 
 const projectStore = useProjectStore();
 
@@ -26,7 +26,7 @@ function onKeyDown(e: KeyboardEvent) {
     if (projectStore.selectedNodeId) {
       projectStore.deleteNode(projectStore.selectedNodeId);
     } else if (projectStore.selectedEdgeId) {
-      projectStore.removeEdge(projectStore.selectedEdgeId);
+      projectStore.disconnect(projectStore.selectedEdgeId);
     }
   }
 }
@@ -40,32 +40,34 @@ onBeforeUnmount(() => {
 });
 
 // --- MAPEAMENTO DO GRAFO ---
+// O Vue Flow recebe só geometria e IDs; cada nó lê seu conteúdo direto do store.
 const flowNodes = computed(() => {
   return Object.values(projectStore.project.nodes).map(n => ({
     id: n.id,
     type: 'custom',
-    position: n.position,
-    data: {
-      nodeType: n.type,
-      nodeData: n.data,
-      isSelected: projectStore.selectedNodeId === n.id
-    }
+    position: n.position
   }));
 });
 
 const flowEdges = computed(() => {
-  return Object.values(projectStore.project.edges).map((e: ChatEdge) => ({
+  return Object.values(projectStore.project.edges).map(e => ({
     id: e.id,
     type: 'custom',
     source: e.sourceNode,
     sourceHandle: e.sourceHandle,
     target: e.targetNode,
-    targetHandle: e.targetHandle,
+    targetHandle: 'in', // Todo nó tem uma única entrada
     data: { edgeData: e },
     animated: projectStore.selectedEdgeId === e.id,
     markerEnd: { type: MarkerType.ArrowClosed, color: e.color || '#9ca3af' }
   }));
 });
+
+// Bloqueia visualmente (durante o arraste) o que o domínio recusaria
+function isValidConnection(connection: Connection) {
+  const target = projectStore.project.nodes[connection.target];
+  return connection.source !== connection.target && !!target && target.type !== 'start';
+}
 
 // --- CONTROLE DE MENUS ---
 const menu = ref({ show: false, x: 0, y: 0, flowPosition: { x: 0, y: 0 } });
@@ -81,7 +83,7 @@ function onPaneContextMenu(event: MouseEvent) {
   };
 }
 
-function handleAddNode(type: ChatNode['type']) {
+function handleAddNode(type: NodeType) {
   projectStore.addNode(type, menu.value.flowPosition);
   menu.value.show = false;
 }
@@ -92,23 +94,19 @@ function closeMenu() {
 }
 
 // --- EVENTOS DO VUE FLOW ---
-function onNodeDragStart(event: any) {
+function onNodeDragStart(event: NodeDragEvent) {
   projectStore.selectNode(event.node.id);
 }
 
-function onNodeDragStop(event: any) {
-  event.nodes.forEach((node: any) => {
-    projectStore.updateNodePosition(node.id, node.position);
-  });
+// Um arraste (mesmo com vários nós selecionados) = uma única mutação
+function onNodeDragStop(event: NodeDragEvent) {
+  projectStore.moveNodes(event.nodes.map(node => ({ id: node.id, position: node.position })));
 }
 
-function onConnect(connection: any) {
-  projectStore.addEdge(
-    connection.source, 
-    connection.sourceHandle || 'out_default', 
-    connection.target, 
-    connection.targetHandle || 'in_default'
-  );
+// Reconectar uma saída já ligada substitui a conexão anterior (regra do domínio)
+function onConnect(connection: Connection) {
+  if (!connection.sourceHandle) return;
+  projectStore.connect(connection.source, connection.sourceHandle, connection.target);
 }
 
 function onNodeClick(event: any) {
@@ -146,6 +144,7 @@ function onPaneClick() {
       :max-zoom="4"
       :delete-key-code="null"
       :connect-on-click="true"
+      :is-valid-connection="isValidConnection"
       @node-drag-start="onNodeDragStart"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
@@ -157,7 +156,7 @@ function onPaneClick() {
       <Background pattern-color="#aaa" :gap="16" />
       
       <template #node-custom="props">
-        <CustomNode :id="props.id" :data="props.data" />
+        <CustomNode :id="props.id" />
       </template>
 
       <template #edge-custom="props">

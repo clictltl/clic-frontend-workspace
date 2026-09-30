@@ -13,11 +13,11 @@ const COLORS = ['#9ca3af', '#3b82f6', '#10b981', '#facc15', '#ef4444', '#a855f7'
 const edge = computed(() => projectStore.project.edges[props.edgeId]);
 
 function updateColor(color: string) {
-  projectStore.updateEdgeColor(props.edgeId, color);
+  projectStore.setEdgeColor(props.edgeId, color);
 }
 
 function deleteEdge() {
-  projectStore.removeEdge(props.edgeId);
+  projectStore.disconnect(props.edgeId);
   emit('close');
 }
 </script>

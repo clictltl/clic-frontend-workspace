@@ -1,7 +1,7 @@
 import {
   Play, MessageSquare, CircleHelp, ListChecks, Split, Box, Calculator, CircleCheck
 } from '@lucide/vue';
-import type { ChatNode } from '../../shared/types/project';
+import type { NodeType } from '../../shared/types/chatbot';
 
 export interface NodeVisualConfig {
   titleKey: string;
@@ -10,7 +10,7 @@ export interface NodeVisualConfig {
 }
 
 // Adaptado para os novos tipos em snake_case
-export const NODE_CONFIG: Record<ChatNode['type'], NodeVisualConfig> = {
+export const NODE_CONFIG: Record<NodeType, NodeVisualConfig> = {
   start: { titleKey: 'chatbot.blocks.start', color: '#10b981', icon: Play },
   message: { titleKey: 'chatbot.blocks.message', color: '#3b82f6', icon: MessageSquare },
   open_question: { titleKey: 'chatbot.blocks.openQuestion', color: '#fb923c', icon: CircleHelp },
@@ -21,6 +21,6 @@ export const NODE_CONFIG: Record<ChatNode['type'], NodeVisualConfig> = {
   end: { titleKey: 'chatbot.blocks.end', color: '#ef4444', icon: CircleCheck }
 };
 
-export const CREATABLE_NODES: ChatNode['type'][] = [
+export const CREATABLE_NODES: NodeType[] = [
   'message', 'open_question', 'choice_question', 'condition', 'set_variable', 'math', 'end'
 ];

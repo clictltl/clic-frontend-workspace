@@ -16,7 +16,7 @@ function closePanel() {
 
 function updateColor(color: string) {
   if (activeEdge.value) {
-    projectStore.updateEdgeColor(activeEdge.value.id, color);
+    projectStore.setEdgeColor(activeEdge.value.id, color);
   }
 }
 </script>

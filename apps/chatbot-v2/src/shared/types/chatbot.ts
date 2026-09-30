@@ -80,15 +80,13 @@ export interface Position {
   y: number;
 }
 
-export interface ChatNodeOf<T extends NodeType> {
-  id: string;
-  type: T;
-  position: Position;
-  data: NodeDataMap[T];
-}
+/** Distributivo: `ChatNodeOf<'a' | 'b'>` vira `ChatNodeOf<'a'> | ChatNodeOf<'b'>`. */
+export type ChatNodeOf<T extends NodeType> = T extends NodeType
+  ? { id: string; type: T; position: Position; data: NodeDataMap[T] }
+  : never;
 
 /** Union discriminado: `node.type` estreita o tipo de `node.data`. */
-export type ChatNode = { [T in NodeType]: ChatNodeOf<T> }[NodeType];
+export type ChatNode = ChatNodeOf<NodeType>;
 
 // --- CONEXÕES ---
 

@@ -1,0 +1,27 @@
+/* Nós customizados do texto rico (editor, visualização e runtime) */
+.clic-variable {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 600;
+  font-family: monospace;
+  margin: 0 2px;
+  box-shadow: 0 0 0 1px #bfdbfe inset;
+  user-select: none;
+}
+
+/* Variável excluída: continua no texto até o aluno corrigir */
+.clic-variable.is-missing {
+  background: #fee2e2;
+  color: #b91c1c;
+  box-shadow: 0 0 0 1px #fca5a5 inset;
+}
+
+.clic-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+  display: inline-block;
+  line-height: 1;
+}

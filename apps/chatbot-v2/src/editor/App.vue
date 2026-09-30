@@ -11,10 +11,9 @@ const projectStore = useProjectStore();
 useHistoryShortcuts(projectStore);
 
 onMounted(() => {
-  // Apenas para inicialização inicial segura
-  if (!projectStore.project.uuid) {
-    projectStore.createNew();
-  }
+  // Chamada explícita (mesmo com o state já inicializado) para disparar o Frame Zero da telemetria.
+  // Na etapa do shell, aqui entram também share/remix/preview e o backup pós-login.
+  projectStore.createNew();
 });
 </script>
 

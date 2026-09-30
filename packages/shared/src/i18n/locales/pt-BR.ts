@@ -317,13 +317,18 @@ export default {
       rules_label: 'Regras (Rotas)',
       rule_n: 'Regra {n}',
       add_rule: 'Adicionar Regra (Rota)',
+      delete_rule: 'Remover Regra',
       logic_and: 'E',
       logic_or: 'OU',
       else: 'Caso contrário',
       else_hint: 'Se nenhuma das regras acima for atendida, o fluxo seguirá por esta rota.',
       set_variable_target: 'Qual variável deseja alterar?',
       new_value: 'Novo valor:',
-      math_target: 'Qual variável numérica calcular?'
+      math_target: 'Qual variável numérica calcular?',
+      match_label: 'Seguir esta rota se',
+      match_all: 'todas as condições forem verdadeiras',
+      match_any: 'qualquer condição for verdadeira',
+      value_literal: 'Valor fixo'
     },
     variables: {
       title_new: 'Nova Variável',
@@ -337,7 +342,8 @@ export default {
       error_empty: 'Digite um nome para a variável',
       error_exists: 'Já existe uma variável com este nome',
       error_invalid: 'Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.',
-      confirm_delete: 'Deseja remover a variável "{name}"?'
+      confirm_delete: 'Deseja remover a variável "{name}"?',
+      used_in: 'Usada em {n} nó. Excluir mesmo assim? | Usada em {n} nós. Excluir mesmo assim?'
     },
     runtime: {
       errors: {
@@ -394,17 +400,28 @@ export default {
       deleteConnection: 'Exclusão de Conexão',
       updateConnection: 'Ajuste de Caminho (Linha)',
 
-      updateTitle: 'Alteração do Título',
+      renameProject: 'Alteração do Título',
       addNode: 'Criação de Nó',
-      updateNodePosition: 'Movimentação de Nó',
+      moveNodes: 'Movimentação de Nó',
       deleteNode: 'Exclusão de Nó',
-      updateNodeData: 'Atualização de Nó',
-      addEdge: 'Criação de Conexão',
-      removeEdge: 'Exclusão de Conexão',
-      updateEdgeColor: 'Cor da Conexão',
-      removeEdgesByHandle: 'Exclusão de Conexões',
-      deleteVariable: 'Exclusão de Variável',
-      updateVariable: 'Atualização de Variável'
+      setNodeContent: 'Edição de Texto',
+      connect: 'Criação de Conexão',
+      disconnect: 'Exclusão de Conexão',
+      setEdgeColor: 'Cor da Conexão',
+      addChoice: 'Criação de Opção',
+      renameChoice: 'Edição de Opção',
+      removeChoice: 'Exclusão de Opção',
+      addRule: 'Criação de Regra',
+      removeRule: 'Exclusão de Regra',
+      setRuleMatch: 'Alteração de Regra',
+      addCondition: 'Criação de Condição',
+      updateCondition: 'Edição de Condição',
+      removeCondition: 'Exclusão de Condição',
+      setAnswerVariable: 'Variável da Resposta',
+      setAssignment: 'Edição de Atribuição',
+      setMathOperation: 'Edição de Operação',
+      renameVariable: 'Renomeação de Variável',
+      deleteVariable: 'Exclusão de Variável'
     }
   },
 

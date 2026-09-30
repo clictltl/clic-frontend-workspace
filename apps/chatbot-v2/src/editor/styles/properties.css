@@ -1,0 +1,40 @@
+/* Formulários do painel de propriedades (compartilhado pelos editores de cada tipo de nó) */
+.properties { display: flex; flex-direction: column; gap: 20px; }
+.properties .form-group { display: flex; flex-direction: column; gap: 8px; }
+.properties .form-row { display: flex; gap: 6px; }
+.properties .form-row > * { flex: 1; min-width: 0; }
+.properties label { font-size: 13px; font-weight: 600; color: #374151; }
+.properties .divider { border: none; border-top: 1px solid #e5e7eb; margin: 0; }
+
+.properties input,
+.properties select { padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; outline: none; background: white; }
+.properties input:focus,
+.properties select:focus { border-color: #3b82f6; }
+
+/* Listas */
+.properties .list-container { display: flex; flex-direction: column; gap: 8px; }
+.properties .list-item { display: flex; align-items: center; gap: 6px; }
+.properties .list-item input { flex: 1; min-width: 0; }
+
+/* Cartões (regras da condição) */
+.properties .rules-container { display: flex; flex-direction: column; gap: 16px; }
+.properties .rule-card { background: white; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.properties .rule-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 12px; color: #374151; font-weight: 700; }
+.properties .rule-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.properties .rule-match { font-size: 12px; color: #4b5563; display: flex; flex-direction: column; gap: 4px; }
+.properties .sub-condition-box { background: #f3f4f6; padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 6px; }
+.properties .else-card { border-color: #fca5a5; background: #fef2f2; }
+.properties .else-card .rule-header { background: #fee2e2; color: #991b1b; border-bottom-color: #fca5a5; }
+.properties .else-card .rule-body { font-size: 12px; color: #6b7280; }
+
+/* Botões */
+.properties .btn-outline { background: white; border: 1px dashed #d1d5db; color: #374151; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500; font-size: 13px; transition: all 0.1s; }
+.properties .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+.properties .btn-icon { background: transparent; border: none; padding: 4px; border-radius: 4px; cursor: pointer; color: #6b7280; display: flex; align-items: center; flex: 0 0 auto; }
+.properties .btn-icon:hover:not(:disabled) { background: #e5e7eb; }
+.properties .btn-icon.danger:hover:not(:disabled) { background: #fee2e2; color: #ef4444; }
+.properties .btn-icon:disabled { opacity: 0.35; cursor: not-allowed; }
+.properties .btn-text { background: transparent; border: none; color: #3b82f6; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.properties .btn-text:hover { text-decoration: underline; }
+
+.properties .editor-wrapper { border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden; }
