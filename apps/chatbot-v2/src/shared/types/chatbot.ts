@@ -17,7 +17,7 @@ export const PROJECT_VERSION = '2.0.0';
  * Documento do Tiptap (ProseMirror JSON). Nós customizados:
  * - clicVariable: { variableId }  → referência a uma variável (resolvida no runtime)
  * - clicEmoji:    { emoji }       → emoji como nó atômico
- * - clicImage:    { assetId }     → imagem do projeto (URL resolvida pelo assetStore)
+ * Imagens e outras mídias não entram no texto: ficam em `data.media` do nó.
  */
 export type RichText = JSONContent;
 
@@ -42,10 +42,41 @@ export type MathOperator = '+' | '-' | '*' | '/';
 
 // --- ESTRUTURAS INTERNAS DOS NÓS ---
 
+// --- MÍDIA ---
+
+/** Origem de um arquivo: enviado pelo aluno (asset do projeto) ou link externo. */
+export type MediaSource =
+  | { kind: 'upload'; assetId: string }
+  | { kind: 'url'; url: string };
+
+/**
+ * Mídia exibida junto ao texto de um nó. Novos tipos entram como novos casos deste
+ * union, sem mudar o formato do JSON. Hoje o editor cria apenas 'image' (inclui GIF);
+ * 'video' (link do YouTube/Vimeo) e 'audio' estão reservados para o futuro.
+ */
+export type Media =
+  | { type: 'image'; source: MediaSource }
+  | { type: 'video'; url: string }
+  | { type: 'audio'; source: MediaSource };
+
+export interface NodeMedia {
+  media: Media;
+  position: 'before' | 'after'; // Antes ou depois do texto
+}
+
+/** Emoji ou imagem exibidos no botão da opção (com ou sem rótulo). */
+export type ChoiceMedia =
+  | { kind: 'emoji'; emoji: string }
+  | { kind: 'image'; source: MediaSource };
+
 export interface Choice {
   id: string; // Também é o ID da saída (handle) da opção
-  label: string;
+  label: string; // Pode ficar vazio quando há mídia
+  media: ChoiceMedia | null;
 }
+
+/** Limites da espera após uma mensagem (segundos). */
+export const MESSAGE_DELAY_MAX = 10;
 
 export interface Condition {
   id: string;
@@ -64,13 +95,13 @@ export interface Rule {
 
 export interface NodeDataMap {
   start: Record<string, never>;
-  message: { content: RichText };
-  open_question: { content: RichText; variableId: string | null };
-  choice_question: { content: RichText; choices: Choice[] };
+  message: { content: RichText; media: NodeMedia | null; delay: number }; // delay: segundos antes do próximo nó
+  open_question: { content: RichText; media: NodeMedia | null; variableId: string | null };
+  choice_question: { content: RichText; media: NodeMedia | null; choices: Choice[] };
   condition: { rules: Rule[] };
   set_variable: { variableId: string | null; value: Value };
   math: { variableId: string | null; operator: MathOperator; operand: Value };
-  end: { content: RichText };
+  end: { content: RichText; media: NodeMedia | null };
 }
 
 export type NodeType = keyof NodeDataMap;

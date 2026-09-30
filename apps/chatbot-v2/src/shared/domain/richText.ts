@@ -4,7 +4,6 @@ import type { RichText } from '../types/chatbot';
 export const RICH_TEXT_NODES = {
   variable: 'clicVariable',
   emoji: 'clicEmoji',
-  image: 'clicImage',
 } as const;
 
 /** Cria um documento com um único parágrafo de texto simples. */
@@ -38,11 +37,7 @@ export function collectVariableIds(doc: RichText | undefined): string[] {
   return collectAttr(doc, RICH_TEXT_NODES.variable, 'variableId');
 }
 
-export function collectAssetIds(doc: RichText | undefined): string[] {
-  return collectAttr(doc, RICH_TEXT_NODES.image, 'assetId');
-}
-
-/** Vazio = sem texto visível e sem nós atômicos (variável, emoji, imagem). */
+/** Vazio = sem texto visível e sem nós atômicos (variável, emoji). */
 export function isRichTextEmpty(doc: RichText | undefined): boolean {
   const atoms: string[] = Object.values(RICH_TEXT_NODES);
   let empty = true;

@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { NODE_CONFIG } from '../../utils/nodeConfig';
 import NodeContentEditor from '../common/NodeContentEditor.vue';
+import NodeMediaSettings from './settings/NodeMediaSettings.vue';
+import MessageSettings from './settings/MessageSettings.vue';
 import ChoiceSettings from './settings/ChoiceSettings.vue';
 import ConditionSettings from './settings/ConditionSettings.vue';
 import SetVariableSettings from './settings/SetVariableSettings.vue';
@@ -34,8 +36,13 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
           <NodeContentEditor :node-id="activeNode.id" variant="sidebar" />
         </div>
       </div>
+      <NodeMediaSettings v-if="'media' in activeNode.data" :node-id="activeNode.id" />
 
-      <template v-if="activeNode.type === 'choice_question'">
+      <template v-if="activeNode.type === 'message'">
+        <hr class="divider" />
+        <MessageSettings :node-id="activeNode.id" />
+      </template>
+      <template v-else-if="activeNode.type === 'choice_question'">
         <hr class="divider" />
         <ChoiceSettings :node-id="activeNode.id" />
       </template>

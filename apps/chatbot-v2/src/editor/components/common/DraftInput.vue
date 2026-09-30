@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 /**
  * Input com rascunho local: o valor só é confirmado (`commit`) no blur ou no Enter.
@@ -29,6 +29,10 @@ function commit() {
   // Em type="number" o v-model do Vue converte para número: normaliza para string
   const value = String(draft.value);
   if (value !== String(props.modelValue)) emit('commit', value);
+  // Se o valor foi recusado ou ajustado (ex.: limite, nome repetido), mostra o que ficou no store
+  nextTick(() => {
+    if (!isFocused.value) draft.value = String(props.modelValue);
+  });
 }
 
 // Remover um elemento focado não dispara blur em todos os navegadores

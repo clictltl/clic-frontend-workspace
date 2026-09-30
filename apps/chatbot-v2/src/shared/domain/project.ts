@@ -4,6 +4,7 @@ import {
   type ChatbotProject,
   type ChatNode,
   type ChatNodeOf,
+  type Choice,
   type Condition,
   type NodeType,
   type Position,
@@ -23,8 +24,8 @@ export function createRule(deps: DomainDeps): Rule {
   return { id: deps.newId(), match: 'all', conditions: [createCondition(deps)] };
 }
 
-export function createChoiceLabel(deps: DomainDeps, n: number): string {
-  return deps.t('chatbot.properties.default_choice', { n });
+export function createChoice(deps: DomainDeps, n: number): Choice {
+  return { id: deps.newId(), label: deps.t('chatbot.properties.default_choice', { n }), media: null };
 }
 
 /** Cria um nó com o conteúdo padrão do tipo (textos vêm do i18n no idioma atual). */
@@ -36,15 +37,16 @@ export function createNode<T extends NodeType>(type: T, position: Position, deps
       case 'start':
         return { id, type, position, data: {} };
       case 'message':
-        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.message')) } };
+        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.message')), media: null, delay: 0 } };
       case 'open_question':
-        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.openQuestion')), variableId: null } };
+        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.openQuestion')), media: null, variableId: null } };
       case 'choice_question':
         return {
           id, type, position,
           data: {
             content: createRichText(t('chatbot.blocks.default_content.choiceQuestion')),
-            choices: [{ id: newId(), label: createChoiceLabel(deps, 1) }]
+            media: null,
+            choices: [createChoice(deps, 1)]
           }
         };
       case 'condition':
@@ -54,7 +56,7 @@ export function createNode<T extends NodeType>(type: T, position: Position, deps
       case 'math':
         return { id, type, position, data: { variableId: null, operator: '+', operand: { kind: 'literal', value: 1 } } };
       case 'end':
-        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.end')) } };
+        return { id, type, position, data: { content: createRichText(t('chatbot.blocks.default_content.end')), media: null } };
       default:
         throw new Error(`Unknown node type: ${type satisfies never}`);
     }
@@ -113,6 +115,15 @@ export function parseProject(json: unknown, deps: DomainDeps, now: string): Pars
     variables: asRecord(data.variables),
     assets: asRecord(data.assets)
   };
+
+  // Campos adicionados ao longo da versão 2.x recebem o valor padrão
+  for (const node of Object.values(project.nodes)) {
+    if ('content' in node.data) node.data.media ??= null;
+    if (node.type === 'message' && typeof node.data.delay !== 'number') node.data.delay = 0;
+    if (node.type === 'choice_question') {
+      for (const choice of node.data.choices) choice.media ??= null;
+    }
+  }
 
   // Todo fluxo precisa de um Início: recria se o JSON veio corrompido
   if (!Object.values(project.nodes).some(n => n.type === 'start')) {

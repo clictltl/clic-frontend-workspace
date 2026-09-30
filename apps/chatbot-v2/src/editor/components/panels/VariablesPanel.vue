@@ -35,14 +35,11 @@ function handleAddVariable() {
 }
 
 // --- RENOMEAR ---
-// Incrementar a chave recria o input e descarta um nome inválido digitado
-const resetKeys = ref<Record<string, number>>({});
-
+// Nome inválido: o DraftInput volta sozinho para o nome atual
 function handleRename(id: string, name: string) {
   const problem = checkVariableName(projectStore.project, name, id);
   if (problem) {
     error.value = ERROR_KEYS[problem];
-    resetKeys.value[id] = (resetKeys.value[id] ?? 0) + 1;
     return;
   }
   projectStore.renameVariable(id, name);
@@ -106,7 +103,6 @@ function confirmDelete() {
             <Type v-if="vari.type === 'text'" :size="14" class="icon-type" />
             <Hash v-else :size="14" class="icon-type" />
             <DraftInput
-              :key="`${vari.id}-${resetKeys[vari.id] ?? 0}`"
               class="var-name"
               :model-value="vari.name"
               @commit="name => handleRename(vari.id, name)"
@@ -114,6 +110,16 @@ function confirmDelete() {
             <button class="btn-delete" @click="requestDelete(vari.id)" :title="t('chatbot.variables.remove_title')">
               <Trash2 :size="14" />
             </button>
+          </div>
+
+          <div class="var-default">
+            <span>{{ t('chatbot.variables.default_value') }}</span>
+            <DraftInput
+              :type="vari.type === 'number' ? 'number' : 'text'"
+              :model-value="vari.defaultValue"
+              :placeholder="vari.type === 'number' ? '0' : t('chatbot.variables.default_empty')"
+              @commit="value => projectStore.setVariableDefault(vari.id, value)"
+            />
           </div>
 
           <div v-if="pendingDelete?.id === vari.id" class="confirm-delete">
@@ -173,6 +179,8 @@ input, select {
   padding: 4px; border-radius: 4px; display: flex; align-items: center;
 }
 .btn-delete:hover { background: #fee2e2; }
+.var-default { display: flex; align-items: center; gap: 6px; padding: 0 8px 6px 28px; font-size: 12px; color: #6b7280; }
+.var-default input { flex: 1; min-width: 0; padding: 4px 6px; font-size: 12px; }
 
 .confirm-delete {
   display: flex; flex-direction: column; gap: 8px;

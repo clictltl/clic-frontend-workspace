@@ -16,6 +16,7 @@ export type FlowIssue =
   | { code: 'START_NOT_CONNECTED'; severity: 'error'; nodeId: string }
   | { code: 'UNCONNECTED_OUTPUT'; severity: 'warning'; nodeId: string; handle: string }
   | { code: 'UNREACHABLE_NODE'; severity: 'warning'; nodeId: string }
+  | { code: 'EMPTY_CHOICE'; severity: 'warning'; nodeId: string; choiceId: string }
   | { code: 'VARIABLE_NOT_SELECTED'; severity: 'error'; nodeId: string; conditionId?: string }
   | { code: 'MISSING_VARIABLE'; severity: 'error'; nodeId: string; variableId: string }
   | { code: 'VARIABLE_NOT_NUMBER'; severity: 'error'; nodeId: string; variableId: string }
@@ -69,7 +70,17 @@ export function validateFlow(project: ChatbotProject): FlowIssue[] {
     }
   }
 
-  // 4. Variáveis
+  // 4. Opções sem texto e sem mídia (botão vazio no chat)
+  for (const node of nodeList) {
+    if (node.type !== 'choice_question') continue;
+    for (const choice of node.data.choices) {
+      if (!choice.label.trim() && !choice.media) {
+        issues.push({ code: 'EMPTY_CHOICE', severity: 'warning', nodeId: node.id, choiceId: choice.id });
+      }
+    }
+  }
+
+  // 5. Variáveis
   for (const node of nodeList) issues.push(...validateNodeVariables(node, variables));
 
   return issues;

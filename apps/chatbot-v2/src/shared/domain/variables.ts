@@ -1,4 +1,11 @@
-import type { ChatbotProject } from '../types/chatbot';
+import type { ChatbotProject, VariableType } from '../types/chatbot';
+
+/** Converte um valor digitado para o tipo da variável (número inválido vira 0). */
+export function coerceVariableValue(type: VariableType, raw: string | number): string | number {
+  if (type === 'text') return String(raw);
+  const value = Number(typeof raw === 'string' ? raw.trim().replace(',', '.') : raw);
+  return Number.isFinite(value) ? value : 0;
+}
 
 export type VariableNameError = 'EMPTY' | 'TAKEN';
 

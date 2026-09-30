@@ -240,7 +240,8 @@ export default {
         insert_variable: 'Inserir Variável',
         add_variable: 'Adicionar Variável',
         confirm: 'OK'
-      }
+      },
+      delay_unit_short: 's'
     },
     blocks: {
       start: 'Início',
@@ -328,7 +329,23 @@ export default {
       match_label: 'Seguir esta rota se',
       match_all: 'todas as condições forem verdadeiras',
       match_any: 'qualquer condição for verdadeira',
-      value_literal: 'Valor fixo'
+      value_literal: 'Valor fixo',
+      delay_label: 'Esperar antes da próxima mensagem',
+      delay_unit: 'segundos',
+      add_emoji: 'Adicionar emoji',
+      add_image: 'Adicionar imagem',
+      remove_media: 'Remover emoji/imagem',
+      media_label: 'Mídia',
+      media_upload: 'Enviar arquivo',
+      media_url: 'Link (URL)',
+      media_choose_file: 'Escolher imagem ou GIF',
+      media_url_placeholder: 'https://...',
+      media_url_invalid: 'Link inválido. Use um endereço que comece com http:// ou https://',
+      media_before: 'Antes do texto',
+      media_after: 'Depois do texto',
+      media_remove: 'Remover mídia',
+      media_broken: 'Não foi possível carregar a imagem',
+      media_unsupported: 'Mídia ainda não suportada nesta versão'
     },
     variables: {
       title_new: 'Nova Variável',
@@ -343,7 +360,9 @@ export default {
       error_exists: 'Já existe uma variável com este nome',
       error_invalid: 'Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.',
       confirm_delete: 'Deseja remover a variável "{name}"?',
-      used_in: 'Usada em {n} nó. Excluir mesmo assim? | Usada em {n} nós. Excluir mesmo assim?'
+      used_in: 'Usada em {n} nó. Excluir mesmo assim? | Usada em {n} nós. Excluir mesmo assim?',
+      default_value: 'Valor inicial:',
+      default_empty: '(vazio)'
     },
     runtime: {
       errors: {
@@ -405,6 +424,11 @@ export default {
       moveNodes: 'Movimentação de Nó',
       deleteNode: 'Exclusão de Nó',
       setNodeContent: 'Edição de Texto',
+      setNodeMedia: 'Mídia do Nó',
+      setMediaPosition: 'Posição da Mídia',
+      setMessageDelay: 'Tempo de Espera',
+      setChoiceMedia: 'Emoji/Imagem da Opção',
+      setVariableDefault: 'Valor Inicial de Variável',
       connect: 'Criação de Conexão',
       disconnect: 'Exclusão de Conexão',
       setEdgeColor: 'Cor da Conexão',

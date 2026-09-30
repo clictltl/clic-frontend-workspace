@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { HANDLE_ELSE, HANDLE_OUT } from '../../types/chatbot';
+import { HANDLE_ELSE, HANDLE_OUT, MESSAGE_DELAY_MAX } from '../../types/chatbot';
 import {
   addChoice, addCondition, addRule, connect, deleteNode, edgeId, getOutputHandles, moveNodes,
-  removeChoice, removeCondition, removeRule, renameChoice, setEdgeColor, updateCondition
+  removeChoice, removeCondition, removeRule, renameChoice, setChoiceMedia, setEdgeColor, setMessageDelay, updateCondition
 } from '../graph';
 import { createCondition, createRule } from '../project';
 import { setup } from './helpers';
@@ -79,11 +79,26 @@ describe('moveNodes', () => {
   });
 });
 
+describe('setMessageDelay', () => {
+  it('rounds and clamps the delay between 0 and the maximum', () => {
+    const { project, message } = setup();
+    const data = message.data as { delay: number };
+    setMessageDelay(project, message.id, 2.6);
+    expect(data.delay).toBe(3);
+    setMessageDelay(project, message.id, 99);
+    expect(data.delay).toBe(MESSAGE_DELAY_MAX);
+    setMessageDelay(project, message.id, -5);
+    expect(data.delay).toBe(0);
+    setMessageDelay(project, message.id, Number.NaN);
+    expect(data.delay).toBe(0);
+  });
+});
+
 describe('choices', () => {
   it('adds, renames and removes a choice together with its connection', () => {
     const { project, message, add } = setup();
     const node = add('choice_question');
-    addChoice(project, node.id, { id: 'c2', label: 'B' });
+    addChoice(project, node.id, { id: 'c2', label: 'B', media: null });
     renameChoice(project, node.id, 'c2', 'Bee');
     connect(project, node.id, 'c2', message.id);
 
@@ -91,6 +106,18 @@ describe('choices', () => {
     expect(removeChoice(project, node.id, 'c2')).toBe(true);
     expect(node.data.choices).toHaveLength(1);
     expect(project.edges[edgeId(node.id, 'c2')]).toBeUndefined();
+  });
+
+  it('sets and clears choice media', () => {
+    const { project, add } = setup();
+    const node = add('choice_question');
+    const choiceId = node.data.choices[0]!.id;
+
+    expect(setChoiceMedia(project, node.id, choiceId, { kind: 'emoji', emoji: '🐶' })).toBe(true);
+    expect(node.data.choices[0]!.media).toEqual({ kind: 'emoji', emoji: '🐶' });
+    setChoiceMedia(project, node.id, choiceId, null);
+    expect(node.data.choices[0]!.media).toBeNull();
+    expect(setChoiceMedia(project, node.id, 'nope', null)).toBe(false);
   });
 
   it('keeps at least one choice', () => {

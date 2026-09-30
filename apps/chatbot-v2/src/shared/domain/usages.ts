@@ -1,5 +1,6 @@
 import type { ChatbotProject, ChatNode, RichText, Value } from '../types/chatbot';
-import { collectAssetIds, collectVariableIds } from './richText';
+import { collectVariableIds } from './richText';
+import { choiceMediaAssetId, nodeMediaAssetId } from './media';
 
 const valueVariableId = (value: Value): string | null => (value.kind === 'variable' ? value.variableId : null);
 
@@ -43,9 +44,21 @@ export function findVariableUsages(project: ChatbotProject, variableId: string):
     .map(node => node.id);
 }
 
+/** Todos os arquivos enviados que um nó exibe (mídia do nó e das opções). */
+export function getNodeAssetIds(node: ChatNode): string[] {
+  const ids = new Set<string>();
+  const add = (id: string | null) => { if (id) ids.add(id); };
+
+  if ('media' in node.data) add(nodeMediaAssetId(node.data.media));
+  if (node.type === 'choice_question') {
+    for (const choice of node.data.choices) add(choiceMediaAssetId(choice.media));
+  }
+  return [...ids];
+}
+
 /** IDs dos nós que exibem o asset (alimenta o `isAssetUsed` do assetStore). */
 export function findAssetUsages(project: ChatbotProject, assetId: string): string[] {
   return Object.values(project.nodes)
-    .filter(node => collectAssetIds(nodeContent(node)).includes(assetId))
+    .filter(node => getNodeAssetIds(node).includes(assetId))
     .map(node => node.id);
 }

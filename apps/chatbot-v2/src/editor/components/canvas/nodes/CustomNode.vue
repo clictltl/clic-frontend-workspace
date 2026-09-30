@@ -2,13 +2,15 @@
 import { computed, ref, watch } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
-import { Trash2 } from '@lucide/vue';
+import { Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
-import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
+import { HANDLE_ELSE, HANDLE_OUT, MESSAGE_DELAY_MAX, type ComparisonOperator } from '../../../../shared/types/chatbot';
 import RichTextView from './RichTextView.vue';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
+import ChoiceMediaView from '../../common/ChoiceMediaView.vue';
+import MediaView from '../../common/MediaView.vue';
 
 // O Vue Flow só informa o ID: todo o resto é lido do store (fonte da verdade)
 const props = defineProps<{ id: string }>();
@@ -80,6 +82,9 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 
       <!-- CONVERSACIONAIS (texto rico) -->
       <template v-if="'content' in node.data">
+        <div v-if="node.data.media?.position === 'before'" class="node-media">
+          <MediaView :media="node.data.media.media" />
+        </div>
         <NodeContentEditor v-if="isEditingInline" :node-id="id" @blur="isEditingInline = false" />
         <div
           v-else
@@ -89,17 +94,35 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
         >
           <RichTextView :content="node.data.content" />
         </div>
+        <div v-if="node.data.media?.position === 'after'" class="node-media">
+          <MediaView :media="node.data.media.media" />
+        </div>
+        <label v-if="node.type === 'message'" class="delay-field" :class="{ 'is-active': node.data.delay > 0 }" :title="t('chatbot.properties.delay_label')">
+          <Timer :size="12" />
+          <DraftInput
+            type="number"
+            class="delay-input"
+            :model-value="node.data.delay"
+            :min="0"
+            :max="MESSAGE_DELAY_MAX"
+            @commit="value => projectStore.setMessageDelay(id, Number(value))"
+          />
+          <span>{{ t('chatbot.editor.delay_unit_short') }}</span>
+        </label>
       </template>
 
       <!-- MÚLTIPLA ESCOLHA -->
       <div v-if="node.type === 'choice_question'" class="choices-container">
         <div v-for="choice in node.data.choices" :key="choice.id" class="choice-wrapper">
-          <DraftInput
-            class="choice-bubble-input"
-            :model-value="choice.label"
-            :placeholder="t('chatbot.properties.new_choice')"
-            @commit="label => projectStore.renameChoice(id, choice.id, label)"
-          />
+          <div class="choice-bubble">
+            <ChoiceMediaView v-if="choice.media" :media="choice.media" :size="20" />
+            <DraftInput
+              class="choice-bubble-input"
+              :model-value="choice.label"
+              :placeholder="choice.media ? '' : t('chatbot.properties.new_choice')"
+              @commit="label => projectStore.renameChoice(id, choice.id, label)"
+            />
+          </div>
           <Handle type="source" :id="choice.id" :position="Position.Right" class="node-handle out-handle inner-handle" :style="{ backgroundColor: config.color }" />
         </div>
       </div>
@@ -198,13 +221,32 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 /* Múltipla Escolha (Botão de Chat com Bolinha Interna) */
 .choices-container { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .choice-wrapper { position: relative; display: flex; align-items: center; }
-.choice-bubble-input {
-  flex: 1; padding: 8px 32px 8px 12px; /* 32px de respiro interno para a bolinha não cobrir o texto */
-  border: 1px solid #e5e7eb; border-radius: 16px;
-  background: #f9fafb; font-size: 12px; text-align: center; color: #374151; font-weight: 500;
-  transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;
+.choice-bubble {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 32px 6px 12px; /* 32px de respiro interno para a bolinha não cobrir o texto */
+  border: 1px solid #e5e7eb; border-radius: 16px; background: #f9fafb;
+  transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 0;
 }
-.choice-bubble-input:focus { border-color: #3b82f6; background: #eff6ff; outline: none; }
+.choice-bubble:focus-within { border-color: #3b82f6; background: #eff6ff; }
+.choice-bubble-input {
+  flex: 1; min-width: 0; border: none; background: transparent; outline: none; padding: 2px 0;
+  font-size: 12px; text-align: center; color: #374151; font-weight: 500;
+}
+.node-media { margin: 8px 0; }
+
+/* Espera (editável no próprio nó) */
+.delay-field {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+  padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #6b7280;
+  font-size: 11px; font-weight: 600; cursor: text;
+}
+.delay-field.is-active { background: #eff6ff; color: #1d4ed8; }
+.delay-input {
+  width: 32px; border: none; background: transparent; outline: none; padding: 0;
+  font: inherit; color: inherit; text-align: right;
+}
+.delay-input::-webkit-inner-spin-button { display: none; }
+.delay-field:focus-within { box-shadow: 0 0 0 1px #3b82f6; }
 
 /* Resumo Lógico (Matemática e Definir Variável) */
 .logic-summary { text-align: center; background: #f9fafb; border-radius: 6px; border: 1px dashed #d1d5db; padding: 12px 8px; }

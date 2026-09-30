@@ -1,16 +1,21 @@
 import {
   HANDLE_ELSE,
   HANDLE_OUT,
+  MESSAGE_DELAY_MAX,
   type ChatbotProject,
   type ChatEdge,
   type ChatNode,
   type ChatNodeOf,
   type Choice,
+  type ChoiceMedia,
   type Condition,
+  type Media,
+  type NodeMedia,
   type NodeType,
   type Position,
   type Rule,
 } from '../types/chatbot';
+import { isValidMedia, isValidSource } from './media';
 
 /**
  * OPERAÇÕES DO GRAFO
@@ -71,6 +76,35 @@ export function moveNodes(project: ChatbotProject, moves: { id: string; position
   }
 }
 
+/**
+ * Define (ou remove, com `null`) a mídia de um nó com texto. Trocar a mídia mantém
+ * a posição escolhida; mídia nova começa antes do texto. Links inseguros são recusados.
+ */
+export function setNodeMedia(project: ChatbotProject, nodeId: string, media: Media | null): boolean {
+  const node = project.nodes[nodeId];
+  if (!node || !('media' in node.data)) return false;
+  if (media && !isValidMedia(media)) return false;
+
+  node.data.media = media ? { media, position: node.data.media?.position ?? 'before' } : null;
+  return true;
+}
+
+export function setMediaPosition(project: ChatbotProject, nodeId: string, position: NodeMedia['position']): boolean {
+  const node = project.nodes[nodeId];
+  if (!node || !('media' in node.data) || !node.data.media) return false;
+  node.data.media.position = position;
+  return true;
+}
+
+/** Espera após a mensagem, em segundos inteiros entre 0 e MESSAGE_DELAY_MAX. */
+export function setMessageDelay(project: ChatbotProject, nodeId: string, seconds: number): boolean {
+  const node = getNodeOfType(project, nodeId, 'message');
+  if (!node) return false;
+  const value = Number.isFinite(seconds) ? Math.round(seconds) : 0;
+  node.data.delay = Math.min(MESSAGE_DELAY_MAX, Math.max(0, value));
+  return true;
+}
+
 // --- CONEXÕES ---
 
 export type ConnectResult =
@@ -124,6 +158,14 @@ export function renameChoice(project: ChatbotProject, nodeId: string, choiceId: 
   const choice = getNodeOfType(project, nodeId, 'choice_question')?.data.choices.find(c => c.id === choiceId);
   if (!choice) return false;
   choice.label = label;
+  return true;
+}
+
+export function setChoiceMedia(project: ChatbotProject, nodeId: string, choiceId: string, media: ChoiceMedia | null): boolean {
+  const choice = getNodeOfType(project, nodeId, 'choice_question')?.data.choices.find(c => c.id === choiceId);
+  if (!choice) return false;
+  if (media?.kind === 'image' && !isValidSource(media.source)) return false;
+  choice.media = media;
   return true;
 }
 

@@ -239,7 +239,8 @@ export default {
         insert_variable: 'Insert Variable',
         add_variable: 'Add Variable',
         confirm: 'OK'
-      }
+      },
+      delay_unit_short: 's'
     },
     blocks: {
       start: 'Start',
@@ -327,7 +328,23 @@ export default {
       match_label: 'Follow this route if',
       match_all: 'all conditions are true',
       match_any: 'any condition is true',
-      value_literal: 'Fixed value'
+      value_literal: 'Fixed value',
+      delay_label: 'Wait before the next message',
+      delay_unit: 'seconds',
+      add_emoji: 'Add emoji',
+      add_image: 'Add image',
+      remove_media: 'Remove emoji/image',
+      media_label: 'Media',
+      media_upload: 'Upload file',
+      media_url: 'Link (URL)',
+      media_choose_file: 'Choose image or GIF',
+      media_url_placeholder: 'https://...',
+      media_url_invalid: 'Invalid link. Use an address starting with http:// or https://',
+      media_before: 'Before the text',
+      media_after: 'After the text',
+      media_remove: 'Remove media',
+      media_broken: 'Could not load the image',
+      media_unsupported: 'Media not supported in this version yet'
     },
     variables: {
       title_new: 'New Variable',
@@ -342,7 +359,9 @@ export default {
       error_exists: 'A variable with this name already exists',
       error_invalid: 'Invalid name. Use only letters, numbers, and underscore. Cannot start with a number.',
       confirm_delete: 'Do you want to remove the variable "{name}"?',
-      used_in: 'Used in {n} node. Delete anyway? | Used in {n} nodes. Delete anyway?'
+      used_in: 'Used in {n} node. Delete anyway? | Used in {n} nodes. Delete anyway?',
+      default_value: 'Initial value:',
+      default_empty: '(empty)'
     },
     runtime: {
       errors: {
@@ -404,6 +423,11 @@ export default {
       moveNodes: 'Node Movement',
       deleteNode: 'Node Deletion',
       setNodeContent: 'Text Edit',
+      setNodeMedia: 'Node Media',
+      setMediaPosition: 'Media Position',
+      setMessageDelay: 'Wait Time',
+      setChoiceMedia: 'Option Emoji/Image',
+      setVariableDefault: 'Variable Initial Value',
       connect: 'Connection Creation',
       disconnect: 'Connection Deletion',
       setEdgeColor: 'Connection Color',

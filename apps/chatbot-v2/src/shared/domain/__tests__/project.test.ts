@@ -57,6 +57,23 @@ describe('parseProject', () => {
     expect(input.edges).toEqual([]);
   });
 
+  it('fills defaults for fields added during 2.x', () => {
+    const deps = createDeps();
+    const input = {
+      meta: { version: '2.0.0' },
+      nodes: {
+        s: { id: 's', type: 'start', position: { x: 0, y: 0 }, data: {} },
+        m: { id: 'm', type: 'message', position: { x: 0, y: 0 }, data: { content: { type: 'doc' } } },
+        c: { id: 'c', type: 'choice_question', position: { x: 0, y: 0 }, data: { content: { type: 'doc' }, choices: [{ id: 'o', label: 'A' }] } }
+      }
+    };
+    const result = parseProject(input, deps, NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.project.nodes.m).toMatchObject({ data: { delay: 0, media: null } });
+    expect(result.project.nodes.c).toMatchObject({ data: { choices: [{ id: 'o', label: 'A', media: null }] } });
+  });
+
   it('recreates a missing Start node', () => {
     const deps = createDeps();
     const input = { meta: { version: '2.0.0' }, nodes: {} };

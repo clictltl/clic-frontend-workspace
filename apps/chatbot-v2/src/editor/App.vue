@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useProjectStore } from '../shared/stores/projectStore';
-import { useHistoryShortcuts } from '@clic/shared';
+import { useHistoryShortcuts, ToastContainer } from '@clic/shared';
 import Canvas from './components/canvas/Canvas.vue';
 import Sidebar from './components/panels/Sidebar.vue';
 
@@ -30,6 +30,8 @@ onMounted(() => {
       </div>
       <Sidebar />
     </main>
+
+    <ToastContainer />
   </div>
 </template>
 

@@ -10,6 +10,8 @@ import type { RichText, VariableType } from '../../../../shared/types/chatbot';
 import { RICH_TEXT_NODES } from '../../../../shared/domain/richText';
 import { findVariableByName } from '../../../../shared/domain/variables';
 import { editorRichTextExtensions } from '../../../utils/richText';
+import { EMOJI_PICKER_SIZE, useEmojiPicker } from '../../../utils/useEmojiPicker';
+import { placePopover } from '../../../utils/popover';
 
 const props = withDefaults(defineProps<{
   modelValue: RichText;
@@ -25,7 +27,7 @@ const emit = defineEmits<{
   'blur': [];
 }>();
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const projectStore = useProjectStore();
 
 let lastCommitted = JSON.stringify(props.modelValue);
@@ -52,8 +54,14 @@ onBeforeUnmount(commit);
 const showEmojiPicker = ref(false);
 const pickerContainer = ref<HTMLElement | null>(null);
 const emojiBtnRef = ref<HTMLButtonElement | null>(null);
-const popoverStyle = ref({ top: '0px', right: '0px' });
-let pickerInstance: any = null;
+const popoverStyle = ref({ top: '0px', left: '0px' });
+
+const emojiPicker = useEmojiPicker(emoji => {
+  if (!editor.value || editor.value.isDestroyed) return;
+  editor.value.chain().focus().insertContent({ type: RICH_TEXT_NODES.emoji, attrs: { emoji } }).run();
+  showEmojiPicker.value = false;
+});
+
 
 const showVarPicker = ref(false);
 const varPickerContainer = ref<HTMLElement | null>(null);
@@ -62,9 +70,7 @@ const varPopoverStyle = ref({ top: '0px', left: '0px' });
 
 function updatePositions() {
   if (showEmojiPicker.value && emojiBtnRef.value) {
-    const rect = emojiBtnRef.value.getBoundingClientRect();
-    const rightOffset = window.innerWidth - rect.right;
-    popoverStyle.value = { top: `${rect.bottom + 8}px`, right: `${rightOffset}px` };
+    popoverStyle.value = placePopover(emojiBtnRef.value.getBoundingClientRect(), EMOJI_PICKER_SIZE);
   }
   if (showVarPicker.value && varBtnRef.value) {
     const rect = varBtnRef.value.getBoundingClientRect();
@@ -136,27 +142,8 @@ async function toggleEmojiPicker() {
   showEmojiPicker.value = !showEmojiPicker.value;
   if (showEmojiPicker.value) {
     updatePositions();
-    if (!pickerInstance) {
-      await nextTick();
-      const { Picker } = await import('emoji-mart');
-      const data = await import('@emoji-mart/data');
-      pickerInstance = new Picker({
-        data: data.default || data,
-        locale: locale.value.split('-')[0], // emoji-mart usa códigos curtos ('pt', 'en')
-        theme: 'light',
-        onEmojiSelect: (emoji: any) => {
-          if (!editor.value || editor.value.isDestroyed) return;
-          editor.value.chain().focus().insertContent({
-            type: RICH_TEXT_NODES.emoji,
-            attrs: { emoji: emoji.native }
-          }).run();
-          showEmojiPicker.value = false;
-        }
-      });
-      if (pickerContainer.value) {
-        pickerContainer.value.appendChild(pickerInstance as any);
-      }
-    }
+    await nextTick();
+    await emojiPicker.mount(pickerContainer.value);
   }
 }
 
@@ -223,8 +210,7 @@ function toggleLink() {
       <button type="button" @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }"><Code :size="14" /></button>
       <div class="divider"></div>
       <button type="button" @click="toggleLink" :class="{ 'is-active': editor.isActive('link') }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
-      <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>
-      <div class="divider"></div>
+      <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>      <div class="divider"></div>
       <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" :title="t('chatbot.editor.rich_text.insert_variable')"><Braces :size="14" /></button>
     </div>
     

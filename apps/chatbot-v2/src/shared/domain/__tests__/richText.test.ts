@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { collectAssetIds, collectVariableIds, createRichText, isRichTextEmpty } from '../richText';
+import { collectVariableIds, createRichText, isRichTextEmpty } from '../richText';
 
 const doc = {
   type: 'doc',
@@ -12,8 +12,7 @@ const doc = {
         { type: 'clicEmoji', attrs: { emoji: '👋' } },
         { type: 'clicVariable', attrs: { variableId: 'v1' } }
       ]
-    },
-    { type: 'paragraph', content: [{ type: 'clicImage', attrs: { assetId: 'a1' } }] }
+    }
   ]
 };
 
@@ -23,9 +22,8 @@ describe('richText', () => {
     expect(createRichText()).toEqual({ type: 'doc', content: [{ type: 'paragraph' }] });
   });
 
-  it('collects unique variable and asset references', () => {
+  it('collects unique variable references', () => {
     expect(collectVariableIds(doc)).toEqual(['v1']);
-    expect(collectAssetIds(doc)).toEqual(['a1']);
   });
 
   it('treats whitespace-only docs as empty and atoms as content', () => {

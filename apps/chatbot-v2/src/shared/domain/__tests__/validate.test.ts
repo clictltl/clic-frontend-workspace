@@ -28,6 +28,17 @@ describe('validateFlow', () => {
     expect(issues).toContainEqual({ code: 'UNCONNECTED_OUTPUT', severity: 'warning', nodeId: condition.id, handle: HANDLE_ELSE });
   });
 
+  it('warns about choices without label and media only', () => {
+    const { project, add } = setup();
+    const node = add('choice_question');
+    const [first] = node.data.choices;
+    first!.label = '  ';
+    expect(validateFlow(project)).toContainEqual({ code: 'EMPTY_CHOICE', severity: 'warning', nodeId: node.id, choiceId: first!.id });
+
+    first!.media = { kind: 'emoji', emoji: '⭐' };
+    expect(validateFlow(project).some(i => i.code === 'EMPTY_CHOICE')).toBe(false);
+  });
+
   it('reports corrupted edges', () => {
     const { project, message } = setup();
     project.edges['bad'] = { id: 'bad', sourceNode: message.id, sourceHandle: 'nope', targetNode: 'ghost' };
@@ -72,12 +83,16 @@ describe('usages', () => {
     expect(findVariableUsages(project, score.id).sort()).toEqual([message.id, condition.id, setVar.id].sort());
   });
 
-  it('finds images inside rich text', () => {
-    const { project, message } = setup();
-    (message.data as { content: unknown }).content = {
-      type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'clicImage', attrs: { assetId: 'a1' } }] }]
-    };
+  it('finds uploaded files in node media and choice media, ignoring links', () => {
+    const { project, message, add } = setup();
+    const choice = add('choice_question');
+    const end = add('end');
+    (message.data as { media: unknown }).media = { media: { type: 'image', source: { kind: 'upload', assetId: 'a1' } }, position: 'before' };
+    choice.data.choices[0]!.media = { kind: 'image', source: { kind: 'upload', assetId: 'a2' } };
+    end.data.media = { media: { type: 'image', source: { kind: 'url', url: 'https://example.com/a3.gif' } }, position: 'after' };
+
     expect(findAssetUsages(project, 'a1')).toEqual([message.id]);
-    expect(findAssetUsages(project, 'a2')).toEqual([]);
+    expect(findAssetUsages(project, 'a2')).toEqual([choice.id]);
+    expect(findAssetUsages(project, 'a3')).toEqual([]);
   });
 });

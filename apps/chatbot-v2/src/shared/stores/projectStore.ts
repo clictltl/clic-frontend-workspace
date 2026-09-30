@@ -3,7 +3,10 @@ import { generateUUID, i18n } from '@clic/shared';
 import type {
   ChatbotProject,
   ChatNodeOf,
+  ChoiceMedia,
   MathOperator,
+  Media,
+  NodeMedia,
   NodeType,
   Position,
   RichText,
@@ -13,8 +16,8 @@ import type {
 } from '../types/chatbot';
 import type { DomainDeps } from '../domain/deps';
 import * as graph from '../domain/graph';
-import { createChoiceLabel, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
-import { checkVariableName } from '../domain/variables';
+import { createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
+import { checkVariableName, coerceVariableValue } from '../domain/variables';
 
 const now = () => new Date().toISOString();
 
@@ -44,11 +47,15 @@ export const useProjectStore = defineStore('chatbot-project', {
       moveNodes: 'chatbot.history.moveNodes',
       deleteNode: 'chatbot.history.deleteNode',
       setNodeContent: 'chatbot.history.setNodeContent',
+      setNodeMedia: 'chatbot.history.setNodeMedia',
+      setMediaPosition: 'chatbot.history.setMediaPosition',
+      setMessageDelay: 'chatbot.history.setMessageDelay',
       connect: 'chatbot.history.connect',
       disconnect: 'chatbot.history.disconnect',
       setEdgeColor: 'chatbot.history.setEdgeColor',
       addChoice: 'chatbot.history.addChoice',
       renameChoice: 'chatbot.history.renameChoice',
+      setChoiceMedia: 'chatbot.history.setChoiceMedia',
       removeChoice: 'chatbot.history.removeChoice',
       addRule: 'chatbot.history.addRule',
       removeRule: 'chatbot.history.removeRule',
@@ -61,6 +68,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       setMathOperation: 'chatbot.history.setMathOperation',
       addVariable: 'chatbot.history.addVariable',
       renameVariable: 'chatbot.history.renameVariable',
+      setVariableDefault: 'chatbot.history.setVariableDefault',
       deleteVariable: 'chatbot.history.deleteVariable'
     }
   },
@@ -153,6 +161,19 @@ export const useProjectStore = defineStore('chatbot-project', {
       if (node && 'content' in node.data) node.data.content = content;
     },
 
+    /** Um arquivo enviado já está em `project.assets` (assetStore); entra no diff desta action. */
+    setNodeMedia(id: string, media: Media | null) {
+      return graph.setNodeMedia(this.project, id, media);
+    },
+
+    setMediaPosition(id: string, position: NodeMedia['position']) {
+      graph.setMediaPosition(this.project, id, position);
+    },
+
+    setMessageDelay(id: string, seconds: number) {
+      graph.setMessageDelay(this.project, id, seconds);
+    },
+
     // --- CONEXÕES ---
     connect(sourceNode: string, sourceHandle: string, targetNode: string) {
       return graph.connect(this.project, sourceNode, sourceHandle, targetNode);
@@ -172,11 +193,16 @@ export const useProjectStore = defineStore('chatbot-project', {
     addChoice(nodeId: string) {
       const node = graph.getNodeOfType(this.project, nodeId, 'choice_question');
       if (!node) return;
-      graph.addChoice(this.project, nodeId, { id: deps.newId(), label: createChoiceLabel(deps, node.data.choices.length + 1) });
+      graph.addChoice(this.project, nodeId, createChoice(deps, node.data.choices.length + 1));
     },
 
     renameChoice(nodeId: string, choiceId: string, label: string) {
       graph.renameChoice(this.project, nodeId, choiceId, label);
+    },
+
+    /** Um arquivo enviado já está em `project.assets` (assetStore); entra no diff desta action. */
+    setChoiceMedia(nodeId: string, choiceId: string, media: ChoiceMedia | null) {
+      return graph.setChoiceMedia(this.project, nodeId, choiceId, media);
     },
 
     removeChoice(nodeId: string, choiceId: string) {
@@ -238,6 +264,11 @@ export const useProjectStore = defineStore('chatbot-project', {
       if (!variable || checkVariableName(this.project, name, id)) return false;
       variable.name = name.trim();
       return true;
+    },
+
+    setVariableDefault(id: string, raw: string) {
+      const variable = this.project.variables[id];
+      if (variable) variable.defaultValue = coerceVariableValue(variable.type, raw);
     },
 
     /** As referências continuam nos nós; a validação do fluxo aponta onde corrigir. */
