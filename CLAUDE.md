@@ -49,6 +49,8 @@ empacotados no plugin correspondente; nunca edite um `dist` diretamente.
    via `telemetryService`, com payload JSON autossuficiente e determinístico. Não logue eventos
    contínuos (hover, arraste, cada tecla). Nomes e payloads de eventos são contrato com os
    logs gravados: se mudarem, o replay mantém compatibilidade com o formato antigo.
+7. **Ícones:** na interface, use sempre `@lucide/vue` ou um SVG. Nunca coloque emojis
+   direto no HTML/template, para garantir consistência entre navegadores.
 
 ## Git
 - Commits no padrão Conventional Commits (`feat(app): ...`, `fix(shared): ...`), em inglês.
