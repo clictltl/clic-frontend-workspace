@@ -13,7 +13,8 @@ dist
 dist-ssr
 dist-offline
 dist-pwa
-_site         # Pasta temporária que criamos no GitHub Actions
+# Pasta temporária que criamos no GitHub Actions
+_site
 
 # ==========================================
 # TypeScript Cache
@@ -27,13 +28,22 @@ _site         # Pasta temporária que criamos no GitHub Actions
 .env
 .env.*
 *.local
-!.env.example # (Permite commitar um arquivo de exemplo se você criar um)
+# Permite commitar um arquivo de exemplo se você criar um
+!.env.example
 
 # ==========================================
 # Editores e Sistema Operacional
 # ==========================================
-.DS_Store     # (Lixo gerado pelo macOS)
-.idea         # (Configurações do WebStorm/IntelliJ, se alguém usar)
-.vscode/*     # (Ignora configs pessoais do VSCode...)
-!.vscode/extensions.json # (...mas permite commitar as extensões recomendadas da equipe)
-.vscode/settings.json
+# Lixo gerado pelo macOS
+.DS_Store
+# Configurações do WebStorm/IntelliJ, se alguém usar
+.idea
+# Ignora configs pessoais do VSCode...
+.vscode/*
+# ...mas permite commitar as extensões recomendadas da equipe
+!.vscode/extensions.json
+
+# ==========================================
+# Claude Code (contexto pessoal)
+# ==========================================
+CLAUDE.local.md
