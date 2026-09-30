@@ -32,7 +32,7 @@ const displayText = computed(() => {
   
   if (!plainText && rawHTML.indexOf('<img') === -1) {
     // Se não tiver texto nem imagem, devolve um placeholder clicável
-    return '<p style="color: #9ca3af; font-style: italic;">(Vazio)</p>';
+    return `<p style="color: #9ca3af; font-style: italic;">(${t('chatbot.editor.no_content')})</p>`;
   }
   return rawHTML;
 });
@@ -67,7 +67,7 @@ function getVarName(id: string) {
 
 // Construtor Inteligente da frase com HTML (Pílula Azul)
 function getRuleHtml(rule: any, index: number) {
-  if (!rule.conditions || rule.conditions.length === 0) return `Regra ${index + 1}`;
+  if (!rule.conditions || rule.conditions.length === 0) return t('chatbot.properties.rule_n', { n: index + 1 });
   
   const parts = rule.conditions.map((sub: any) => {
     if (!sub.variableId) return '...';
@@ -76,8 +76,8 @@ function getRuleHtml(rule: any, index: number) {
   });
   
   const connector = rule.conditions.length > 1 && rule.conditions[1].connector === 'OR' 
-    ? ' <span class="logic-connector">OU</span> ' 
-    : ' <span class="logic-connector">E</span> ';
+    ? ` <span class="logic-connector">${t('chatbot.properties.logic_or')}</span> `
+    : ` <span class="logic-connector">${t('chatbot.properties.logic_and')}</span> `;
     
   return parts.join(connector);
 }
@@ -97,7 +97,7 @@ function getRuleHtml(rule: any, index: number) {
         v-if="data.nodeType !== 'start'" 
         class="btn-delete-node" 
         @click.stop="projectStore.deleteNode(id)"
-        title="Excluir"
+        :title="t('chatbot.editor.delete_block')"
       >
         <Trash2 :size="14" />
       </button>
@@ -107,7 +107,7 @@ function getRuleHtml(rule: any, index: number) {
       
       <!-- INÍCIO -->
       <template v-if="data.nodeType === 'start'">
-        <div class="start-message">O bate-papo começará por aqui! Ligue este bloco à sua primeira mensagem.</div>
+        <div class="start-message">{{ t('chatbot.editor.start_hint') }}</div>
       </template>
 
       <!-- CONVERSACIONAL -->
@@ -123,12 +123,12 @@ function getRuleHtml(rule: any, index: number) {
           class="read-only-text editable-text" 
           v-html="displayText"
           @click="enableInlineEdit"
-          title="Clique para editar"
+          :title="t('chatbot.editor.click_to_edit')"
         ></div>
         
         <div class="choices-container" v-if="data.nodeType === 'choice_question'">
           <div v-for="choice in choices" :key="choice.id" class="choice-wrapper">
-            <input type="text" :value="choice.label" @input="updateChoiceLabel(choices.indexOf(choice), $event)" class="choice-bubble-input" placeholder="Nova opção..." />
+            <input type="text" :value="choice.label" @input="updateChoiceLabel(choices.indexOf(choice), $event)" class="choice-bubble-input" :placeholder="t('chatbot.properties.new_choice')" />
             <!-- Bolinha embutida dentro do wrapper do botão -->
             <Handle type="source" :id="choice.id" :position="Position.Right" class="node-handle out-handle inner-handle" :style="{ backgroundColor: config.color }" />
           </div>
@@ -144,7 +144,7 @@ function getRuleHtml(rule: any, index: number) {
           </div>
           
           <div class="rule-box else-box">
-            <span class="rule-label">Caso contrário</span>
+            <span class="rule-label">{{ t('chatbot.properties.else') }}</span>
             <Handle type="source" id="out_else" :position="Position.Right" class="node-handle out-handle inner-handle" />
           </div>
         </div>
@@ -156,7 +156,7 @@ function getRuleHtml(rule: any, index: number) {
           <div v-if="data.nodeData.variableId" class="logic-code">
             <span class="var-pill">{{ getVarName(data.nodeData.variableId) }}</span> = <strong>{{ data.nodeData.value || '0' }}</strong>
           </div>
-          <div v-else class="subtext">Configure na barra lateral</div>
+          <div v-else class="subtext">{{ t('chatbot.editor.configure_in_sidebar') }}</div>
         </div>
       </template>
 
@@ -166,7 +166,7 @@ function getRuleHtml(rule: any, index: number) {
           <div v-if="data.nodeData.variableId" class="logic-code">
             <span class="var-pill">{{ getVarName(data.nodeData.variableId) }}</span> = <span class="var-pill">{{ getVarName(data.nodeData.variableId) }}</span> <strong>{{ data.nodeData.operator || '+' }} {{ data.nodeData.value || '0' }}</strong>
           </div>
-          <div v-else class="subtext">Configure na barra lateral</div>
+          <div v-else class="subtext">{{ t('chatbot.editor.configure_in_sidebar') }}</div>
         </div>
       </template>
     </div>

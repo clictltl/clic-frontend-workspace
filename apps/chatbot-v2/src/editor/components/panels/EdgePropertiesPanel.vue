@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ArrowLeft, Palette } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 
+const { t } = useI18n();
 const projectStore = useProjectStore();
 const activeEdge = computed(() => projectStore.activeEdge);
 
@@ -22,11 +24,11 @@ function updateColor(color: string) {
 <template>
   <div class="panel" v-if="activeEdge">
     <div class="panel-header">
-      <button class="btn-back" @click="closePanel" title="Voltar">
+      <button class="btn-back" @click="closePanel" :title="t('chatbot.editor.back')">
         <ArrowLeft :size="18" />
       </button>
       <Palette :size="20" />
-      <h2>Cor da Conexão</h2>
+      <h2>{{ t('chatbot.editor.edge_color') }}</h2>
     </div>
 
     <div class="panel-content">

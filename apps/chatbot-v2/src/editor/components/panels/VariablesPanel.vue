@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Database, Plus, Trash2, Hash, Type } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import type { VariableType } from '../../../shared/types/project';
 
+const { t } = useI18n();
 const projectStore = useProjectStore();
 
 const newVarName = ref('');
@@ -16,7 +18,7 @@ function handleAddVariable() {
   // Opcional: validação para não ter variáveis com o mesmo nome
   const exists = Object.values(projectStore.project.variables).some(v => v.name === name);
   if (exists) {
-    alert('Já existe uma variável com esse nome!');
+    alert(t('chatbot.variables.error_exists'));
     return;
   }
 
@@ -29,22 +31,22 @@ function handleAddVariable() {
   <div class="panel">
     <div class="panel-header">
       <Database :size="20" />
-      <h2>Variáveis</h2>
+      <h2>{{ t('chatbot.editor.tabs.variables') }}</h2>
     </div>
 
     <div class="panel-content">
       <!-- Formulário de Criação -->
       <div class="create-form">
-        <input 
-          v-model="newVarName" 
-          type="text" 
-          placeholder="Nome da variável..." 
+        <input
+          v-model="newVarName"
+          type="text"
+          :placeholder="t('chatbot.properties.variable_name')"
           @keyup.enter="handleAddVariable"
         />
         <div class="form-row">
           <select v-model="newVarType">
-            <option value="text">Texto</option>
-            <option value="number">Número</option>
+            <option value="text">{{ t('chatbot.variables.type_text') }}</option>
+            <option value="number">{{ t('chatbot.variables.type_number') }}</option>
           </select>
           <button class="btn-add" @click="handleAddVariable">
             <Plus :size="16" />
@@ -66,14 +68,14 @@ function handleAddVariable() {
             <Hash v-else :size="14" class="icon-type" />
             <span class="var-name">{{ vari.name }}</span>
           </div>
-          <button class="btn-delete" @click="projectStore.deleteVariable(vari.id)" title="Excluir">
+          <button class="btn-delete" @click="projectStore.deleteVariable(vari.id)" :title="t('chatbot.variables.remove_title')">
             <Trash2 :size="14" />
           </button>
         </div>
       </div>
       
       <div v-else class="empty-state">
-        Nenhuma variável criada.
+        {{ t('chatbot.variables.empty_state') }}
       </div>
     </div>
   </div>

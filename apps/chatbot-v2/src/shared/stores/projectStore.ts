@@ -84,7 +84,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       deleteNode: 'chatbot.history.deleteNode',
       updateNodeData: 'chatbot.history.updateNodeData',
       addEdge: 'chatbot.history.addEdge',
-      emoveEdge: 'chatbot.history.removeEdge',
+      removeEdge: 'chatbot.history.removeEdge',
       updateEdgeColor: 'chatbot.history.updateEdgeColor',
       removeEdgesByHandle: 'chatbot.history.removeEdgesByHandle',
       addVariable: 'chatbot.history.addVariable',
@@ -208,7 +208,7 @@ export const useProjectStore = defineStore('chatbot-project', {
         initialData.text = getDefaultContent(type);
       }
       if (type === 'choice_question') {
-        initialData.choices = [{ id: generateUUID(), label: 'Opção 1' }];
+        initialData.choices = [{ id: generateUUID(), label: i18n.global.t('chatbot.properties.default_choice', { n: 1 }) }];
       }
       if (type === 'condition') {
         initialData.rules = [{ 

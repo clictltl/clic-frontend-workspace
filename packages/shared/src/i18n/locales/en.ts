@@ -224,6 +224,21 @@ export default {
         copy: 'Copy',
         delete: 'Delete',
         no_actions: 'No actions available'
+      },
+      add_node: 'Add Node',
+      back: 'Back',
+      click_to_edit: 'Click to edit',
+      start_hint: 'The chat will start here! Connect this block to your first message.',
+      configure_in_sidebar: 'Configure in the sidebar',
+      edge_color: 'Connection Color',
+      colors: 'Colors',
+      rich_text: {
+        link: 'Link',
+        link_prompt: 'Link URL (include https://):',
+        emoji: 'Emoji',
+        insert_variable: 'Insert Variable',
+        add_variable: 'Add Variable',
+        confirm: 'OK'
       }
     },
     blocks: {
@@ -295,7 +310,19 @@ export default {
         math_value: 'Use a fixed number or &#123;&#123;variable&#125;&#125; to use another variable\'s value',
         image_url: 'Paste the direct link to an image on the internet.',
         image_upload: 'The image will be saved along with the project.'
-      }
+      },
+      bubble_text: 'Bubble Text',
+      default_choice: 'Option {n}',
+      rules_label: 'Rules (Routes)',
+      rule_n: 'Rule {n}',
+      add_rule: 'Add Rule (Route)',
+      logic_and: 'AND',
+      logic_or: 'OR',
+      else: 'Otherwise',
+      else_hint: 'If none of the rules above are met, the flow will follow this route.',
+      set_variable_target: 'Which variable do you want to change?',
+      new_value: 'New value:',
+      math_target: 'Which numeric variable to calculate?'
     },
     variables: {
       title_new: 'New Variable',
@@ -364,7 +391,19 @@ export default {
       removeVariable: 'Variable Deletion',
       createConnection: 'Connection Creation',
       deleteConnection: 'Connection Deletion',
-      updateConnection: 'Path Adjustment (Line)'
+      updateConnection: 'Path Adjustment (Line)',
+
+      updateTitle: 'Title Change',
+      addNode: 'Node Creation',
+      updateNodePosition: 'Node Movement',
+      deleteNode: 'Node Deletion',
+      updateNodeData: 'Node Update',
+      addEdge: 'Connection Creation',
+      removeEdge: 'Connection Deletion',
+      updateEdgeColor: 'Connection Color',
+      removeEdgesByHandle: 'Connections Deletion',
+      deleteVariable: 'Variable Deletion',
+      updateVariable: 'Variable Update'
     }
   },
 

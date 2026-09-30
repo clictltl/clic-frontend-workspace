@@ -225,6 +225,21 @@ export default {
         copy: 'Copiar',
         delete: 'Deletar',
         no_actions: 'Sem ações disponíveis'
+      },
+      add_node: 'Adicionar Nó',
+      back: 'Voltar',
+      click_to_edit: 'Clique para editar',
+      start_hint: 'O bate-papo começará por aqui! Ligue este bloco à sua primeira mensagem.',
+      configure_in_sidebar: 'Configure na barra lateral',
+      edge_color: 'Cor da Conexão',
+      colors: 'Cores',
+      rich_text: {
+        link: 'Link',
+        link_prompt: 'URL do link (inclua https://):',
+        emoji: 'Emoji',
+        insert_variable: 'Inserir Variável',
+        add_variable: 'Adicionar Variável',
+        confirm: 'OK'
       }
     },
     blocks: {
@@ -296,7 +311,19 @@ export default {
         math_value: 'Use um número fixo ou &#123;&#123;variavel&#125;&#125; para usar valor de outra variável',
         image_url: 'Cole o link direto de uma imagem na internet.',
         image_upload: 'A imagem será salva junto com o projeto.'
-      }
+      },
+      bubble_text: 'Texto do Balão',
+      default_choice: 'Opção {n}',
+      rules_label: 'Regras (Rotas)',
+      rule_n: 'Regra {n}',
+      add_rule: 'Adicionar Regra (Rota)',
+      logic_and: 'E',
+      logic_or: 'OU',
+      else: 'Caso contrário',
+      else_hint: 'Se nenhuma das regras acima for atendida, o fluxo seguirá por esta rota.',
+      set_variable_target: 'Qual variável deseja alterar?',
+      new_value: 'Novo valor:',
+      math_target: 'Qual variável numérica calcular?'
     },
     variables: {
       title_new: 'Nova Variável',
@@ -367,17 +394,17 @@ export default {
       deleteConnection: 'Exclusão de Conexão',
       updateConnection: 'Ajuste de Caminho (Linha)',
 
-      updateTitle: 'chatbot.history.updateTitle',
-      addNode: 'chatbot.history.addNode',
-      updateNodePosition: 'chatbot.history.updateNodePosition',
-      deleteNode: 'chatbot.history.deleteNode',
-      updateNodeData: 'chatbot.history.updateNodeData',
-      addEdge: 'chatbot.history.addEdge',
-      removeEdge: 'chatbot.history.removeEdge',
-      updateEdgeColor: 'chatbot.history.updateEdgeColor',
-      addVariable2: 'chatbot.history.addVariable',
-      deleteVariable: 'chatbot.history.deleteVariable',
-      updateVariable: 'chatbot.history.updateVariable'
+      updateTitle: 'Alteração do Título',
+      addNode: 'Criação de Nó',
+      updateNodePosition: 'Movimentação de Nó',
+      deleteNode: 'Exclusão de Nó',
+      updateNodeData: 'Atualização de Nó',
+      addEdge: 'Criação de Conexão',
+      removeEdge: 'Exclusão de Conexão',
+      updateEdgeColor: 'Cor da Conexão',
+      removeEdgesByHandle: 'Exclusão de Conexões',
+      deleteVariable: 'Exclusão de Variável',
+      updateVariable: 'Atualização de Variável'
     }
   },
 

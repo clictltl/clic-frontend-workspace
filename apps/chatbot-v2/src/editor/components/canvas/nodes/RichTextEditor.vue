@@ -7,6 +7,7 @@ import Link from '@tiptap/extension-link';
 import { 
   Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Smile, Braces, Plus, Type, Hash
 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import type { VariableType } from '../../../../shared/types/project';
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   'blur': [];
 }>();
 
+const { t, locale } = useI18n();
 const projectStore = useProjectStore();
 
 // Blindagem da Variável (Nó Atômico)
@@ -167,7 +169,7 @@ async function toggleEmojiPicker() {
       const data = await import('@emoji-mart/data');
       pickerInstance = new Picker({
         data: data.default || data,
-        locale: 'pt',
+        locale: locale.value.split('-')[0], // emoji-mart usa códigos curtos ('pt', 'en')
         theme: 'light',
         onEmojiSelect: (emoji: any) => {
           if (!editor.value || editor.value.isDestroyed) return;
@@ -231,7 +233,7 @@ function toggleLink() {
     return;
   }
   const previousUrl = editor.value.getAttributes('link').href;
-  const url = window.prompt('URL do link (inclua https://):', previousUrl);
+  const url = window.prompt(t('chatbot.editor.rich_text.link_prompt'), previousUrl);
   if (url === null) return; 
   if (url === '') {
     editor.value.chain().focus().extendMarkRange('link').unsetLink().run();
@@ -256,10 +258,10 @@ function toggleLink() {
       <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><Quote :size="14" /></button>
       <button type="button" @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }"><Code :size="14" /></button>
       <div class="divider"></div>
-      <button type="button" @click="toggleLink" :class="{ 'is-active': editor.isActive('link') }" title="Link"><LinkIcon :size="14" /></button>
-      <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" title="Emoji"><Smile :size="14" /></button>
+      <button type="button" @click="toggleLink" :class="{ 'is-active': editor.isActive('link') }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
+      <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>
       <div class="divider"></div>
-      <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" title="Inserir Variável"><Braces :size="14" /></button>
+      <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" :title="t('chatbot.editor.rich_text.insert_variable')"><Braces :size="14" /></button>
     </div>
     
     <EditorContent :editor="editor" class="editor-content" />
@@ -273,20 +275,20 @@ function toggleLink() {
       
       <!-- Modo Formulário -->
       <div v-if="isCreatingVar" class="var-create-inline">
-        <input v-model="newVarName" type="text" placeholder="Nome da variável..." @keyup.enter="confirmCreateVariable" class="var-input" />
+        <input v-model="newVarName" type="text" :placeholder="t('chatbot.properties.variable_name')" @keyup.enter="confirmCreateVariable" class="var-input" />
         <div class="var-actions">
           <select v-model="newVarType" class="var-select">
-            <option value="text">Texto</option>
-            <option value="number">Número</option>
+            <option value="text">{{ t('chatbot.variables.type_text') }}</option>
+            <option value="number">{{ t('chatbot.variables.type_number') }}</option>
           </select>
-          <button @click="confirmCreateVariable" class="btn-confirm-var">OK</button>
+          <button @click="confirmCreateVariable" class="btn-confirm-var">{{ t('chatbot.editor.rich_text.confirm') }}</button>
         </div>
       </div>
 
       <!-- Modo Lista -->
       <template v-else>
         <button class="var-item btn-create-var" @click="startCreateVariable">
-          <Plus :size="14" /> Adicionar Variável
+          <Plus :size="14" /> {{ t('chatbot.editor.rich_text.add_variable') }}
         </button>
         
         <div class="var-divider" v-if="Object.keys(projectStore.project.variables).length > 0"></div>

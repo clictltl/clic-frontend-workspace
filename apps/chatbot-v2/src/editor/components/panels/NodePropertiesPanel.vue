@@ -27,13 +27,13 @@ function updateData(payload: Record<string, any>) { if (activeNode.value) projec
 
 // MÚLTIPLA ESCOLHA
 function addChoice() {
-  const choices = [...choicesList.value, { id: generateUUID(), label: `Opção ${choicesList.value.length + 1}` }];
+  const choices = [...choicesList.value, { id: generateUUID(), label: t('chatbot.properties.default_choice', { n: choicesList.value.length + 1 }) }];
   updateData({ choices });
 }
 function removeChoice(id: string) {
   if (activeNode.value) projectStore.removeEdgesByHandle(activeNode.value.id, id); // Remove conexões presas a esta opção
   const choices = choicesList.value.filter(c => c.id !== id);
-  if (choices.length === 0) choices.push({ id: generateUUID(), label: 'Opção 1' });
+  if (choices.length === 0) choices.push({ id: generateUUID(), label: t('chatbot.properties.default_choice', { n: 1 }) });
   updateData({ choices });
 }
 
@@ -69,7 +69,7 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
 <template>
   <div class="panel" v-if="activeNode && nodeConfig">
     <div class="panel-header" :style="{ borderBottomColor: nodeConfig.color }">
-      <button class="btn-back" @click="closePanel" title="Voltar"><ArrowLeft :size="18" /></button>
+      <button class="btn-back" @click="closePanel" :title="t('chatbot.editor.back')"><ArrowLeft :size="18" /></button>
       <component :is="nodeConfig.icon" :size="20" :color="nodeConfig.color" />
       <h2>{{ t(nodeConfig.titleKey) }}</h2>
     </div>
@@ -78,7 +78,7 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
       
       <!-- Editor Lateral (Para textos longos) -->
       <div class="form-group" v-if="isConversational">
-        <label>Texto do Balão</label>
+        <label>{{ t('chatbot.properties.bubble_text') }}</label>
         <div class="editor-wrapper">
           <RichTextEditor :model-value="nodeData.text" variant="sidebar" @update:model-value="val => updateData({ text: val })" />
         </div>
@@ -87,27 +87,27 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
       <template v-if="activeNode.type === 'choice_question'">
         <div class="form-group"><hr class="divider" /></div>
         <div class="form-group">
-          <label>Gerenciar Opções</label>
+          <label>{{ t('chatbot.properties.choices_label') }}</label>
           <div class="list-container">
             <div v-for="choice in choicesList" :key="choice.id" class="list-item">
-              <span class="item-label">{{ choice.label || 'Vazio' }}</span>
-              <button class="btn-icon danger" @click="removeChoice(choice.id)"><Trash2 :size="14" /></button>
+              <span class="item-label">{{ choice.label || t('chatbot.editor.no_content') }}</span>
+              <button class="btn-icon danger" @click="removeChoice(choice.id)" :title="t('chatbot.properties.delete_choice')"><Trash2 :size="14" /></button>
             </div>
           </div>
-          <button class="btn-outline" @click="addChoice"><Plus :size="14" /> Adicionar Opção</button>
+          <button class="btn-outline" @click="addChoice"><Plus :size="14" /> {{ t('chatbot.properties.add_choice') }}</button>
         </div>
       </template>
 
       <!-- CONDIÇÃO: Nova Estrutura de E/OU -->
       <template v-else-if="activeNode.type === 'condition'">
         <div class="form-group">
-          <label>Regras (Rotas)</label>
-          
+          <label>{{ t('chatbot.properties.rules_label') }}</label>
+
           <div class="rules-container">
             <div v-for="(rule, rIndex) in rulesList" :key="rule.id" class="rule-card">
-              
+
               <div class="rule-header">
-                <span class="font-bold">Regra {{ rIndex + 1 }}</span>
+                <span class="font-bold">{{ t('chatbot.properties.rule_n', { n: rIndex + 1 }) }}</span>
                 <button class="btn-icon danger" @click="removeRuleGroup(rule.id)"><Trash2 :size="14" /></button>
               </div>
 
@@ -118,17 +118,17 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
                   <!-- Conector Dinâmico (E/OU) - Só aparece a partir do segundo item -->
                   <div class="sub-connector-row" v-if="sIndex > 0">
                     <select :value="sub.connector || 'AND'" @change="e => updateSubCondition(rIndex, sIndex, 'connector', (e.target as HTMLSelectElement).value)" class="connector-select">
-                      <option value="AND">E</option>
-                      <option value="OR">OU</option>
+                      <option value="AND">{{ t('chatbot.properties.logic_and') }}</option>
+                      <option value="OR">{{ t('chatbot.properties.logic_or') }}</option>
                     </select>
                   </div>
 
                   <div class="sub-row">
                     <select :value="sub.variableId || ''" @change="e => updateSubCondition(rIndex, sIndex, 'variableId', (e.target as HTMLSelectElement).value)">
-                      <option value="" disabled>Variável...</option>
+                      <option value="" disabled>{{ t('chatbot.properties.variable_select') }}</option>
                       <option v-for="v in variables" :key="v.id" :value="v.id">{{ v.name }}</option>
                     </select>
-                    <button class="btn-icon danger" @click="removeSubCondition(rIndex, sIndex)"><Trash2 :size="14" /></button>
+                    <button class="btn-icon danger" @click="removeSubCondition(rIndex, sIndex)" :title="t('chatbot.properties.delete_condition')"><Trash2 :size="14" /></button>
                   </div>
                   <div class="sub-row">
                     <select :value="sub.operator || '=='" @change="e => updateSubCondition(rIndex, sIndex, 'operator', (e.target as HTMLSelectElement).value)">
@@ -136,22 +136,22 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
                       <option value=">">&gt;</option><option value="<">&lt;</option>
                       <option value=">=">&ge;</option><option value="<=">&le;</option>
                     </select>
-                    <input type="text" :value="sub.value || ''" @input="e => updateSubCondition(rIndex, sIndex, 'value', (e.target as HTMLInputElement).value)" placeholder="Valor..." />
+                    <input type="text" :value="sub.value || ''" @input="e => updateSubCondition(rIndex, sIndex, 'value', (e.target as HTMLInputElement).value)" :placeholder="t('chatbot.properties.value')" />
                   </div>
                 </div>
-                <button class="btn-text" @click="addSubCondition(rIndex)"><Plus :size="12" /> Adicionar condição</button>
+                <button class="btn-text" @click="addSubCondition(rIndex)"><Plus :size="12" /> {{ t('chatbot.properties.add_condition') }}</button>
               </div>
             </div>
 
-            <button class="btn-outline" @click="addRuleGroup" style="margin-top: 8px;"><Plus :size="14" /> Adicionar Regra (Rota)</button>
+            <button class="btn-outline" @click="addRuleGroup" style="margin-top: 8px;"><Plus :size="14" /> {{ t('chatbot.properties.add_rule') }}</button>
 
             <!-- Card de "Caso Contrário" Fixo -->
             <div class="rule-card else-card">
               <div class="rule-header">
-                <span class="font-bold">Caso contrário</span>
+                <span class="font-bold">{{ t('chatbot.properties.else') }}</span>
               </div>
               <div class="rule-body" style="font-size: 12px; color: #6b7280;">
-                Se nenhuma das regras acima for atendida, o fluxo seguirá por esta rota.
+                {{ t('chatbot.properties.else_hint') }}
               </div>
             </div>
           </div>
@@ -161,23 +161,23 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
       <!-- Matemática e SetVar não mudam -->
       <template v-else-if="activeNode.type === 'set_variable'">
         <div class="form-group">
-          <label>Qual variável deseja alterar?</label>
+          <label>{{ t('chatbot.properties.set_variable_target') }}</label>
           <select :value="nodeData.variableId || ''" @change="e => updateData({ variableId: (e.target as HTMLSelectElement).value })">
-            <option value="" disabled>Selecione...</option>
+            <option value="" disabled>{{ t('chatbot.properties.variable_select') }}</option>
             <option v-for="v in variables" :key="v.id" :value="v.id">{{ v.name }}</option>
           </select>
         </div>
         <div class="form-group" v-if="nodeData.variableId">
-          <label>Novo valor:</label>
-          <input type="text" :value="nodeData.value || ''" @input="e => updateData({ value: (e.target as HTMLInputElement).value })" placeholder="Digite o valor..." />
+          <label>{{ t('chatbot.properties.new_value') }}</label>
+          <input type="text" :value="nodeData.value || ''" @input="e => updateData({ value: (e.target as HTMLInputElement).value })" :placeholder="t('chatbot.properties.value_placeholder')" />
         </div>
       </template>
 
       <template v-else-if="activeNode.type === 'math'">
         <div class="form-group">
-          <label>Qual variável numérica calcular?</label>
+          <label>{{ t('chatbot.properties.math_target') }}</label>
           <select :value="nodeData.variableId || ''" @change="e => updateData({ variableId: (e.target as HTMLSelectElement).value })">
-            <option value="" disabled>Selecione...</option>
+            <option value="" disabled>{{ t('chatbot.properties.variable_select') }}</option>
             <option v-for="v in variables.filter(v => v.type === 'number')" :key="v.id" :value="v.id">{{ v.name }}</option>
           </select>
         </div>
@@ -185,16 +185,16 @@ function updateSubCondition(ruleIndex: number, subIndex: number, field: string, 
           <select :value="nodeData.operator || '+'" @change="e => updateData({ operator: (e.target as HTMLSelectElement).value })" style="width: 80px;">
             <option value="+">+</option><option value="-">-</option><option value="*">*</option><option value="/">/</option>
           </select>
-          <input type="number" :value="nodeData.value || ''" @input="e => updateData({ value: Number((e.target as HTMLInputElement).value) })" placeholder="Valor" style="flex: 1;" />
+          <input type="number" :value="nodeData.value || ''" @input="e => updateData({ value: Number((e.target as HTMLInputElement).value) })" :placeholder="t('chatbot.properties.value')" style="flex: 1;" />
         </div>
       </template>
 
       <template v-else-if="activeNode.type === 'open_question'">
         <div class="form-group"><hr class="divider" /></div>
         <div class="form-group">
-          <label>Salvar resposta na variável:</label>
+          <label>{{ t('chatbot.properties.save_answer_var') }}</label>
           <select :value="nodeData.variableId || ''" @change="e => updateData({ variableId: (e.target as HTMLSelectElement).value })">
-            <option value="">(Não salvar)</option>
+            <option value="">({{ t('chatbot.properties.save_answer_none') }})</option>
             <option v-for="v in variables" :key="v.id" :value="v.id">{{ v.name }}</option>
           </select>
         </div>

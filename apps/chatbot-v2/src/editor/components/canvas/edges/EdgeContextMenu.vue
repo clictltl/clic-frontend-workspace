@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Palette, Trash2 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 
 const props = defineProps<{ edgeId: string; x: number; y: number; }>();
 const emit = defineEmits(['close']);
+const { t } = useI18n();
 const projectStore = useProjectStore();
 const COLORS = ['#9ca3af', '#3b82f6', '#10b981', '#facc15', '#ef4444', '#a855f7'];
 
@@ -23,7 +25,7 @@ function deleteEdge() {
 <template>
   <div class="edge-menu" :style="{ top: `${y}px`, left: `${x}px` }" v-if="edge">
     <div class="menu-section">
-      <div class="menu-header"><Palette :size="12" /> Cores</div>
+      <div class="menu-header"><Palette :size="12" /> {{ t('chatbot.editor.colors') }}</div>
       <div class="color-grid">
         <button v-for="c in COLORS" :key="c" class="color-btn"
           :class="{ 'is-active': edge.color === c || (!edge.color && c === '#9ca3af') }"
@@ -32,7 +34,7 @@ function deleteEdge() {
     </div>
     <div class="divider"></div>
     <button class="menu-action text-danger" @click="deleteEdge">
-      <Trash2 :size="14" /> Excluir
+      <Trash2 :size="14" /> {{ t('global.delete') }}
     </button>
   </div>
 </template>

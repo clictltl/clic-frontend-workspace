@@ -45,7 +45,7 @@ onUnmounted(() => {
       @click.stop
       @contextmenu.stop.prevent
     >
-      <div class="menu-header">Adicionar Nó</div>
+      <div class="menu-header">{{ t('chatbot.editor.add_node') }}</div>
       <button 
         v-for="type in CREATABLE_NODES" 
         :key="type"
