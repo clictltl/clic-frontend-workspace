@@ -77,6 +77,11 @@ export default defineConfig(({ mode }) => {
           runtime: fileURLToPath(new URL('./src/runtime/main-runtime.ts', import.meta.url)),
         },
       },
+    },
+    test: {
+      environment: 'node',
+      globals: true,
+      include: ['src/**/__tests__/**/*.test.ts'],
     }
   }
 })

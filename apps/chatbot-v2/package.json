@@ -9,14 +9,17 @@
     "build:github": "vue-tsc && vite build --mode github",
     "build:offline": "vite build --mode offline",
     "deploy": "npm run build:github && touch dist/.nojekyll",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@clic/shared": "*",
     "@emoji-mart/data": "^1.2.1",
-    "@tiptap/extension-link": "^2.11.0",
-    "@tiptap/starter-kit": "^2.11.0",
-    "@tiptap/vue-3": "^2.11.0",
+    "@tiptap/core": "^3.22.5",
+    "@tiptap/extension-link": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
+    "@tiptap/vue-3": "^3.22.5",
     "@vue-flow/background": "^1.3.2",
     "@vue-flow/core": "^1.42.0",
     "@vueuse/core": "^14.2.1",

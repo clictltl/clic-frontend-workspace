@@ -1,0 +1,66 @@
+import { describe, it, expect } from 'vitest';
+import { PROJECT_VERSION, HANDLE_OUT } from '../../types/chatbot';
+import { createNode, createProject, parseProject } from '../project';
+import { edgeId } from '../graph';
+import { createDeps, NOW } from './helpers';
+
+describe('createProject', () => {
+  it('starts with a Start node connected to a first message', () => {
+    const project = createProject(createDeps(), NOW);
+    const nodes = Object.values(project.nodes);
+    const start = nodes.find(n => n.type === 'start')!;
+    const message = nodes.find(n => n.type === 'message')!;
+
+    expect(project.meta.version).toBe(PROJECT_VERSION);
+    expect(nodes).toHaveLength(2);
+    expect(project.edges[edgeId(start.id, HANDLE_OUT)]).toEqual({
+      id: edgeId(start.id, HANDLE_OUT), sourceNode: start.id, sourceHandle: HANDLE_OUT, targetNode: message.id
+    });
+  });
+});
+
+describe('createNode', () => {
+  it('creates a choice question with one translated default choice', () => {
+    const node = createNode('choice_question', { x: 1, y: 2 }, createDeps());
+    expect(node.data.choices).toHaveLength(1);
+    expect(node.data.choices[0]!.label).toBe('chatbot.properties.default_choice:{"n":1}');
+  });
+
+  it('creates a condition with one "all" rule and one empty condition', () => {
+    const node = createNode('condition', { x: 0, y: 0 }, createDeps());
+    expect(node.data.rules).toHaveLength(1);
+    expect(node.data.rules[0]!.match).toBe('all');
+    expect(node.data.rules[0]!.conditions[0]).toMatchObject({ variableId: null, operator: '==', value: { kind: 'literal', value: '' } });
+  });
+});
+
+describe('parseProject', () => {
+  it('rejects non-objects and other versions (v1 projects)', () => {
+    const deps = createDeps();
+    expect(parseProject(null, deps, NOW)).toEqual({ ok: false, error: 'INVALID_PROJECT' });
+    expect(parseProject([], deps, NOW)).toEqual({ ok: false, error: 'INVALID_PROJECT' });
+    expect(parseProject({ meta: { version: '1.0.0' }, blocks: [] }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
+    expect(parseProject({ blocks: [] }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
+  });
+
+  it('normalizes PHP empty arrays into objects without mutating the input', () => {
+    const deps = createDeps();
+    const original = createProject(deps, NOW);
+    const input = { ...JSON.parse(JSON.stringify(original)), edges: [], variables: [], assets: [] };
+
+    const result = parseProject(input, deps, NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.project.edges).toEqual({});
+    expect(result.project.variables).toEqual({});
+    expect(result.project.assets).toEqual({});
+    expect(input.edges).toEqual([]);
+  });
+
+  it('recreates a missing Start node', () => {
+    const deps = createDeps();
+    const input = { meta: { version: '2.0.0' }, nodes: {} };
+    const result = parseProject(input, deps, NOW);
+    expect(result.ok && Object.values(result.project.nodes).map(n => n.type)).toEqual(['start']);
+  });
+});

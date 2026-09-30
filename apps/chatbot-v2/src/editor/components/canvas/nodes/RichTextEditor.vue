@@ -198,7 +198,7 @@ function toggleVarPicker() {
 const editor = useEditor({
   content: props.modelValue || '',
   extensions: [
-    StarterKit,
+    StarterKit.configure({ link: false }), // Tiptap 3 já inclui Link no StarterKit; usamos o nosso configurado abaixo
     ClicEmojiNode,
     ClicVariableNode,
     Link.configure({ openOnClick: false }),
@@ -221,7 +221,7 @@ watch(
   (value) => {
     if (!editor.value || editor.value.isDestroyed) return;
     if (editor.value.getHTML() !== value) {
-      editor.value.commands.setContent(value || '', false);
+      editor.value.commands.setContent(value || '', { emitUpdate: false });
     }
   }
 );
