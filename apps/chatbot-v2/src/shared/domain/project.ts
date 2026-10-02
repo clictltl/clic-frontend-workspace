@@ -83,9 +83,22 @@ export function createProject(deps: DomainDeps, now: string): ChatbotProject {
 
 // --- LEITURA DE JSON EXTERNO ---
 
+export type ProjectLoadErrorCode = 'INVALID_PROJECT' | 'UNSUPPORTED_VERSION';
+
 export type ParseProjectResult =
   | { ok: true; project: ChatbotProject }
-  | { ok: false; error: 'INVALID_PROJECT' | 'UNSUPPORTED_VERSION' };
+  | { ok: false; error: ProjectLoadErrorCode };
+
+/** Projeto recusado ao carregar. Lançado (não retornado) para a action não iniciar sessão de telemetria. */
+export class ProjectLoadError extends Error {
+  readonly code: ProjectLoadErrorCode;
+
+  constructor(code: ProjectLoadErrorCode) {
+    super(code);
+    this.name = 'ProjectLoadError';
+    this.code = code;
+  }
+}
 
 const isObject = (v: unknown): v is Record<string, any> => typeof v === 'object' && v !== null && !Array.isArray(v);
 

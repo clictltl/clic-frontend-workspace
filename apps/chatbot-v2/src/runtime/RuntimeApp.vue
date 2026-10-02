@@ -6,6 +6,7 @@ import { RuntimeHeader } from '@clic/shared';
 import type { ChatbotProject } from '../shared/types/chatbot';
 import { parseProject } from '../shared/domain/project';
 import { appDomainDeps } from '../shared/appDeps';
+import appLogo from '../assets/logo_novelo.svg';
 import { provideMediaResolver } from '../shared/media/resolver';
 import { useChatSession } from '../shared/chat/useChatSession';
 import ChatInterface from '../shared/chat/ChatInterface.vue';
@@ -30,6 +31,15 @@ function extractTokenFromPath(): string | null {
   const parts = window.location.pathname.split('/').filter(Boolean);
   const pIndex = parts.lastIndexOf('p');
   return pIndex !== -1 ? parts[pIndex + 1] ?? null : null;
+}
+
+/** Abre uma cópia (remix) do chatbot publicado no editor, em outra aba. */
+function openInEditor() {
+  const href = window.location.href;
+  const pIndex = href.indexOf('/p/');
+  const appBaseUrl = pIndex !== -1 ? href.substring(0, pIndex) : '';
+  const token = extractTokenFromPath();
+  if (token) window.open(`${appBaseUrl}/editor?remix=${token}`, '_blank');
 }
 
 async function loadProject() {
@@ -60,7 +70,7 @@ onMounted(loadProject);
 
 <template>
   <div class="runtime-root">
-    <RuntimeHeader app-name="Chatbot" :show-edit-button="false" />
+    <RuntimeHeader app-name="Novelo" :app-logo="appLogo" :show-edit-button="!isUnavailable" @edit-click="openInEditor" />
 
     <div class="runtime-page">
       <div class="runtime-widget">
@@ -87,10 +97,6 @@ onMounted(loadProject);
     </div>
   </div>
 </template>
-
-<style>
-html, body, #app { margin: 0; padding: 0; width: 100%; height: 100%; }
-</style>
 
 <style scoped>
 .runtime-root { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }

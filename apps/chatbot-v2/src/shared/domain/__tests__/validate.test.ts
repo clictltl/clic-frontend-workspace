@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { HANDLE_ELSE, HANDLE_OUT, type ChatNodeOf } from '../../types/chatbot';
 import { connect, edgeId } from '../graph';
-import { findAssetUsages, findVariableUsages } from '../usages';
+import { findAssetUsages, findVariableUsages, withoutUnusedAssets } from '../usages';
 import { validateFlow } from '../validate';
 import { setup } from './helpers';
 
@@ -94,5 +94,16 @@ describe('usages', () => {
     expect(findAssetUsages(project, 'a1')).toEqual([message.id]);
     expect(findAssetUsages(project, 'a2')).toEqual([choice.id]);
     expect(findAssetUsages(project, 'a3')).toEqual([]);
+  });
+
+  it('drops unused assets from a copy without touching the project', () => {
+    const { project, message } = setup();
+    const asset = (id: string) => ({ id, type: 'image/png', originalName: `${id}.png`, size: 1, hash: id, source: 'local' as const });
+    project.assets = { used: asset('used'), orphan: asset('orphan') };
+    (message.data as { media: unknown }).media = { media: { type: 'image', source: { kind: 'upload', assetId: 'used' } }, position: 'before' };
+
+    const clean = withoutUnusedAssets(project);
+    expect(Object.keys(clean.assets)).toEqual(['used']);
+    expect(Object.keys(project.assets)).toEqual(['used', 'orphan']);
   });
 });

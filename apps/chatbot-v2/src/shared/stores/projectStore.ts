@@ -15,8 +15,9 @@ import type {
 } from '../types/chatbot';
 import { appDomainDeps } from '../appDeps';
 import * as graph from '../domain/graph';
-import { createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
+import { ProjectLoadError, createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
 import { checkVariableName, coerceVariableValue } from '../domain/variables';
+import { withoutUnusedAssets } from '../domain/usages';
 
 const now = () => new Date().toISOString();
 
@@ -35,7 +36,7 @@ export const useProjectStore = defineStore('chatbot-project', {
   history: {
     stateKey: 'project',
     telemetry: { appSlug: 'chatbot', sessionActions: ['createNew', 'loadProject'] },
-    ignoreActions: ['markAsSaved', 'selectNode', 'selectEdge', 'clearSelection'],
+    ignoreActions: ['markAsSaved', 'getProjectData', 'selectNode', 'selectEdge', 'clearSelection'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
       renameProject: 'chatbot.history.renameProject',
@@ -87,6 +88,11 @@ export const useProjectStore = defineStore('chatbot-project', {
   },
 
   actions: {
+    /** JSON portável para salvar/exportar (regra 1): cópia sem arquivos que nenhum nó usa. */
+    getProjectData(): ChatbotProject {
+      return withoutUnusedAssets(this.project);
+    },
+
     // --- SESSÃO (iniciam o Frame Zero da telemetria) ---
     markAsSaved() {
       this.project.meta.updatedAt = now();
@@ -100,16 +106,18 @@ export const useProjectStore = defineStore('chatbot-project', {
       this.lastSavedState = JSON.stringify(this.project);
     },
 
-    /** Retorna o erro sem trocar o projeto atual se o JSON for inválido ou de outra versão. */
+    /**
+     * Lança `ProjectLoadError` (sem trocar o projeto atual) se o JSON for inválido ou de outra versão.
+     * Lançar, e não retornar o erro, evita que o plugin de histórico inicie uma sessão de telemetria.
+     */
     loadProject(json: unknown, markAsUnsaved = false) {
       const result = parseProject(json, deps, now());
-      if (!result.ok) return result.error;
+      if (!result.ok) throw new ProjectLoadError(result.error);
 
       this.project = result.project;
       this.selectedNodeId = null;
       this.selectedEdgeId = null;
       this.lastSavedState = markAsUnsaved ? 'FORCED_UNSAVED' : JSON.stringify(this.project);
-      return null;
     },
 
     // --- SELEÇÃO (ignoradas pelo histórico) ---

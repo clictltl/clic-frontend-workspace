@@ -411,6 +411,10 @@ export default {
         chat_title: 'Chat'
       }
     },
+    messages: {
+      invalid_project: 'Este arquivo não é um projeto de chatbot válido.',
+      unsupported_version: 'Este projeto foi feito em uma versão antiga do Novelo e ainda não pode ser aberto.'
+    },
     history: {
       createBlock: 'Criação de Bloco',
       updateBlock: 'Atualização de Bloco',

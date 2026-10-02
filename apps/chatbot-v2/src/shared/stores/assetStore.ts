@@ -4,7 +4,7 @@ import { findAssetUsages } from '../domain/usages';
 
 // Instância do store compartilhado de assets, configurada para o Chatbot v2
 export const assetStore = useSharedAssetStore({
-  appName: 'chatbot-v2', // IndexedDB separado do v1
+  appName: 'chatbot',
   getAssets: () => useProjectStore().project.assets,
   isAssetUsed: (assetId, excludeElementId) =>
     findAssetUsages(useProjectStore().project, assetId).some(nodeId => nodeId !== excludeElementId)

@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import App from './App.vue';
 import { checkLogin, initMatomo, piniaInteractionHistoryPlugin, i18n } from '@clic/shared';
 
+import '@clic/shared/src/styles/base.css';
 // Já importamos o CSS base do Vue Flow aqui para garantir que o motor gráfico funcione depois
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
