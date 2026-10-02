@@ -13,6 +13,8 @@ export { default as AuthMenu } from './auth/AuthMenu.vue';
 
 // composables
 export { useHistoryShortcuts } from './composables/useHistoryShortcuts';
+export { useEditorBootstrap } from './composables/useEditorBootstrap';
+export type { EditorBootstrapOptions } from './composables/useEditorBootstrap';
 
 //plugins
 export { piniaInteractionHistoryPlugin } from './plugins/piniaInteractionHistory';

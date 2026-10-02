@@ -1,0 +1,24 @@
+/*
+ * BASE COMUM DOS APPS DO CLIC
+ *
+ * Importe no início do main de cada entrypoint (editor, runtime, replay...):
+ *   import '@clic/shared/src/styles/base.css';
+ * Os componentes do @clic/shared (modais, header, menus) contam com estas regras.
+ * Cores de fundo e demais estilos ficam em cada app.
+ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1f2937;
+}

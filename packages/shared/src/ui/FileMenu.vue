@@ -136,6 +136,11 @@ const props = withDefaults(defineProps<{
   assetStore: any;
   hasUnsavedChanges?: boolean;
   getProjectData: () => any;
+  /**
+   * Alternativa ao evento `import-project` para apps que validam o arquivo:
+   * devolve a mensagem de erro (já traduzida) se o projeto for recusado.
+   */
+  importProject?: (data: any) => string | null | void;
 }>(), {
   fileExtension: '.clic',
   fileAccept: '.clic,.zip,.json',
@@ -412,8 +417,18 @@ async function handleImport(event: Event) {
 
   try {
     const project = await importClicFile(file, props.assetStore);
-    emit('import-project', project);
-    
+
+    if (props.importProject) {
+      // O app pode recusar o arquivo: mantém o projeto atual e o vínculo com a nuvem
+      const rejection = props.importProject(project);
+      if (rejection) {
+        toast.error(rejection);
+        return;
+      }
+    } else {
+      emit('import-project', project);
+    }
+
     // Rompe vínculo com projeto salvo na nuvem
     props.projectsStore.currentProjectId.value = null;
     props.projectsStore.currentProjectName.value = '';

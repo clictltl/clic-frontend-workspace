@@ -264,10 +264,10 @@ export function createSharedProjects(config: UseProjectsConfig) {
         return null;
       }
 
-      // Limpa o registro de memória antigo (Blobs) antes de carregar
-      config.assetStore.clearRegistry();
-
+      // Carrega primeiro: se o app recusar o projeto (erro), os arquivos locais do atual são preservados
       config.setProjectData(data.project.data);
+      // Só então limpa o registro de memória antigo (Blobs)
+      config.assetStore.clearRegistry();
 
       currentProjectId.value = data.project.id;
       currentProjectName.value = data.project.name;
@@ -340,9 +340,9 @@ export function createSharedProjects(config: UseProjectsConfig) {
         return false;
       }
 
-      // Prepara o state limpo
-      config.assetStore.clearRegistry();
+      // Carrega primeiro: se o app recusar o projeto (erro), os arquivos locais do atual são preservados
       config.setProjectData(data.project.data);
+      config.assetStore.clearRegistry();
       await config.assetStore.privatizeRemoteAssets();
 
       // Configura como Fantasma (Sem ID)
@@ -423,8 +423,8 @@ export function createSharedProjects(config: UseProjectsConfig) {
         return false;
       }
 
-      config.assetStore.clearRegistry();
       config.setProjectData(data.project.data);
+      config.assetStore.clearRegistry();
       await config.assetStore.privatizeRemoteAssets();
       
       currentProjectId.value = null;
