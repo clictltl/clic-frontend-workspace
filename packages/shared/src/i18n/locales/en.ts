@@ -240,7 +240,11 @@ export default {
         add_variable: 'Add Variable',
         confirm: 'OK'
       },
-      delay_unit_short: 's'
+      delay_unit_short: 's',
+      test: {
+        button: 'Test',
+        title: 'Test conversation'
+      }
     },
     blocks: {
       start: 'Start',
@@ -374,7 +378,8 @@ export default {
         NO_CONDITION_MATCH: 'No condition matched.',
         NO_START_BLOCK: 'Start block not found.',
         START_NO_NEXT: 'Start block without outgoing connection.',
-        UNSUPPORTED_BLOCK_TYPE: 'Unsupported block type.'
+        UNSUPPORTED_BLOCK_TYPE: 'Unsupported block type.',
+        LOOP_LIMIT: 'The flow got stuck in an endless loop and was stopped.'
       },
       preview: {
         title: 'Test your Chatbot',
@@ -389,7 +394,8 @@ export default {
       chat: {
         placeholder: 'Type your response...',
         send: 'Send',
-        restart: 'Restart'
+        restart: 'Restart',
+        typing: 'Typing…'
       },
       toolbar: {
         start: 'Start',

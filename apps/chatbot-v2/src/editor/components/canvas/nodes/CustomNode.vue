@@ -9,8 +9,9 @@ import { HANDLE_ELSE, HANDLE_OUT, MESSAGE_DELAY_MAX, type ComparisonOperator } f
 import RichTextView from './RichTextView.vue';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
-import ChoiceMediaView from '../../common/ChoiceMediaView.vue';
-import MediaView from '../../common/MediaView.vue';
+import ChoiceMediaView from '../../../../shared/components/ChoiceMediaView.vue';
+import MediaView from '../../../../shared/components/MediaView.vue';
+import { testActiveNodeId } from '../../../utils/testRun';
 
 // O Vue Flow só informa o ID: todo o resto é lido do store (fonte da verdade)
 const props = defineProps<{ id: string }>();
@@ -55,7 +56,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   <div
     v-if="node && config"
     class="custom-node"
-    :class="{ 'is-selected': isSelected }"
+    :class="{ 'is-selected': isSelected, 'is-running': testActiveNodeId === id }"
     :style="{ borderColor: isSelected ? config.color : '#e5e7eb' }"
   >
     <Handle v-if="node.type !== 'start'" type="target" id="in" :position="Position.Left" class="node-handle in-handle" />
@@ -202,6 +203,11 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 }
 .custom-node.is-selected {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+/* Nó "falando" durante o teste da conversa */
+.custom-node.is-running {
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45), 0 10px 20px -4px rgba(16, 185, 129, 0.35);
   transform: translateY(-2px);
 }
 .node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; }

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { ArrowDownToLine, ArrowUpToLine, Trash2 } from '@lucide/vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import type { MediaSource } from '../../../../shared/types/chatbot';
-import MediaView from '../../common/MediaView.vue';
+import MediaView from '../../../../shared/components/MediaView.vue';
 import MediaSourcePicker from '../../common/MediaSourcePicker.vue';
 
 const props = defineProps<{ nodeId: string }>();

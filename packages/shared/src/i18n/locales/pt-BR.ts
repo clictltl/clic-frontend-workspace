@@ -241,7 +241,11 @@ export default {
         add_variable: 'Adicionar Variável',
         confirm: 'OK'
       },
-      delay_unit_short: 's'
+      delay_unit_short: 's',
+      test: {
+        button: 'Testar',
+        title: 'Testar conversa'
+      }
     },
     blocks: {
       start: 'Início',
@@ -375,7 +379,8 @@ export default {
         NO_CONDITION_MATCH: 'Nenhuma condição satisfeita.',
         NO_START_BLOCK: 'Bloco de início não encontrado.',
         START_NO_NEXT: 'Início sem conexão de saída.',
-        UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.'
+        UNSUPPORTED_BLOCK_TYPE: 'Tipo de bloco não suportado.',
+        LOOP_LIMIT: 'O fluxo entrou em repetição sem fim e foi interrompido.'
       },
       preview: {
         title: 'Teste seu Chatbot',
@@ -390,7 +395,8 @@ export default {
       chat: {
         placeholder: 'Digite sua resposta...',
         send: 'Enviar',
-        restart: 'Recomeçar'
+        restart: 'Recomeçar',
+        typing: 'Digitando…'
       },
       toolbar: {
         start: 'Iniciar',

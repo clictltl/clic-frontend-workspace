@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ChoiceMedia } from '../../../shared/types/chatbot';
-import { resolveMediaSource } from '../../utils/mediaSource';
+import type { ChoiceMedia } from '../types/chatbot';
+import { useMediaResolver } from '../media/resolver';
 
 const props = withDefaults(defineProps<{
   media: ChoiceMedia;
@@ -10,7 +10,8 @@ const props = withDefaults(defineProps<{
   size: 24
 });
 
-const src = computed(() => (props.media.kind === 'image' ? resolveMediaSource(props.media.source) : undefined));
+const resolve = useMediaResolver();
+const src = computed(() => (props.media.kind === 'image' ? resolve(props.media.source) : undefined));
 </script>
 
 <template>

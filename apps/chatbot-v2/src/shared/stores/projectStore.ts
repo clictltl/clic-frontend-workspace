@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { generateUUID, i18n } from '@clic/shared';
 import type {
   ChatbotProject,
   ChatNodeOf,
@@ -14,17 +13,14 @@ import type {
   Value,
   VariableType
 } from '../types/chatbot';
-import type { DomainDeps } from '../domain/deps';
+import { appDomainDeps } from '../appDeps';
 import * as graph from '../domain/graph';
 import { createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
 import { checkVariableName, coerceVariableValue } from '../domain/variables';
 
 const now = () => new Date().toISOString();
 
-const deps: DomainDeps = {
-  newId: generateUUID,
-  t: (key, params) => i18n.global.t(key, params ?? {})
-};
+const deps = appDomainDeps;
 
 /**
  * STORE DO PROJETO

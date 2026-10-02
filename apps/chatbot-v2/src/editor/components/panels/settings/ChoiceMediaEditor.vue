@@ -6,7 +6,7 @@ import { useProjectStore } from '../../../../shared/stores/projectStore';
 import type { Choice, MediaSource } from '../../../../shared/types/chatbot';
 import { EMOJI_PICKER_SIZE, useEmojiPicker } from '../../../utils/useEmojiPicker';
 import { placePopover } from '../../../utils/popover';
-import ChoiceMediaView from '../../common/ChoiceMediaView.vue';
+import ChoiceMediaView from '../../../../shared/components/ChoiceMediaView.vue';
 import MediaSourcePicker from '../../common/MediaSourcePicker.vue';
 
 /** Escolhe o emoji ou a imagem de uma opção (ou remove). Cada escolha é uma action. */

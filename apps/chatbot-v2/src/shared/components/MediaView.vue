@@ -2,8 +2,8 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ImageOff, Music, Video } from '@lucide/vue';
-import type { Media } from '../../../shared/types/chatbot';
-import { resolveMediaSource } from '../../utils/mediaSource';
+import type { Media } from '../types/chatbot';
+import { useMediaResolver } from '../media/resolver';
 
 /**
  * Exibe a mídia de um nó. Tipos ainda não suportados pelo editor (vídeo, áudio)
@@ -11,8 +11,9 @@ import { resolveMediaSource } from '../../utils/mediaSource';
  */
 const props = defineProps<{ media: Media }>();
 const { t } = useI18n();
+const resolve = useMediaResolver();
 
-const src = computed(() => (props.media.type === 'image' ? resolveMediaSource(props.media.source) : undefined));
+const src = computed(() => (props.media.type === 'image' ? resolve(props.media.source) : undefined));
 
 // Link quebrado ou arquivo local ausente: mostra o aviso no lugar da imagem
 const failed = ref(false);
