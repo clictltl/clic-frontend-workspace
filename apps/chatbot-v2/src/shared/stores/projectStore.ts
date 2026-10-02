@@ -117,7 +117,10 @@ export const useProjectStore = defineStore('chatbot-project', {
       this.project = result.project;
       this.selectedNodeId = null;
       this.selectedEdgeId = null;
-      this.lastSavedState = markAsUnsaved ? 'FORCED_UNSAVED' : JSON.stringify(this.project);
+      // Projeto convertido do v1 abre como alterado: salvar grava o formato novo no mesmo registro
+      const unsaved = markAsUnsaved || !!result.migration;
+      this.lastSavedState = unsaved ? 'FORCED_UNSAVED' : JSON.stringify(this.project);
+      return result.migration ?? null;
     },
 
     // --- SELEÇÃO (ignoradas pelo histórico) ---

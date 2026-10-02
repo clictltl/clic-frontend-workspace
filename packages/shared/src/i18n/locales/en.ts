@@ -412,7 +412,9 @@ export default {
     },
     messages: {
       invalid_project: 'This file is not a valid chatbot project.',
-      unsupported_version: 'This project was made with an older version of Novelo and cannot be opened yet.'
+      unsupported_version: 'This project was made with a version of Novelo this editor does not recognize.',
+      migrated: 'This project was converted from the previous version of Novelo. Review it and save to finish.',
+      migrated_review: '{n} block needs review. | {n} blocks need review.'
     },
     history: {
       createBlock: 'Block Creation',

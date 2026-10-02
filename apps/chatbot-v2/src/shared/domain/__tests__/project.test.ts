@@ -35,12 +35,23 @@ describe('createNode', () => {
 });
 
 describe('parseProject', () => {
-  it('rejects non-objects and other versions (v1 projects)', () => {
+  it('rejects non-objects and unknown versions', () => {
     const deps = createDeps();
     expect(parseProject(null, deps, NOW)).toEqual({ ok: false, error: 'INVALID_PROJECT' });
     expect(parseProject([], deps, NOW)).toEqual({ ok: false, error: 'INVALID_PROJECT' });
-    expect(parseProject({ meta: { version: '1.0.0' }, blocks: [] }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
-    expect(parseProject({ blocks: [] }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
+    expect(parseProject({ meta: { version: '3.0.0' }, nodes: {} }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
+    expect(parseProject({ nodes: {} }, deps, NOW)).toEqual({ ok: false, error: 'UNSUPPORTED_VERSION' });
+  });
+
+  it('converts v1 projects (with or without version) and reports the migration', () => {
+    const deps = createDeps();
+    for (const json of [{ meta: { version: '1.0.0' }, blocks: [] }, { blocks: [] }]) {
+      const result = parseProject(json, deps, NOW);
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      expect(result.project.meta.version).toBe('2.0.0');
+      expect(result.migration).toEqual({ from: '1.0.0', warnings: [] });
+    }
   });
 
   it('normalizes PHP empty arrays into objects without mutating the input', () => {

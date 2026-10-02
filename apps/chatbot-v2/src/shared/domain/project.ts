@@ -13,6 +13,7 @@ import {
 import type { DomainDeps } from './deps';
 import { createRichText } from './richText';
 import { edgeId } from './graph';
+import { isV1Project, migrateV1, type MigrationWarning } from './migrations/v1';
 
 // --- FÁBRICAS ---
 
@@ -85,8 +86,14 @@ export function createProject(deps: DomainDeps, now: string): ChatbotProject {
 
 export type ProjectLoadErrorCode = 'INVALID_PROJECT' | 'UNSUPPORTED_VERSION';
 
+/** Informada quando o JSON veio de uma versão anterior e foi convertido. */
+export interface ProjectMigration {
+  from: string;
+  warnings: MigrationWarning[];
+}
+
 export type ParseProjectResult =
-  | { ok: true; project: ChatbotProject }
+  | { ok: true; project: ChatbotProject; migration?: ProjectMigration }
   | { ok: false; error: ProjectLoadErrorCode };
 
 /** Projeto recusado ao carregar. Lançado (não retornado) para a action não iniciar sessão de telemetria. */
@@ -107,17 +114,25 @@ const asRecord = (v: unknown): Record<string, any> => (isObject(v) ? v : {});
 
 /**
  * Valida e normaliza um JSON vindo do banco, de um arquivo importado ou de um link.
- * Não altera o objeto recebido. Projetos do v1 (ou de versões futuras) são recusados.
+ * Não altera o objeto recebido. Projetos do v1 são convertidos; versões desconhecidas, recusadas.
  */
 export function parseProject(json: unknown, deps: DomainDeps, now: string): ParseProjectResult {
   if (!isObject(json)) return { ok: false, error: 'INVALID_PROJECT' };
 
-  const version = json.meta?.version;
+  let source: Record<string, any> = json;
+  let migration: ProjectMigration | undefined;
+  if (isV1Project(json)) {
+    const result = migrateV1(json, deps, now);
+    source = result.project;
+    migration = { from: result.from, warnings: result.warnings };
+  }
+
+  const version = source.meta?.version;
   if (typeof version !== 'string' || version.split('.')[0] !== PROJECT_VERSION.split('.')[0]) {
     return { ok: false, error: 'UNSUPPORTED_VERSION' };
   }
 
-  const data = JSON.parse(JSON.stringify(json));
+  const data = JSON.parse(JSON.stringify(source));
   const project: ChatbotProject = {
     ...data,
     uuid: typeof data.uuid === 'string' && data.uuid ? data.uuid : deps.newId(),
@@ -144,5 +159,5 @@ export function parseProject(json: unknown, deps: DomainDeps, now: string): Pars
     project.nodes[start.id] = start;
   }
 
-  return { ok: true, project };
+  return migration ? { ok: true, project, migration } : { ok: true, project };
 }

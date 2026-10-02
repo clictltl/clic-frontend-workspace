@@ -1,4 +1,4 @@
-import { createSharedProjects, i18n } from '@clic/shared';
+import { createSharedProjects, i18n, useToast } from '@clic/shared';
 import { useProjectStore } from '../../shared/stores/projectStore';
 import { assetStore } from '../../shared/stores/assetStore';
 import { ProjectLoadError, type ProjectLoadErrorCode } from '../../shared/domain/project';
@@ -11,13 +11,20 @@ const LOAD_ERROR_KEYS: Record<ProjectLoadErrorCode, string> = {
 /**
  * Carrega um projeto no store. Devolve a mensagem de erro traduzida se ele for recusado
  * (o projeto atual é mantido); outros erros são relançados.
+ * Projetos convertidos do v1 geram um aviso para o aluno revisar e salvar.
  */
 export function tryLoadProject(data: unknown, markAsUnsaved = false): string | null {
+  const t = i18n.global.t;
   try {
-    useProjectStore().loadProject(data, markAsUnsaved);
+    const migration = useProjectStore().loadProject(data, markAsUnsaved);
+    if (migration) {
+      const count = new Set(migration.warnings.map(w => w.nodeId)).size;
+      const review = count > 0 ? ` ${t('chatbot.messages.migrated_review', { n: count }, count)}` : '';
+      useToast().add(t('chatbot.messages.migrated') + review, 'info', 8000);
+    }
     return null;
   } catch (err) {
-    if (err instanceof ProjectLoadError) return i18n.global.t(LOAD_ERROR_KEYS[err.code]);
+    if (err instanceof ProjectLoadError) return t(LOAD_ERROR_KEYS[err.code]);
     throw err;
   }
 }
