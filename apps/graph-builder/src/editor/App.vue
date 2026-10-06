@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Board from '@/editor/components/board/Board.vue';
 import ReaderLayout from '@/runtime/layouts/ReaderLayout.vue';
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { assetStore } from '@/shared/stores/assetStore';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useHistoryShortcuts, telemetryService } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useEditorBootstrap, useHistoryShortcuts } from '@clic/shared';
 import { Pencil, Eye } from '@lucide/vue';
 import appLogo from '@/assets/logo_grafite.svg';
 
@@ -14,100 +14,17 @@ const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
 
-const showInvalidShareModal = ref(false);
 const isPreview = ref(false);
 
 // Ativa os atalhos globais de Undo/Redo
 useHistoryShortcuts(store);
 
-async function handleLoginSuccess() {
-  await assetStore.persistToDisk(); 
-  
-  const backup = {
-    id: projects.currentProjectId.value,
-    name: projects.currentProjectName.value,
-    data: store.project,
-    wasDirty: store.hasUnsavedChanges,
-    telemetryQueue: telemetryService.getOfflineQueue(),
-    telemetrySession: telemetryService.getSessionInfo()
-  };
-
-  sessionStorage.setItem('clic-graph-builder:login-backup', JSON.stringify(backup));
-
-  // Evita o aviso que vai perder tudo se atualizar
-  store.markAsSaved();
-
-  window.location.reload();
-}
-
-// --- PROTEÇÃO CONTRA FECHAMENTO DE ABA (F5 / Fechar Aba) ---
-const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (store.hasUnsavedChanges) {
-    e.preventDefault();
-    // @ts-ignore: Propriedade depreciada, mas necessária para compatibilidade
-    e.returnValue = ''; 
-    return '';
-  }
-};
-
-onMounted(async () => {
-  // 1. Carregamento via link compartilhado (Nuvem) ou Visualização (Professor)
-  const params = new URLSearchParams(window.location.search);
-  const shareToken = params.get("share");
-  const remixToken = params.get("remix");
-  const previewId = params.get("preview");
-
-  if (shareToken) {
-    const success = await projects.loadSharedProject(shareToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (remixToken) {
-    const success = await projects.loadRemixProject(remixToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else if (previewId) {
-    const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert("Acesso negado ou falha ao carregar projeto.");
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  // 2. Restauração de backup (Hidratação de Estado Pós-Login)
-  const loginBackup = sessionStorage.getItem('clic-graph-builder:login-backup');
-  if (loginBackup) {
-    try {
-      const parsedSaved = JSON.parse(loginBackup);
-
-      if (parsedSaved.telemetryQueue && parsedSaved.telemetrySession) {
-        telemetryService.resumeSession(
-          parsedSaved.telemetrySession.sessionId,
-          parsedSaved.telemetrySession.projectUuid,
-          parsedSaved.telemetrySession.appType,
-          parsedSaved.telemetryQueue
-        );
-      }
-      
-      store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
-      projects.currentProjectId.value = parsedSaved.id;
-      projects.currentProjectName.value = parsedSaved.name || '';
-            
-      await assetStore.restoreFromDisk();
-
-      sessionStorage.removeItem('clic-graph-builder:login-backup');
-      await assetStore.clearDisk();
-    } catch (e) {
-      console.error("Erro ao restaurar backup local:", e);
-    }
-  } else if (!shareToken && !remixToken && !previewId) {
-    // SE NÃO VEIO DE NENHUM LUGAR, INICIE EXPLICITAMENTE O PROJETO LIMPO:
-    store.createNew();
-  }
-
-  // 3. Proteção contra fechar a aba sem salvar
-  window.addEventListener('beforeunload', handleBeforeUnload);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload);
+// Links de share/remix/preview e aviso ao fechar a aba.
+// Sem link, cria um projeto novo (dispara o Frame Zero da telemetria).
+const { showInvalidShareModal } = useEditorBootstrap({
+  projects,
+  hasUnsavedChanges: () => store.hasUnsavedChanges,
+  onFreshStart: () => store.createNew()
 });
 </script>
 
@@ -130,7 +47,7 @@ onUnmounted(() => {
         />
       </template>
       <template #auth-menu>
-        <AuthMenu @login-success="handleLoginSuccess" />
+        <AuthMenu />
       </template>
     </AppHeader>
 

@@ -4,6 +4,7 @@ import { i18n } from '../i18n';
 import { telemetryService } from '../analytics/telemetry';
 import type { ClicBaseProject } from '../types/project';
 import { clicFetch } from './api';
+import { getNonce } from '../auth/auth';
 
 export interface UseProjectsConfig {
   appSlug: string; // Ex: 'chatbot' ou 'graph-builder'
@@ -33,10 +34,9 @@ export function createSharedProjects(config: UseProjectsConfig) {
   const pluginRestRoot = window.CLIC_CORE?.rest_root ?? `/wp-json/clic/v1/${config.appSlug}/`;
   // 2. Rota do Core WP (para upload de mídia nativo)
   const wpRestRoot = window.CLIC_CORE?.wp_rest_root ?? '/wp-json/';
-  const nonce = window.CLIC_AUTH?.nonce ?? '';
 
   // Configura a Telemetria com a rota REST criada no Core WP
-  telemetryService.configApi(pluginRestRoot + 'telemetry', nonce);
+  telemetryService.configApi(pluginRestRoot + 'telemetry');
 
   /**
    * ---------------------------------------------------
@@ -65,7 +65,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
           // Usa a rota customizada rápida
           const searchRes = await clicFetch(`${wpRestRoot}clic/v1/media/find-by-hash?hash=${asset.hash}`, {
               method: 'GET',
-              headers: { 'X-WP-Nonce': nonce }
+              headers: { 'X-WP-Nonce': getNonce() }
           });
           
           if (searchRes.ok) {
@@ -96,7 +96,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
           
           const res = await clicFetch(`${wpRestRoot}clic/v1/media/upload`, {
             method: 'POST',
-            headers: { 'X-WP-Nonce': nonce },
+            headers: { 'X-WP-Nonce': getNonce() },
             body: formData
           });
 
@@ -138,7 +138,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         method: 'GET',
         credentials: 'include',
         headers: {
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         }
       });
 
@@ -189,7 +189,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         },
         body: JSON.stringify(body)
       });
@@ -253,7 +253,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         method: 'GET',
         credentials: 'include',
         headers: {
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         }
       });
 
@@ -296,7 +296,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         method: 'DELETE',
         credentials: 'include',
         headers: {
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         }
       });
 
@@ -336,7 +336,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         method: 'GET',
         credentials: 'include',
         headers: {
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         }
       });
       const data = await res.json();
@@ -390,7 +390,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         },
         body: JSON.stringify(body)
       });
@@ -472,7 +472,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         },
         body: JSON.stringify({ project_id: currentProjectId.value })
       });
@@ -505,7 +505,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}share-status?project_id=${currentProjectId.value}`, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       
       const data = await res.json();
@@ -543,7 +543,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         },
         body: JSON.stringify(body)
       });
@@ -585,7 +585,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce
+          'X-WP-Nonce': getNonce()
         },
         body: JSON.stringify({ project_id: currentProjectId.value })
       });
@@ -618,7 +618,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}publish-status?project_id=${currentProjectId.value}`, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       
       const data = await res.json();
@@ -653,7 +653,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/setup`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': getNonce() },
         body: JSON.stringify({
           project_id: currentProjectId.value,
           reference_id: referenceId,
@@ -714,7 +714,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/answers`, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || i18n.global.t('messages.fetch_responses_error'));
@@ -732,7 +732,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/sync`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': getNonce() },
         body: JSON.stringify({ answer_ids: answerIds })
       });
       const data = await res.json();
@@ -753,7 +753,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/status`, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       
@@ -773,7 +773,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}`, {
         method: 'DELETE',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       return data.success;
@@ -789,7 +789,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const res = await clicFetch(`${pluginRestRoot}forms/project/${currentProjectId.value}/reference/${referenceId}/answers`, {
         method: 'DELETE',
         credentials: 'include',
-        headers: { 'X-WP-Nonce': nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       return data.success;

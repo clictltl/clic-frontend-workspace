@@ -30,22 +30,12 @@ async function computeFileHash(file: File): Promise<string> {
 }
 
 export function useSharedAssetStore(config: UseAssetStoreOptions) {
-  const DB_NAME = `ClicAssets_${config.appName}`;
-  const STORE_NAME = 'local_blobs';
-  const DB_VERSION = 1;
-
-  function getDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = (event: any) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME);
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
+  // O login recarregava a página e guardava os arquivos locais no IndexedDB.
+  // Em computadores compartilhados, apaga o que tiver sobrado dessa época.
+  try {
+    indexedDB.deleteDatabase(`ClicAssets_${config.appName}`);
+  } catch {
+    // IndexedDB indisponível (ex.: navegação privada restrita): nada a limpar
   }
 
   // --- VALIDAÇÃO PREPARADA PARA O FUTURO (TEXTOS, VÍDEOS, ÁUDIOS) ---
@@ -206,66 +196,6 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     rawBlobMap.clear();
   }
 
-  async function persistToDisk() {
-    const assets = config.getAssets();
-    const localAssets = Object.values(assets).filter(a => a.source === 'local');
-    if (localAssets.length === 0) return;
-
-    const blobsToSave: { id: string; blob: Blob }[] =[];
-    for (const asset of localAssets) {
-      const blob = await getAssetBlob(asset.id);
-      if (blob) blobsToSave.push({ id: asset.id, blob });
-    }
-
-    if (blobsToSave.length === 0) return;
-
-    const db = await getDB();
-    const txClear = db.transaction(STORE_NAME, 'readwrite');
-    txClear.objectStore(STORE_NAME).clear();
-    await new Promise(resolve => { txClear.oncomplete = resolve; });
-
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    for (const item of blobsToSave) {
-      store.put(item.blob, item.id);
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function restoreFromDisk() {
-    const db = await getDB();
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.getAllKeys();
-
-    const keys = await new Promise<string[]>((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result as string[]);
-      request.onerror = () => reject(request.error);
-    });
-
-    for (const key of keys) {
-      const getReq = store.get(key);
-      const blob = await new Promise<Blob>((resolve) => {
-        getReq.onsuccess = () => resolve(getReq.result);
-      });
-      if (blob) registerBlob(key, blob);
-    }
-  }
-
-  async function clearDisk() {
-    const db = await getDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).clear();
-    return new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
   async function privatizeRemoteAssets() {
     const assets = config.getAssets();
     const promises = Object.entries(assets).map(async ([id, asset]) => {
@@ -292,9 +222,6 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     registerBlob,
     getAssetBlob,
     clearRegistry,
-    persistToDisk,
-    restoreFromDisk,
-    clearDisk,
     privatizeRemoteAssets,
     getAssets: config.getAssets
   };

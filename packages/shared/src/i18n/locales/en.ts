@@ -55,7 +55,8 @@ export default {
     too_many_attempts: 'Too many attempts. Please wait a few minutes.',
     blocked_terms: 'Access blocked. Go to clic.tltlab.org on your browser to accept the Terms of Use.',
     blocked_teacher: 'Access Blocked: Please contact your teacher to regularize your account.',
-    login_error: 'Error logging in.'
+    login_error: 'Error logging in.',
+    session_refresh_failed: 'You are logged in, but the session could not be updated. Download your project as a file and reload the page.'
   },
 
   file_menu: {

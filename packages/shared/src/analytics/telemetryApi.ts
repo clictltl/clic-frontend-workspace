@@ -1,4 +1,5 @@
 import { clicFetch } from '../utils/api';
+import { getNonce } from '../auth/auth';
 import type { TelemetrySessionsResponse, TelemetryEvent } from '../types/telemetry';
 
 /**
@@ -21,15 +22,11 @@ export const telemetryApi = {
     return window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/emoji-coder/';
   },
 
-  get nonce() {
-    return window.CLIC_AUTH?.nonce ?? '';
-  },
-
   async getSessions(startDate: string, endDate: string): Promise<TelemetrySessionsResponse> {
     try {
       const res = await clicFetch(`${this.baseUrl}telemetry/sessions?start_date=${startDate}&end_date=${endDate}`, {
         method: 'GET',
-        headers: { 'X-WP-Nonce': this.nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Error fetching sessions');
@@ -44,7 +41,7 @@ export const telemetryApi = {
     try {
       const res = await clicFetch(`${this.baseUrl}telemetry/sessions/${sessionId}/timeline`, {
         method: 'GET',
-        headers: { 'X-WP-Nonce': this.nonce }
+        headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Error fetching timeline');

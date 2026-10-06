@@ -1,4 +1,4 @@
-import { useAuth } from '../auth/auth';
+import { useAuth, getNonce, refreshNonce } from '../auth/auth';
 
 export interface TelemetryEvent {
   event_type: 'mutation' | 'semantic' | 'system';
@@ -51,10 +51,8 @@ class TelemetryManager {
   private queue: QueuedEvent[] = [];
   private queueBytes = 0;
   private session: TelemetrySessionRef | null = null;
-  private ignoreNextStart = false;
 
   private endpoint = '';
-  private nonce = '';
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private isFlushing = false;
@@ -78,11 +76,20 @@ class TelemetryManager {
   }
 
   /**
-   * Configura os dados de autenticação para as chamadas REST.
+   * Configura a rota REST de envio. O nonce é lido a cada envio (ver `getNonce`).
    */
-  public configApi(endpoint: string, nonce: string) {
+  public configApi(endpoint: string) {
     this.endpoint = endpoint;
-    this.nonce = nonce;
+  }
+
+  /**
+   * Login feito sem recarregar a página: a fila acumulada sai depois de um intervalo
+   * aleatório, para espalhar o envio da turma inteira que entrou junta.
+   */
+  public onLogin() {
+    if (this.session || this.queue.length > 0) {
+      this.scheduleNext(randomBetween(LOGIN_DELAY_MIN_MS, LOGIN_DELAY_MAX_MS));
+    }
   }
 
   /**
@@ -90,11 +97,6 @@ class TelemetryManager {
    * `getCurrentState` permite recomeçar a cadeia se algum evento precisar ser descartado.
    */
   public startSession(projectUuid: string, appType: string, initialProjectData: any, getCurrentState?: () => any) {
-    if (this.ignoreNextStart) {
-      this.ignoreNextStart = false;
-      if (this.session) this.session.getCurrentState = getCurrentState;
-      return;
-    }
     if (this.disabled) return;
 
     // Os eventos da sessão anterior continuam na fila, presos à própria sessão
@@ -172,42 +174,6 @@ class TelemetryManager {
 
     this.queue.push({ session, json, bytes, sending: false });
     this.queueBytes += bytes;
-  }
-
-  /**
-   * Retorna os eventos pendentes da sessão atual (backup antes do login)
-   */
-  public getOfflineQueue(): TelemetryEvent[] {
-    return this.queue
-      .filter(item => item.session === this.session)
-      .map(item => JSON.parse(item.json));
-  }
-
-  /**
-   * Retorna a identidade atual (usado para salvar o backup antes do login)
-   */
-  public getSessionInfo() {
-    return {
-      sessionId: this.session?.sessionId ?? '',
-      projectUuid: this.session?.projectUuid ?? '',
-      appType: this.session?.appType ?? ''
-    };
-  }
-
-  /**
-   * Retoma uma sessão interrompida pelo recarregamento da página (Login)
-   */
-  public resumeSession(sessionId: string, projectUuid: string, appType: string, rescuedQueue: TelemetryEvent[]) {
-    if (!sessionId) return;
-
-    this.session = { sessionId, projectUuid, appType, closed: false };
-    if (Array.isArray(rescuedQueue)) {
-      rescuedQueue.forEach(event => this.enqueue(this.session!, event));
-    }
-
-    this.ignoreNextStart = true; // O próximo startSession (o load do projeto restaurado) é ignorado
-    // Espalha o envio da turma inteira que acabou de fazer login
-    this.scheduleNext(randomBetween(LOGIN_DELAY_MIN_MS, LOGIN_DELAY_MAX_MS));
   }
 
   /**
@@ -320,20 +286,29 @@ class TelemetryManager {
     let result: SendResult;
     let errorCode = '';
     try {
-      const res = await fetch(this.endpoint, {
+      const body = this.buildBody(batch[0]!.session, batch);
+      const post = () => fetch(this.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': this.nonce
+          'X-WP-Nonce': getNonce()
         },
-        body: this.buildBody(batch[0]!.session, batch),
+        body,
         keepalive
       });
 
-      if (res.status === 400 || res.status === 413) {
-        // clic-core usa `error`; erros gerados pelo próprio WP usam `code`
-        const data = await res.json().catch(() => ({}));
-        errorCode = data?.error ?? data?.code ?? '';
+      let res = await post();
+      errorCode = await this.readErrorCode(res);
+
+      // Nonce vencido (sessão longa ou login em outra aba): renova e tenta de novo uma vez
+      if (res.status === 403 && errorCode === 'rest_cookie_invalid_nonce' && await refreshNonce()) {
+        res = await post();
+        errorCode = await this.readErrorCode(res);
+      }
+
+      // Sem login (sessão encerrada): o envio pausa até o próximo login, com a fila na memória
+      if (res.status === 401 || (res.status === 403 && errorCode === 'rest_cookie_invalid_nonce')) {
+        useAuth().state.loggedIn = false;
       }
       result = this.classify(res.status, errorCode, batch.length);
     } catch (err) {
@@ -365,6 +340,13 @@ class TelemetryManager {
         break;
     }
     return result;
+  }
+
+  /** Código do erro: clic-core usa `error`; erros gerados pelo próprio WP usam `code`. */
+  private async readErrorCode(res: Response): Promise<string> {
+    if (res.ok) return '';
+    const data = await res.json().catch(() => ({}));
+    return data?.error ?? data?.code ?? '';
   }
 
   private classify(status: number, errorCode: string, batchSize: number): SendResult {

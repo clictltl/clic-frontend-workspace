@@ -18,7 +18,7 @@ import Canvas from '@/editor/components/canvas/Canvas.vue';
 import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
 import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
 import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useHistoryShortcuts, telemetryService } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useEditorBootstrap, useHistoryShortcuts } from '@clic/shared';
 import appLogo from '@/assets/logo_novelo.svg'
 import { CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
 import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from '@lucide/vue';
@@ -34,7 +34,13 @@ const { getBlockTitle, getBlockColor, getBlockIcon } = useBlockUI();
 // Ativa os atalhos globais de Undo/Redo (Ctrl+Z) para o Chatbot
 useHistoryShortcuts(store);
 
-const showInvalidShareModal = ref(false);
+// Links de share/remix/preview e aviso ao fechar a aba.
+// Sem link, cria um projeto novo (dispara o Frame Zero da telemetria).
+const { showInvalidShareModal } = useEditorBootstrap({
+  projects,
+  hasUnsavedChanges: () => store.hasUnsavedChanges,
+  onFreshStart: () => store.resetProjectData()
+});
 
 const zoom = ref(100);
 const activeTab = ref<'properties' | 'variables' | 'preview'>('properties');
@@ -56,83 +62,15 @@ const selectedBlock = computed(() => {
   return store.document.blocks.find(b => b.id === store.ui.selectedBlockId) || null;
 });
 
-// Intercepta o fechamento da aba ou F5
-const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (store.hasUnsavedChanges) {
-    // Cancela o evento (Padrão moderno)
-    e.preventDefault();
-    
-    // Define o valor de retorno (Exigido pelo Chrome/Chromium para mostrar o alerta)
-    // @ts-ignore: Propriedade depreciada, mas necessária para compatibilidade
-    e.returnValue = ''; 
-    
-    return '';
-  }
-};
-
-onMounted(async () => {
-  // 1. Carregamento via link compartilhado (Nuvem) ou Visualização (Professor)
-  const params = new URLSearchParams(window.location.search);
-  const shareToken = params.get("share");
-  const remixToken = params.get("remix");
-  const previewId = params.get("preview");
-
-  if (shareToken) {
-    const success = await projects.loadSharedProject(shareToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (remixToken) {
-    const success = await projects.loadRemixProject(remixToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else if (previewId) {
-    const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert(t('global.messages.preview_denied'));
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  // 2. Restauração de backup (Hidratação de Estado Pós-Login)
-  const loginBackup = sessionStorage.getItem('clic-chatbot:login-backup');
-  if (loginBackup) {
-    try {
-      const parsedSaved = JSON.parse(loginBackup);
-
-      if (parsedSaved.telemetryQueue && parsedSaved.telemetrySession) {
-        telemetryService.resumeSession(
-          parsedSaved.telemetrySession.sessionId,
-          parsedSaved.telemetrySession.projectUuid,
-          parsedSaved.telemetrySession.appType,
-          parsedSaved.telemetryQueue
-        );
-      }
-      
-      await assetStore.restoreFromDisk();
-      store.setProjectData(parsedSaved.data, !!parsedSaved.wasDirty);
-      projects.currentProjectId.value = parsedSaved.id;
-      projects.currentProjectName.value = parsedSaved.name || '';
-            
-      sessionStorage.removeItem('clic-chatbot:login-backup');
-      await assetStore.clearDisk();
-    } catch (e) {
-      console.error("Erro ao restaurar backup local:", e);
-    }
-  } else if (!shareToken && !remixToken && !previewId) {
-    // SE NÃO VEIO DE NENHUM LUGAR, INICIE EXPLICITAMENTE O PROJETO LIMPO:
-    store.resetProjectData();
-  }
-
-  // 3. Lógica local da UI do Chatbot
+onMounted(() => {
+  // Lógica local da UI do Chatbot
   hasCopiedBlock.value = !!localStorage.getItem('copiedBlock');
   document.addEventListener('click', handleDocumentClick);
-  
-  // 4. Proteção contra fechar a aba sem salvar
-  window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 // Remove listener ao desmontar
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick);
-  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 
 function handleCloseInvalidShareModal() {
@@ -322,26 +260,6 @@ function startResize(event: MouseEvent) {
   document.addEventListener('mouseup', handleMouseUp);
 }
 
-async function handleLoginSuccess() {
-  await assetStore.persistToDisk(); 
-  
-  const backup = {
-    id: projects.currentProjectId.value,
-    name: projects.currentProjectName.value,
-    data: store.getProjectData(),
-    wasDirty: store.hasUnsavedChanges,
-    telemetryQueue: telemetryService.getOfflineQueue(),
-    telemetrySession: telemetryService.getSessionInfo()
-  };
-
-  sessionStorage.setItem('clic-chatbot:login-backup', JSON.stringify(backup));
-
-  // Evita o aviso que vai perder tudo se atualizar
-  store.markAsSaved();
-  
-  window.location.reload();
-}
-
 </script>
 
 <template>
@@ -362,7 +280,7 @@ async function handleLoginSuccess() {
         />
       </template>
       <template #auth-menu>
-        <AuthMenu @login-success="handleLoginSuccess" />
+        <AuthMenu />
       </template>
     </AppHeader>
 

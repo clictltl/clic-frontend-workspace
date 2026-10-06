@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, telemetryService } from '@clic/shared';
+import { AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer, useEditorBootstrap } from '@clic/shared';
 import { Turtle, BookOpen, Play, Compass, LayoutGrid, Rocket } from '@lucide/vue';
 import appLogo from '@/assets/logo_caramelo.svg';
 import { useProjectStore } from '@/shared/stores/projectStore';
@@ -14,7 +14,6 @@ const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
 
-const showInvalidShareModal = ref(false);
 const isPreview = ref(false);
 
 // Controle de tamanho da grade exclusivo para o nível Avançado
@@ -89,93 +88,22 @@ const handleHomeClick = () => {
 // Distribui a função de navegação blindada para toda a árvore de componentes
 provide('goHomeAction', handleHomeClick);
 
-async function handleLoginSuccess() {
-  await assetStore.persistToDisk(); 
-  
-  const backup = {
-    id: projects.currentProjectId.value,
-    name: projects.currentProjectName.value,
-    data: store.project,
-    wasDirty: store.hasUnsavedChanges,
-    telemetryQueue: telemetryService.getOfflineQueue(),
-    telemetrySession: telemetryService.getSessionInfo()
-  };
-
-  sessionStorage.setItem('clic-emoji-coder:login-backup', JSON.stringify(backup));
-  store.markAsSaved();
-  window.location.reload();
-}
-
-const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (store.hasUnsavedChanges) {
-    e.preventDefault();
-    // @ts-ignore
-    e.returnValue = ''; 
-    return '';
+// Links de share/remix/preview e aviso ao fechar a aba.
+// Sem link, um #lib= na URL abre direto o ambiente; senão fica o painel inicial.
+const { showInvalidShareModal } = useEditorBootstrap({
+  projects,
+  hasUnsavedChanges: () => store.hasUnsavedChanges,
+  onFreshStart: () => {
+    if (window.location.hash.startsWith('#lib=')) handleHashChange();
   }
-};
+});
 
-onMounted(async () => {
-  // 1. Carregamento via link compartilhado ou Visualização
-  const params = new URLSearchParams(window.location.search);
-  const shareToken = params.get("share");
-  const remixToken = params.get("remix");
-  const previewId = params.get("preview");
-
-  if (shareToken) {
-    const success = await projects.loadSharedProject(shareToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (remixToken) {
-    const success = await projects.loadRemixProject(remixToken);
-    if (!success) showInvalidShareModal.value = true;
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else if (previewId) {
-    const success = await projects.loadPreviewProject(previewId);
-    if (!success) alert(t('global.messages.preview_denied'));
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  // 2. Restauração de backup (Pós-Login)
-  const loginBackup = sessionStorage.getItem('clic-emoji-coder:login-backup');
-  if (loginBackup) {
-    try {
-      const parsedSaved = JSON.parse(loginBackup);
-
-      if (parsedSaved.telemetryQueue && parsedSaved.telemetrySession) {
-        telemetryService.resumeSession(
-          parsedSaved.telemetrySession.sessionId,
-          parsedSaved.telemetrySession.projectUuid,
-          parsedSaved.telemetrySession.appType,
-          parsedSaved.telemetryQueue
-        );
-      }
-
-      store.loadProject(parsedSaved.data, !!parsedSaved.wasDirty);
-      projects.currentProjectId.value = parsedSaved.id;
-      projects.currentProjectName.value = parsedSaved.name || '';
-
-      await assetStore.restoreFromDisk();
-      
-      sessionStorage.removeItem('clic-emoji-coder:login-backup');
-      await assetStore.clearDisk();
-    } catch (e) {
-      console.error("Erro ao restaurar backup local:", e);
-    }
-  }
-
-  // 3. Inicialização Direta via Link (Hash)
-  if (!shareToken && !remixToken && !previewId && !loginBackup && window.location.hash.startsWith('#lib=')) {
-    handleHashChange();
-  }
-
+onMounted(() => {
   window.addEventListener('hashchange', handleHashChange);
-  window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 onUnmounted(() => {
   window.removeEventListener('hashchange', handleHashChange);
-  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 
@@ -202,7 +130,7 @@ onUnmounted(() => {
         />
       </template>
       <template #auth-menu>
-        <AuthMenu @login-success="handleLoginSuccess" />
+        <AuthMenu />
       </template>
     </AppHeader>
 

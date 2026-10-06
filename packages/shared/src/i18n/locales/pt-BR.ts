@@ -55,7 +55,8 @@ export default {
     too_many_attempts: 'Muitas tentativas. Aguarde alguns minutos.',
     blocked_terms: 'Acesso bloqueado. Acesse clic.tltlab.org pelo navegador para aceitar os Termos de Uso.',
     blocked_teacher: 'Acesso Bloqueado: Procure seu professor para regularizar sua conta.',
-    login_error: 'Erro ao fazer login.'
+    login_error: 'Erro ao fazer login.',
+    session_refresh_failed: 'Você entrou, mas não foi possível atualizar a sessão. Baixe seu projeto em arquivo e recarregue a página.'
   },
 
   file_menu: {

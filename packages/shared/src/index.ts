@@ -8,7 +8,7 @@ export * from './types/project';
 export * from './types/telemetry';
 
 // auth
-export { useAuth, checkLogin } from './auth/auth';
+export { useAuth, checkLogin, getNonce, refreshNonce } from './auth/auth';
 export { default as AuthMenu } from './auth/AuthMenu.vue';
 
 // composables

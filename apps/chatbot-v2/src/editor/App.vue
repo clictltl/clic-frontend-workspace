@@ -26,16 +26,11 @@ provideMediaResolver(resolveMediaSource);
 // Ativa o Ctrl+Z (Undo) e Ctrl+Shift+Z (Redo) de forma global para este projeto!
 useHistoryShortcuts(store);
 
-// Links de share/remix/preview, backup pós-login e aviso ao fechar a aba.
-// Sem nada disso, cria um projeto novo (dispara o Frame Zero da telemetria).
-const { showInvalidShareModal, handleLoginSuccess } = useEditorBootstrap({
-  appSlug: 'chatbot',
+// Links de share/remix/preview e aviso ao fechar a aba.
+// Sem link, cria um projeto novo (dispara o Frame Zero da telemetria).
+const { showInvalidShareModal } = useEditorBootstrap({
   projects,
-  assetStore,
-  getProjectData: () => store.getProjectData(),
-  loadProject: (data, markAsUnsaved) => store.loadProject(data, markAsUnsaved),
   hasUnsavedChanges: () => store.hasUnsavedChanges,
-  markAsSaved: () => store.markAsSaved(),
   onFreshStart: () => store.createNew()
 });
 
@@ -64,7 +59,7 @@ const isTesting = ref(false);
         />
       </template>
       <template #auth-menu>
-        <AuthMenu @login-success="handleLoginSuccess" />
+        <AuthMenu />
       </template>
     </AppHeader>
 

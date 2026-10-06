@@ -14,7 +14,7 @@ const actions = (body: Body) => body.events.map(e => e.action_name);
 
 function createService(state: any = { uuid: 'p1', title: 'x' }) {
   const service = new TelemetryManager();
-  service.configApi('/telemetry', 'nonce');
+  service.configApi('/telemetry');
   service.startSession('p1', 'chatbot', state, () => state);
   return service;
 }
@@ -253,5 +253,52 @@ describe('aba oculta', () => {
     expect(keepaliveBytes).toBeLessThanOrEqual(60_000);
     expect(normal.length).toBeGreaterThan(0);
     expect(bodies().flatMap(b => b.events)).toHaveLength(6);
+  });
+});
+
+describe('nonce vencido', () => {
+  const invalidNonce = () => response(403, { code: 'rest_cookie_invalid_nonce', message: 'Cookie check failed' });
+
+  beforeEach(() => {
+    (window as any).CLIC_AUTH = { nonce: 'old', rest_root: '/wp-json/clic-auth/v1/', logged_in: true, logout_url: '' };
+  });
+
+  afterEach(() => {
+    delete (window as any).CLIC_AUTH;
+  });
+
+  it('renova o nonce e reenvia o lote uma vez', async () => {
+    const service = createService();
+    fetchMock.mockImplementation(async (url: string, init: any) => {
+      if (url.includes('admin-ajax.php')) return new Response('new-nonce', { status: 200 });
+      return init.headers['X-WP-Nonce'] === 'new-nonce' ? response(200) : invalidNonce();
+    });
+
+    await flush(service);
+
+    const posts = fetchMock.mock.calls.filter(call => call[0] === '/telemetry');
+    expect(posts.map(call => call[1].headers['X-WP-Nonce'])).toEqual(['old', 'new-nonce']);
+    expect(useAuth().state.loggedIn).toBe(true);
+
+    await flush(service);
+    expect(fetchMock.mock.calls.filter(call => call[0] === '/telemetry')).toHaveLength(2); // fila vazia
+  });
+
+  it('pausa o envio, mantendo a fila, quando o usuário saiu', async () => {
+    const service = createService();
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes('admin-ajax.php')) return new Response('0', { status: 400 });
+      return invalidNonce();
+    });
+
+    await flush(service);
+    expect(useAuth().state.loggedIn).toBe(false);
+
+    // Novo login: a fila guardada sai inteira
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(async () => response(200));
+    useAuth().state.loggedIn = true;
+    await flush(service);
+    expect(actions(bodies()[0]!)).toEqual(['project_loaded']);
   });
 });

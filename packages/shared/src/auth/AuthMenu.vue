@@ -74,14 +74,15 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { useAuth } from './auth';
+import { useAuth, applyLoginResponse } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
+import { telemetryService } from '../analytics/telemetry';
 import { User, LogOut, ChevronDown, AlertTriangle } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-// Dispara evento para o App pai (ex: Chatbot, Graph Builder) lidar com reload/backup
+// Avisa o App pai depois que o login já foi aplicado (sem recarregar a página)
 const emit = defineEmits(['login-success']);
 
 // Estado auth (singleton)
@@ -171,7 +172,14 @@ async function submitLogin() {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      emit('login-success'); // Delega o sucesso para o App
+      // Sem recarregar: o projeto, os arquivos locais e a fila da telemetria continuam na memória
+      if (!(await applyLoginResponse(data))) {
+        error.value = t('auth.session_refresh_failed');
+        return;
+      }
+      closeModal();
+      telemetryService.onLogin();
+      emit('login-success');
       return;
     }
 
