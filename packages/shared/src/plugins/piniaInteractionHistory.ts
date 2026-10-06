@@ -61,7 +61,9 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
       after(() => {
         const projectData = toRaw(store.$state[stateKey as keyof typeof store.$state]);
         const uuid = projectData.uuid || (projectData as any).meta?.id || '';
-        telemetryService.startSession(uuid, options.history!.telemetry!.appSlug, projectData);
+        // O getter do estado atual permite recomeçar a cadeia se algum evento for descartado
+        const getCurrentState = () => toRaw(store.$state[stateKey as keyof typeof store.$state]);
+        telemetryService.startSession(uuid, options.history!.telemetry!.appSlug, projectData, getCurrentState);
       });
     }
 
