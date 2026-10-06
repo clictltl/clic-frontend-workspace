@@ -332,7 +332,13 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     try {
-      const res = await clicFetch(pluginRestRoot + 'preview/' + id);
+      const res = await clicFetch(pluginRestRoot + 'preview/' + id, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'X-WP-Nonce': nonce
+        }
+      });
       const data = await res.json();
 
       if (!data.success) {
