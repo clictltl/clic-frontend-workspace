@@ -13,15 +13,22 @@ Headless CMS híbrido: WordPress (PHP/MySQL) no back-end + Vue 3, TypeScript, Vi
 ### Front-end: `clic-frontend-workspace` (monorepo, npm workspaces)
 - `@clic/shared`: componentes globais, motor de i18n, utilitários de API e telemetria.
 - `apps/`: SPAs `chatbot`, `chatbot-v2` (reescrita do `chatbot`, em desenvolvimento),
-  `graph-builder` e `emoji-coder`. Todas multi-idioma, com múltiplos
-  entrypoints no Vite (`editor`, `runtime`, `replay`, `form`).
+  `graph-builder` e `emoji-coder`. Todas multi-idioma, com múltiplos entrypoints no Vite
+  (`editor`, `runtime`, `replay`). O modo `form` (`/app/{slug}/form/{token}`) não tem
+  entrypoint próprio: o core carrega o `runtime`, que detecta a rota.
 
 ### Back-end: plugins WordPress (repositórios separados)
 - `clic-core`: tabelas customizadas (`projects`, `forms` etc.), REST API em `/wp-json/clic/v1/`
   e roteador dinâmico (lê o `manifest.json` do Vite e injeta o entrypoint de `/app/{slug}/{mode}`).
+  - Schema versionado: ao alterar uma tabela em `includes/install.php`, suba `CLIC_CORE_DB_VERSION`
+    no mesmo arquivo; o `dbDelta` roda sozinho na primeira requisição após a publicação.
+  - `mu-plugins/clic-rest-lean.php`: não carrega plugins sem uso nas rotas `clic/v1` e `clic-auth/v1`.
+    Não é carregado a partir do plugin: em produção é **copiado à mão** para `wp-content/mu-plugins/`
+    (no local é um symlink). Ao instalar um plugin novo, avalie se ele entra na lista.
 - `clic-auth`: sessão, cookies e login via REST.
 - `clic-{app}`: empacota e serve cada app.
 - `clic-class-manager`: gestão de turmas e alunos.
+- `clic-admin-analytics`: monitoramento da plataforma para prevenir problemas (código-fonte Vue em `admin-app/`).
 - `clic`: tema customizado que amarra a plataforma.
 
 Os plugins não estão neste repositório. Os builds (`dist`) de cada app são gerados aqui e
