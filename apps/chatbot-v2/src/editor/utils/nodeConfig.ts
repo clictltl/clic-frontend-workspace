@@ -21,6 +21,7 @@ export const NODE_CONFIG: Record<NodeType, NodeVisualConfig> = {
   end: { titleKey: 'chatbot.blocks.end', color: '#ef4444', icon: CircleCheck }
 };
 
+// `math` não é mais criável (só aparece em projetos antigos)
 export const CREATABLE_NODES: NodeType[] = [
-  'message', 'open_question', 'choice_question', 'condition', 'set_variable', 'math', 'end'
+  'message', 'open_question', 'choice_question', 'condition', 'set_variable', 'end'
 ];

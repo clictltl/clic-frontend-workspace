@@ -184,6 +184,22 @@ describe('condition', () => {
     expect(fromEnd(botTexts(startChat(project)))).toBe('sim');
   });
 
+  it('compares text variables as numbers when both sides look like numbers', () => {
+    const { project, v, rule } = conditionFlow('text');
+    const check = (current: string, operator: string, value: string | number) => {
+      project.variables[v.id]!.defaultValue = current;
+      Object.assign(rule.conditions[0]!, { variableId: v.id, operator, value: { kind: 'literal', value } });
+      return fromEnd(botTexts(startChat(project)));
+    };
+
+    expect(check('10', '>', '9')).toBe('sim'); // Como texto, "10" < "9"
+    expect(check('1,5', '<', '2')).toBe('sim');
+    expect(check(' 10 ', '==', '10.0')).toBe('sim');
+    expect(check('12', '>', 10)).toBe('sim');
+    expect(check('abc', '<', 'abd')).toBe('sim'); // Não numérico: segue como texto
+    expect(check('', '==', '0')).toBe('não'); // Vazio não é número
+  });
+
   it('supports all/any matching and values read from another variable', () => {
     const { deps, project, v, rule, addVariable } = conditionFlow();
     const limit = addVariable('limite', 'number');

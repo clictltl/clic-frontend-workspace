@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 import { Database, Plus, Trash2, Hash, Type } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
-import type { VariableType } from '../../../shared/types/chatbot';
 import { checkVariableName, type VariableNameError } from '../../../shared/domain/variables';
 import { findVariableUsages } from '../../../shared/domain/usages';
 import DraftInput from '../common/DraftInput.vue';
@@ -21,7 +20,6 @@ const error = ref<string | null>(null);
 
 // --- CRIAÇÃO ---
 const newVarName = ref('');
-const newVarType = ref<VariableType>('text');
 
 function handleAddVariable() {
   const problem = checkVariableName(projectStore.project, newVarName.value);
@@ -29,7 +27,7 @@ function handleAddVariable() {
     error.value = ERROR_KEYS[problem];
     return;
   }
-  projectStore.addVariable(newVarName.value, newVarType.value);
+  projectStore.addVariable(newVarName.value);
   newVarName.value = '';
   error.value = null;
 }
@@ -81,15 +79,9 @@ function confirmDelete() {
           @keyup.enter="handleAddVariable"
           @input="error = null"
         />
-        <div class="form-row">
-          <select v-model="newVarType">
-            <option value="text">{{ t('chatbot.variables.type_text') }}</option>
-            <option value="number">{{ t('chatbot.variables.type_number') }}</option>
-          </select>
-          <button class="btn-add" @click="handleAddVariable">
-            <Plus :size="16" />
-          </button>
-        </div>
+        <button class="btn-add" @click="handleAddVariable">
+          <Plus :size="16" />
+        </button>
       </div>
 
       <p v-if="error" class="error-message">{{ t(error) }}</p>
@@ -149,12 +141,11 @@ function confirmDelete() {
 .panel-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
 .panel-content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 
-.create-form { display: flex; flex-direction: column; gap: 8px; }
-input, select {
+.create-form { display: flex; gap: 8px; }
+.create-form input { flex: 1; min-width: 0; }
+input {
   padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;
 }
-.form-row { display: flex; gap: 8px; }
-.form-row select { flex: 1; }
 .btn-add {
   background: #3b82f6; color: white; border: none; border-radius: 4px;
   padding: 0 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;

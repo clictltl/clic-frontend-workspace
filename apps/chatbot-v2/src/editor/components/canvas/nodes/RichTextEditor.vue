@@ -6,7 +6,7 @@ import {
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
-import type { RichText, VariableType } from '../../../../shared/types/chatbot';
+import type { RichText } from '../../../../shared/types/chatbot';
 import { RICH_TEXT_NODES } from '../../../../shared/domain/richText';
 import { findVariableByName } from '../../../../shared/domain/variables';
 import { editorRichTextExtensions } from '../../../utils/richText';
@@ -108,12 +108,10 @@ function insertVariable(variableId: string) {
 
 const isCreatingVar = ref(false);
 const newVarName = ref('');
-const newVarType = ref<VariableType>('text');
 
 function startCreateVariable() {
   isCreatingVar.value = true;
   newVarName.value = '';
-  newVarType.value = 'text';
 }
 
 function confirmCreateVariable() {
@@ -121,7 +119,7 @@ function confirmCreateVariable() {
   if (!name) return;
 
   // Nome já existente: reaproveita a variável em vez de criar outra
-  const id = findVariableByName(projectStore.project, name)?.id ?? projectStore.addVariable(name, newVarType.value);
+  const id = findVariableByName(projectStore.project, name)?.id ?? projectStore.addVariable(name);
   if (id) insertVariable(id);
   isCreatingVar.value = false;
 }
@@ -227,10 +225,6 @@ function toggleLink() {
       <div v-if="isCreatingVar" class="var-create-inline">
         <input v-model="newVarName" type="text" :placeholder="t('chatbot.properties.variable_name')" @keyup.enter="confirmCreateVariable" class="var-input" />
         <div class="var-actions">
-          <select v-model="newVarType" class="var-select">
-            <option value="text">{{ t('chatbot.variables.type_text') }}</option>
-            <option value="number">{{ t('chatbot.variables.type_number') }}</option>
-          </select>
           <button @click="confirmCreateVariable" class="btn-confirm-var">{{ t('chatbot.editor.rich_text.confirm') }}</button>
         </div>
       </div>
@@ -363,10 +357,10 @@ function toggleLink() {
 
 /* Formulário Inline de Variáveis */
 .var-create-inline { display: flex; flex-direction: column; gap: 6px; padding: 4px; }
-.var-input, .var-select {
+.var-input {
   padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; outline: none; width: 100%; box-sizing: border-box;
 }
-.var-input:focus, .var-select:focus { border-color: #3b82f6; }
+.var-input:focus { border-color: #3b82f6; }
 .var-actions { display: flex; gap: 6px; }
 .btn-confirm-var {
   background: #3b82f6; color: white; border: none; border-radius: 4px;

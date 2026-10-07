@@ -1,10 +1,23 @@
 import type { ChatbotProject, VariableType } from '../types/chatbot';
 
+const NUMBER_PATTERN = /^[+-]?\d+([.,]\d+)?$/;
+
+/**
+ * Lê um número digitado, independente do idioma: aceita um único separador decimal (`.` ou `,`)
+ * e não aceita separador de milhar (`"1.000"` é 1). Texto vazio ou não numérico vira `null`.
+ */
+export function parseNumber(raw: string | number): number | null {
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+  const text = raw.trim();
+  if (!NUMBER_PATTERN.test(text)) return null;
+  const value = Number(text.replace(',', '.'));
+  return Number.isFinite(value) ? value : null;
+}
+
 /** Converte um valor digitado para o tipo da variável (número inválido vira 0). */
 export function coerceVariableValue(type: VariableType, raw: string | number): string | number {
   if (type === 'text') return String(raw);
-  const value = Number(typeof raw === 'string' ? raw.trim().replace(',', '.') : raw);
-  return Number.isFinite(value) ? value : 0;
+  return parseNumber(raw) ?? 0;
 }
 
 export type VariableNameError = 'EMPTY' | 'TAKEN';

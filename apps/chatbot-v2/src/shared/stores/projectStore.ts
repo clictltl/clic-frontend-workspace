@@ -259,7 +259,7 @@ export const useProjectStore = defineStore('chatbot-project', {
 
     // --- VARIÁVEIS ---
     /** Retorna o ID criado, ou null se o nome for vazio/repetido. */
-    addVariable(name: string, type: VariableType) {
+    addVariable(name: string, type: VariableType = 'text') {
       if (checkVariableName(this.project, name)) return null;
       const id = deps.newId();
       this.project.variables[id] = { id, name: name.trim(), type, defaultValue: type === 'number' ? 0 : '' };

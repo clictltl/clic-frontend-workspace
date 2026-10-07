@@ -4,7 +4,7 @@ import {
 } from '../types/chatbot';
 import { edgeId } from '../domain/graph';
 import { RICH_TEXT_NODES } from '../domain/richText';
-import { coerceVariableValue } from '../domain/variables';
+import { coerceVariableValue, parseNumber } from '../domain/variables';
 import type { ChatMessage, ChatState, ChatValues } from './types';
 
 /**
@@ -170,6 +170,11 @@ function matchesCondition(project: ChatbotProject, values: ChatValues, condition
   if (left === undefined || right === undefined) return false;
 
   if (variable.type === 'number') return compare(Number(left), condition.operator, Number(right));
+
+  // Texto que parece número dos dois lados: compara como número ("10" > "9")
+  const leftNumber = parseNumber(left);
+  const rightNumber = parseNumber(right);
+  if (leftNumber !== null && rightNumber !== null) return compare(leftNumber, condition.operator, rightNumber);
 
   // Texto: igualdade ignora maiúsculas e espaços nas pontas (como no v1)
   const a = String(left);
