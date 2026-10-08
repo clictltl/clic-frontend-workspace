@@ -14,6 +14,7 @@ import type { DomainDeps } from './deps';
 import { createRichText } from './richText';
 import { edgeId } from './graph';
 import { isV1Project, migrateV1, type MigrationWarning } from './migrations/v1';
+import { createAppearance, normalizeAppearance } from './appearance';
 
 // --- FÁBRICAS ---
 
@@ -74,6 +75,7 @@ export function createProject(deps: DomainDeps, now: string): ChatbotProject {
   return {
     uuid: deps.newId(),
     title: '',
+    appearance: createAppearance(),
     meta: { version: PROJECT_VERSION, createdAt: now, updatedAt: now },
     nodes: { [start.id]: start, [message.id]: message },
     edges: { [id]: { id, sourceNode: start.id, sourceHandle: HANDLE_OUT, targetNode: message.id } },
@@ -137,6 +139,7 @@ export function parseProject(json: unknown, deps: DomainDeps, now: string): Pars
     ...data,
     uuid: typeof data.uuid === 'string' && data.uuid ? data.uuid : deps.newId(),
     title: typeof data.title === 'string' ? data.title : '',
+    appearance: normalizeAppearance(data.appearance),
     meta: { createdAt: now, updatedAt: now, ...data.meta },
     nodes: asRecord(data.nodes),
     edges: asRecord(data.edges),

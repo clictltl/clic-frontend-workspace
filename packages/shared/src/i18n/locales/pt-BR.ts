@@ -218,6 +218,7 @@ export default {
       tabs: {
         block: 'Bloco',
         variables: 'Variáveis',
+        appearance: 'Aparência',
         preview: 'Preview'
       },
       context_menu: {
@@ -358,6 +359,39 @@ export default {
       media_broken: 'Não foi possível carregar a imagem',
       media_unsupported: 'Mídia ainda não suportada nesta versão'
     },
+    appearance: {
+      title: 'Título do chatbot',
+      title_placeholder: 'Ex.: Dona Coruja',
+      avatar: 'Avatar',
+      welcome_title: 'Título da tela inicial',
+      theme: 'Tema',
+      themes: {
+        classic: 'Clássico',
+        ocean: 'Oceano',
+        forest: 'Floresta',
+        sunset: 'Pôr do sol',
+        cotton_candy: 'Algodão-doce',
+        notebook: 'Caderno',
+        night: 'Noite',
+        space: 'Espaço',
+        high_contrast: 'Alto contraste'
+      },
+      font: 'Fonte',
+      fonts: {
+        system: 'Padrão',
+        andika: 'Andika',
+        nunito: 'Nunito',
+        atkinson: 'Atkinson',
+        comic: 'Comic Neue'
+      },
+      font_sample: 'Olá, tudo bem?',
+      font_size: 'Tamanho da letra',
+      font_sizes: {
+        small: 'Pequena',
+        medium: 'Média',
+        large: 'Grande'
+      }
+    },
     variables: {
       title_new: 'Nova Variável',
       title_list: 'Variáveis Criadas',
@@ -439,6 +473,7 @@ export default {
       updateConnection: 'Ajuste de Caminho (Linha)',
 
       renameProject: 'Alteração do Título',
+      setAppearance: 'Edição da aparência',
       addNode: 'Criação de Nó',
       moveNodes: 'Movimentação de Nó',
       deleteNode: 'Exclusão de Nó',

@@ -56,12 +56,23 @@ export function getNodeAssetIds(node: ChatNode): string[] {
   return [...ids];
 }
 
+/** Elemento que representa o avatar em `findAssetUsages` (não é um nó). */
+export const APPEARANCE_ELEMENT_ID = 'appearance';
+
+/** Todos os arquivos enviados em uso no projeto: nós e avatar. */
+function usedAssetIds(project: ChatbotProject): Set<string> {
+  const ids = new Set(Object.values(project.nodes).flatMap(getNodeAssetIds));
+  const avatarId = choiceMediaAssetId(project.appearance?.avatar ?? null);
+  if (avatarId) ids.add(avatarId);
+  return ids;
+}
+
 /**
- * Cópia do projeto sem assets que nenhum nó usa mais (para salvar/exportar).
+ * Cópia do projeto sem assets que nada usa mais (para salvar/exportar).
  * O estado do editor não é alterado: o undo ainda pode trazer a mídia de volta.
  */
 export function withoutUnusedAssets(project: ChatbotProject): ChatbotProject {
-  const used = new Set(Object.values(project.nodes).flatMap(getNodeAssetIds));
+  const used = usedAssetIds(project);
   const copy: ChatbotProject = JSON.parse(JSON.stringify(project));
   for (const id of Object.keys(copy.assets)) {
     if (!used.has(id)) delete copy.assets[id];
@@ -69,9 +80,11 @@ export function withoutUnusedAssets(project: ChatbotProject): ChatbotProject {
   return copy;
 }
 
-/** IDs dos nós que exibem o asset (alimenta o `isAssetUsed` do assetStore). */
+/** IDs dos nós (e `APPEARANCE_ELEMENT_ID`, se for o avatar) que exibem o asset. Alimenta o `isAssetUsed` do assetStore. */
 export function findAssetUsages(project: ChatbotProject, assetId: string): string[] {
-  return Object.values(project.nodes)
+  const usages = Object.values(project.nodes)
     .filter(node => getNodeAssetIds(node).includes(assetId))
     .map(node => node.id);
+  if (choiceMediaAssetId(project.appearance?.avatar ?? null) === assetId) usages.push(APPEARANCE_ELEMENT_ID);
+  return usages;
 }

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, watch } from 'vue';
+import { onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { MessageCircle, RotateCcw, X } from '@lucide/vue';
 import { telemetryService } from '@clic/shared';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { useChatSession } from '../../../shared/chat/useChatSession';
 import ChatInterface from '../../../shared/chat/ChatInterface.vue';
+import ChatTitleBar from '../../../shared/chat/ChatTitleBar.vue';
 import { testActiveNodeId } from '../../utils/testRun';
 
 const emit = defineEmits<{ close: [] }>();
@@ -20,7 +21,7 @@ const session = useChatSession({
 
 watch(session.activeNodeId, id => { testActiveNodeId.value = id; }, { immediate: true });
 
-onMounted(() => session.start());
+// Abre na tela inicial, como no runtime (prévia do título); o botão do cabeçalho reinicia direto
 onBeforeUnmount(() => { testActiveNodeId.value = null; });
 </script>
 
@@ -39,7 +40,9 @@ onBeforeUnmount(() => { testActiveNodeId.value = null; });
         </button>
       </div>
     </header>
-    <ChatInterface :session="session" mode="test" />
+    <!-- Prévia do chat como o aluno vê: acompanha a aba Aparência ao vivo -->
+    <ChatTitleBar :title="projectStore.project.title" :appearance="projectStore.project.appearance" />
+    <ChatInterface :session="session" :appearance="projectStore.project.appearance" />
   </aside>
 </template>
 

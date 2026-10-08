@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Database, Plus, Trash2, Hash, Type } from '@lucide/vue';
+import { Plus, Trash2, Hash, Type } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { checkVariableName, type VariableNameError } from '../../../shared/domain/variables';
@@ -64,11 +64,6 @@ function confirmDelete() {
 
 <template>
   <div class="panel">
-    <div class="panel-header">
-      <Database :size="20" />
-      <h2>{{ t('chatbot.editor.tabs.variables') }}</h2>
-    </div>
-
     <div class="panel-content">
       <!-- Formulário de Criação -->
       <div class="create-form">
@@ -133,12 +128,6 @@ function confirmDelete() {
 
 <style scoped>
 .panel { display: flex; flex-direction: column; height: 100%; }
-.panel-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 16px; border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb; color: #374151;
-}
-.panel-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
 .panel-content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 
 .create-form { display: flex; gap: 8px; }

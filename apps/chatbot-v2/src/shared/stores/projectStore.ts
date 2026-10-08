@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type {
+  Appearance,
   AssignmentValue,
   ChatbotProject,
   ChatNodeOf,
@@ -41,6 +42,7 @@ export const useProjectStore = defineStore('chatbot-project', {
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
       renameProject: 'chatbot.history.renameProject',
+      setAppearance: 'chatbot.history.setAppearance',
       addNode: 'chatbot.history.addNode',
       moveNodes: 'chatbot.history.moveNodes',
       deleteNode: 'chatbot.history.deleteNode',
@@ -142,6 +144,10 @@ export const useProjectStore = defineStore('chatbot-project', {
 
     renameProject(title: string) {
       this.project.title = title;
+    },
+
+    setAppearance(changes: Partial<Appearance>) {
+      Object.assign(this.project.appearance, changes);
     },
 
     // --- NÓS ---

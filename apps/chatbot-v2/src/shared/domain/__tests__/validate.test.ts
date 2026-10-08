@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { HANDLE_ELSE, HANDLE_OUT, type ChatNodeOf } from '../../types/chatbot';
 import { connect, edgeId } from '../graph';
-import { findAssetUsages, findVariableUsages, withoutUnusedAssets } from '../usages';
+import { APPEARANCE_ELEMENT_ID, findAssetUsages, findVariableUsages, withoutUnusedAssets } from '../usages';
 import { validateFlow } from '../validate';
 import { setup } from './helpers';
 
@@ -116,5 +116,15 @@ describe('usages', () => {
     const clean = withoutUnusedAssets(project);
     expect(Object.keys(clean.assets)).toEqual(['used']);
     expect(Object.keys(project.assets)).toEqual(['used', 'orphan']);
+  });
+
+  it('counts the avatar image as used', () => {
+    const { project } = setup();
+    const asset = (id: string) => ({ id, type: 'image/png', originalName: `${id}.png`, size: 1, hash: id, source: 'local' as const });
+    project.assets = { avatar: asset('avatar') };
+    project.appearance.avatar = { kind: 'image', source: { kind: 'upload', assetId: 'avatar' } };
+
+    expect(findAssetUsages(project, 'avatar')).toEqual([APPEARANCE_ELEMENT_ID]);
+    expect(Object.keys(withoutUnusedAssets(project).assets)).toEqual(['avatar']);
   });
 });

@@ -217,6 +217,7 @@ export default {
       tabs: {
         block: 'Block',
         variables: 'Variables',
+        appearance: 'Appearance',
         preview: 'Preview'
       },
       context_menu: {
@@ -357,6 +358,39 @@ export default {
       media_broken: 'Could not load the image',
       media_unsupported: 'Media not supported in this version yet'
     },
+    appearance: {
+      title: 'Chatbot title',
+      title_placeholder: 'E.g.: Mrs. Owl',
+      avatar: 'Avatar',
+      welcome_title: 'Start screen title',
+      theme: 'Theme',
+      themes: {
+        classic: 'Classic',
+        ocean: 'Ocean',
+        forest: 'Forest',
+        sunset: 'Sunset',
+        cotton_candy: 'Cotton candy',
+        notebook: 'Notebook',
+        night: 'Night',
+        space: 'Space',
+        high_contrast: 'High contrast'
+      },
+      font: 'Font',
+      fonts: {
+        system: 'Default',
+        andika: 'Andika',
+        nunito: 'Nunito',
+        atkinson: 'Atkinson',
+        comic: 'Comic Neue'
+      },
+      font_sample: 'Hi, how are you?',
+      font_size: 'Text size',
+      font_sizes: {
+        small: 'Small',
+        medium: 'Medium',
+        large: 'Large'
+      }
+    },
     variables: {
       title_new: 'New Variable',
       title_list: 'Created Variables',
@@ -438,6 +472,7 @@ export default {
       updateConnection: 'Path Adjustment (Line)',
 
       renameProject: 'Title Change',
+      setAppearance: 'Appearance Change',
       addNode: 'Node Creation',
       moveNodes: 'Node Movement',
       deleteNode: 'Node Deletion',

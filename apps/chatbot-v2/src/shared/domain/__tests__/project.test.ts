@@ -83,6 +83,22 @@ describe('parseProject', () => {
     if (!result.ok) return;
     expect(result.project.nodes.m).toMatchObject({ data: { delay: 0, media: null } });
     expect(result.project.nodes.c).toMatchObject({ data: { choices: [{ id: 'o', label: 'A', media: null }] } });
+    expect(result.project.appearance).toEqual({ avatar: null, theme: 'classic', font: 'system', fontSize: 'medium', welcomeTitle: '' });
+  });
+
+  it('keeps a valid appearance and resets invalid fields', () => {
+    const deps = createDeps();
+    const parse = (appearance: unknown) => {
+      const result = parseProject({ meta: { version: '2.0.0' }, appearance }, deps, NOW);
+      return result.ok ? result.project.appearance : null;
+    };
+
+    const valid = { avatar: { kind: 'emoji', emoji: '🦉' }, theme: 'space', font: 'andika', fontSize: 'large', welcomeTitle: 'Oi!' };
+    expect(parse(valid)).toEqual(valid);
+    expect(parse({
+      avatar: { kind: 'image', source: { kind: 'url', url: 'javascript:alert(1)' } },
+      theme: '#ff0000', font: 'Papyrus', fontSize: 40, welcomeTitle: 'x'.repeat(200)
+    })).toEqual({ avatar: null, theme: 'classic', font: 'system', fontSize: 'medium', welcomeTitle: 'x'.repeat(60) });
   });
 
   it('recreates a missing Start node', () => {

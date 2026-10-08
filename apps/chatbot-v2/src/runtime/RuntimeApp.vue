@@ -10,6 +10,7 @@ import appLogo from '../assets/logo_novelo.svg';
 import { provideMediaResolver } from '../shared/media/resolver';
 import { useChatSession } from '../shared/chat/useChatSession';
 import ChatInterface from '../shared/chat/ChatInterface.vue';
+import ChatTitleBar from '../shared/chat/ChatTitleBar.vue';
 
 const { t } = useI18n();
 
@@ -74,9 +75,10 @@ onMounted(loadProject);
 
     <div class="runtime-page">
       <div class="runtime-widget">
-        <header class="runtime-header">
+        <ChatTitleBar v-if="project" :title="project.title" :appearance="project.appearance" />
+        <header v-else class="runtime-header">
           <div class="widget-title">
-            <Bot :size="18" /> <span>{{ project?.title || t('chatbot.runtime.status.chat_title') }}</span>
+            <Bot :size="18" /> <span>{{ t('chatbot.runtime.status.chat_title') }}</span>
           </div>
         </header>
 
@@ -91,7 +93,7 @@ onMounted(loadProject);
             <p>{{ t('chatbot.runtime.status.unavailable') }}</p>
           </div>
 
-          <ChatInterface v-else :session="session" mode="runtime" />
+          <ChatInterface v-else-if="project" :session="session" :appearance="project.appearance" />
         </main>
       </div>
     </div>

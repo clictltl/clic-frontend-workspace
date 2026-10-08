@@ -5,7 +5,7 @@ import { Plus, Trash2 } from '@lucide/vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { getNodeOfType } from '../../../../shared/domain/graph';
 import DraftInput from '../../common/DraftInput.vue';
-import ChoiceMediaEditor from './ChoiceMediaEditor.vue';
+import ChoiceMediaPicker from '../../common/ChoiceMediaPicker.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const { t } = useI18n();
@@ -19,7 +19,7 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'c
     <label>{{ t('chatbot.properties.choices_label') }}</label>
     <div class="list-container">
       <div v-for="choice in node.data.choices" :key="choice.id" class="list-item">
-        <ChoiceMediaEditor :node-id="nodeId" :choice="choice" />
+        <ChoiceMediaPicker :media="choice.media" @change="media => projectStore.setChoiceMedia(nodeId, choice.id, media)" />
         <DraftInput
           :model-value="choice.label"
           :placeholder="t('chatbot.properties.new_choice')"

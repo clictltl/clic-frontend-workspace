@@ -12,6 +12,7 @@ import {
 import type { DomainDeps } from '../deps';
 import { connect } from '../graph';
 import { createRichText, RICH_TEXT_NODES } from '../richText';
+import { createAppearance } from '../appearance';
 
 /**
  * MIGRAÇÃO DO CHATBOT v1 → v2
@@ -119,6 +120,7 @@ export function migrateV1(json: Record<string, any>, deps: DomainDeps, now: stri
   const project: ChatbotProject = {
     uuid: typeof json.uuid === 'string' && json.uuid ? json.uuid : deps.newId(),
     title: typeof json.title === 'string' ? json.title : '',
+    appearance: createAppearance(), // O v1 não tinha aparência
     meta: {
       ...(json.meta && typeof json.meta === 'object' ? json.meta : {}),
       createdAt: json.meta?.createdAt ?? now,

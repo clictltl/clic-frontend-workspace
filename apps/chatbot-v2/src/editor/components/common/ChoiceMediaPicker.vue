@@ -2,18 +2,20 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ImagePlus, Smile, X } from '@lucide/vue';
-import { useProjectStore } from '../../../../shared/stores/projectStore';
-import type { Choice, MediaSource } from '../../../../shared/types/chatbot';
-import { EMOJI_PICKER_SIZE, useEmojiPicker } from '../../../utils/useEmojiPicker';
-import { placePopover } from '../../../utils/popover';
-import ChoiceMediaView from '../../../../shared/components/ChoiceMediaView.vue';
-import MediaSourcePicker from '../../common/MediaSourcePicker.vue';
+import type { ChoiceMedia, MediaSource } from '../../../shared/types/chatbot';
+import { EMOJI_PICKER_SIZE, useEmojiPicker } from '../../utils/useEmojiPicker';
+import { placePopover } from '../../utils/popover';
+import ChoiceMediaView from '../../../shared/components/ChoiceMediaView.vue';
+import MediaSourcePicker from './MediaSourcePicker.vue';
 
-/** Escolhe o emoji ou a imagem de uma opção (ou remove). Cada escolha é uma action. */
-const props = defineProps<{ nodeId: string; choice: Choice }>();
+/**
+ * Escolhe um emoji ou uma imagem (ou remove). Usado nas opções da múltipla escolha e no avatar.
+ * Cada escolha emite um único `change`, que vira uma action de quem usa.
+ */
+withDefaults(defineProps<{ media: ChoiceMedia | null; size?: number }>(), { size: 28 });
+const emit = defineEmits<{ change: [media: ChoiceMedia | null] }>();
 
 const { t } = useI18n();
-const projectStore = useProjectStore();
 
 const IMAGE_POPOVER_SIZE = { width: 280, height: 140 };
 
@@ -25,7 +27,7 @@ const imageContainer = ref<HTMLElement | null>(null);
 const popoverStyle = ref({ top: '0px', left: '0px' });
 
 const emojiPicker = useEmojiPicker(emoji => {
-  projectStore.setChoiceMedia(props.nodeId, props.choice.id, { kind: 'emoji', emoji });
+  emit('change', { kind: 'emoji', emoji });
   open.value = null;
 });
 
@@ -41,7 +43,7 @@ async function toggle(kind: 'emoji' | 'image') {
 }
 
 function selectImage(source: MediaSource) {
-  projectStore.setChoiceMedia(props.nodeId, props.choice.id, { kind: 'image', source });
+  emit('change', { kind: 'image', source });
   open.value = null;
 }
 
@@ -57,9 +59,9 @@ onBeforeUnmount(() => window.removeEventListener('mousedown', closeOnOutside));
 
 <template>
   <div class="choice-media-editor">
-    <template v-if="choice.media">
-      <ChoiceMediaView :media="choice.media" :size="28" />
-      <button class="btn-icon danger" :title="t('chatbot.properties.remove_media')" @click="projectStore.setChoiceMedia(nodeId, choice.id, null)">
+    <template v-if="media">
+      <ChoiceMediaView :media="media" :size="size" />
+      <button class="btn-icon danger" :title="t('chatbot.properties.remove_media')" @click="emit('change', null)">
         <X :size="14" />
       </button>
     </template>

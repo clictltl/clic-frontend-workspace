@@ -3,6 +3,9 @@ import { nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AlertTriangle, Bot, Play, RefreshCw, Send } from '@lucide/vue';
 import type { ChatSession } from './useChatSession';
+import type { Appearance } from '../types/chatbot';
+import { appearanceStyle } from '../domain/appearance';
+import { loadChatFont } from './chatFonts';
 import { isRichTextEmpty } from '../domain/richText';
 import ChatRichText from './ChatRichText.vue';
 import MediaView from '../components/MediaView.vue';
@@ -11,12 +14,15 @@ import ChoiceMediaView from '../components/ChoiceMediaView.vue';
 /** Conversa com o chatbot: usada no "Testar" do editor e no runtime do aluno. */
 const props = defineProps<{
   session: ChatSession;
-  mode: 'test' | 'runtime';
+  appearance: Appearance; // Tema, fonte e textos (o painel Testar acompanha as mudanças ao vivo)
 }>();
 
 const { t } = useI18n();
 const userInput = ref('');
 const endRef = ref<HTMLDivElement | null>(null);
+
+// Baixa a fonte escolhida (até chegar, o texto aparece na fonte do sistema)
+watch(() => props.appearance.font, font => { loadChatFont(font); }, { immediate: true });
 
 // Rola até o fim a cada mensagem nova, "digitando…" ou opções
 watch(
@@ -40,15 +46,16 @@ function start() {
 </script>
 
 <template>
-  <div class="chat-interface">
+  <div class="chat-interface" :style="appearanceStyle(appearance)">
     <!-- Antes de começar -->
     <div v-if="!session.isActive.value" class="start-screen">
-      <Bot :size="48" color="#3b82f6" />
-      <h3>{{ mode === 'test' ? t('chatbot.runtime.preview.title') : t('chatbot.runtime.player.title') }}</h3>
-      <p>{{ mode === 'test' ? t('chatbot.runtime.preview.desc') : t('chatbot.runtime.player.desc') }}</p>
+      <ChoiceMediaView v-if="appearance.avatar" :media="appearance.avatar" :size="56" />
+      <Bot v-else :size="48" class="start-icon" />
+      <h3>{{ appearance.welcomeTitle.trim() || t('chatbot.runtime.player.title') }}</h3>
+      <p>{{ t('chatbot.runtime.player.desc') }}</p>
       <button class="btn-start" @click="start">
         <Play :size="16" fill="currentColor" />
-        {{ mode === 'test' ? t('chatbot.runtime.preview.btn_start') : t('chatbot.runtime.player.btn_start') }}
+        {{ t('chatbot.runtime.player.btn_start') }}
       </button>
     </div>
 
@@ -126,20 +133,27 @@ function start() {
 </template>
 
 <style scoped>
-.chat-interface { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: transparent; min-height: 0; }
+/* Cores, fonte e tamanho vêm do tema (variáveis --chat-*, ver domain/appearance.ts) */
+.chat-interface {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+  background-color: var(--chat-bg); background-image: var(--chat-bg-image);
+  background-size: 200px 200px; background-attachment: local;
+  color: var(--chat-text); font-family: var(--chat-font-family);
+}
 
 .start-screen {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 16px; padding: 32px; text-align: center;
 }
-.start-screen h3 { margin: 0; font-size: 18px; font-weight: 700; color: #111827; }
-.start-screen p { color: #6b7280; font-size: 14px; margin: 0; max-width: 280px; line-height: 1.5; }
+.start-icon { color: var(--chat-accent); }
+.start-screen h3 { margin: 0; font-size: calc(var(--chat-font-size) + 5px); font-weight: 700; color: var(--chat-text); overflow-wrap: anywhere; }
+.start-screen p { color: var(--chat-muted); font-size: var(--chat-font-size); margin: 0; max-width: 280px; line-height: 1.5; }
 .btn-start {
-  padding: 12px 24px; background: #10b981; color: white; border: none; border-radius: 8px;
-  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  padding: 12px 24px; background: var(--chat-accent); color: var(--chat-on-accent); border: none; border-radius: 8px;
+  font-family: inherit; font-size: var(--chat-font-size); font-weight: 700; cursor: pointer; transition: all 0.2s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.btn-start:hover { background: #059669; transform: translateY(-1px); }
+.btn-start:hover { background: var(--chat-accent-hover); transform: translateY(-1px); }
 
 .chat-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -150,17 +164,23 @@ function start() {
 .message-user { justify-content: flex-end; }
 
 .message-bubble {
-  max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; word-wrap: break-word;
+  max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: var(--chat-font-size); line-height: 1.5; word-wrap: break-word;
   display: flex; flex-direction: column; gap: 8px;
 }
-.message-bot .message-bubble { background: white; color: #374151; border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-.message-user .message-bubble { background: #3b82f6; color: white; border-bottom-right-radius: 4px; flex-direction: row; align-items: center; }
+.message-bot .message-bubble {
+  background: var(--chat-bot-bg); color: var(--chat-bot-text); border: 1px solid var(--chat-bot-border);
+  border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.message-user .message-bubble {
+  background: var(--chat-user-bg); color: var(--chat-user-text);
+  border-bottom-right-radius: 4px; flex-direction: row; align-items: center;
+}
 .message-media { margin: -4px -6px; }
 .message-error { flex-direction: row !important; align-items: center; color: #b91c1c !important; background: #fef2f2 !important; border-color: #fca5a5 !important; }
 
 /* Digitando… */
 .typing { flex-direction: row; gap: 4px; padding: 12px 14px; }
-.typing span { width: 6px; height: 6px; border-radius: 50%; background: #9ca3af; animation: blink 1.2s infinite ease-in-out; }
+.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--chat-muted); animation: blink 1.2s infinite ease-in-out; }
 .typing span:nth-child(2) { animation-delay: 0.2s; }
 .typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
@@ -168,29 +188,35 @@ function start() {
 .choices-container { display: flex; flex-direction: column; gap: 8px; animation: slideIn 0.3s ease-out; }
 .choice-button {
   display: flex; align-items: center; gap: 8px;
-  padding: 10px 16px; background: white; color: #3b82f6; border: 2px solid #3b82f6; border-radius: 8px;
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left;
+  padding: 10px 16px; background: var(--chat-surface); color: var(--chat-accent); border: 2px solid var(--chat-accent); border-radius: 8px;
+  font-family: inherit; font-size: var(--chat-font-size); font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;
 }
-.choice-button:hover { background: #eff6ff; transform: translateX(4px); }
+.choice-button:hover { background: color-mix(in srgb, var(--chat-accent) 12%, var(--chat-surface)); transform: translateX(4px); }
 
-.input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #e5e7eb; background: white; }
-.input-area input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
-.input-area input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--chat-border); background: var(--chat-surface); }
+.input-area input {
+  flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--chat-border); border-radius: 8px;
+  background: var(--chat-surface); color: var(--chat-text); font-family: inherit; font-size: var(--chat-font-size);
+}
+.input-area input::placeholder { color: var(--chat-muted); }
+.input-area input:focus { outline: none; border-color: var(--chat-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chat-accent) 25%, transparent); }
 .btn-send {
-  padding: 10px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  padding: 10px 16px; background: var(--chat-accent); color: var(--chat-on-accent); border: none; border-radius: 8px;
+  font-family: inherit; font-size: var(--chat-font-size); font-weight: 700;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.btn-send:hover { background: #2563eb; }
+.btn-send:hover { background: var(--chat-accent-hover); }
 
-.restart-area { padding: 12px; border-top: 1px solid #e5e7eb; background: white; text-align: center; }
+.restart-area { padding: 12px; border-top: 1px solid var(--chat-border); background: var(--chat-surface); text-align: center; }
 .btn-restart {
-  padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  padding: 10px 20px; background: var(--chat-accent); color: var(--chat-on-accent); border: none; border-radius: 8px;
+  font-family: inherit; font-size: var(--chat-font-size); font-weight: 700;
   cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
-.btn-restart:hover { background: #059669; }
+.btn-restart:hover { background: var(--chat-accent-hover); }
 
 @media (max-width: 480px) {
   .hide-mobile { display: none; }
-  .input-area input { font-size: 16px; /* evita zoom no iOS */ }
+  .input-area input { font-size: max(16px, var(--chat-font-size)); /* evita zoom no iOS */ }
 }
 </style>

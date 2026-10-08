@@ -147,8 +147,32 @@ export interface ChatEdge {
 
 // --- PROJETO ---
 
+// --- APARÊNCIA (runtime e painel Testar) ---
+
+/** Temas do chat (chaves, não hex: as cores podem ser ajustadas sem mudar o JSON). */
+export const THEMES = [
+  'classic', 'ocean', 'forest', 'sunset', 'cotton_candy', 'notebook', 'night', 'space', 'high_contrast'
+] as const;
+export type ThemeKey = (typeof THEMES)[number];
+
+/** Fontes do chat ('system' não baixa nada; as outras vêm no build, sem CDN). */
+export const CHAT_FONTS = ['system', 'andika', 'nunito', 'atkinson', 'comic'] as const;
+export type ChatFont = (typeof CHAT_FONTS)[number];
+
+export const FONT_SIZES = ['small', 'medium', 'large'] as const;
+export type FontSize = (typeof FONT_SIZES)[number];
+
+export interface Appearance {
+  avatar: ChoiceMedia | null; // Emoji ou imagem ao lado do título (null = ícone padrão)
+  theme: ThemeKey;
+  font: ChatFont;
+  fontSize: FontSize;
+  welcomeTitle: string; // Título da tela inicial ('' = texto padrão no idioma de quem abre)
+}
+
 export interface ChatbotProject extends ClicBaseProject {
-  title: string;
+  title: string; // Título exibido no cabeçalho do chat
+  appearance: Appearance;
   nodes: Record<string, ChatNode>;
   edges: Record<string, ChatEdge>;
   variables: Record<string, Variable>;
