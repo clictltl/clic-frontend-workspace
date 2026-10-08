@@ -1,35 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { getSmoothStepPath, Position } from '@vue-flow/core';
+import type { GraphNode } from '@vue-flow/core';
+import { edgePath, nodeBox, type Box } from '../../../utils/edgePath';
 
+/**
+ * Linha tracejada enquanto se cria uma conexão (arrastando ou no modo clique).
+ * Usa o mesmo traçado das conexões: para trás, já mostra a volta contornando o bloco.
+ */
 const props = defineProps<{
   sourceX: number;
   sourceY: number;
   targetX: number;
   targetY: number;
-  sourcePosition: Position;
-  targetPosition?: Position;
+  sourceNode?: GraphNode | null; // Vem do Vue Flow no modo arrastar
+  targetNode?: GraphNode | null;
+  sourceBox?: Box | null;        // Vem do modo clique
 }>();
 
-const opposite: Record<Position, Position> = {
-  [Position.Top]: Position.Bottom,
-  [Position.Bottom]: Position.Top,
-  [Position.Left]: Position.Right,
-  [Position.Right]: Position.Left,
-};
-
-const d = computed(() => {
-  const [path] = getSmoothStepPath({
-    sourceX: props.sourceX,
-    sourceY: props.sourceY,
-    sourcePosition: props.sourcePosition,
-    targetX: props.targetX,
-    targetY: props.targetY,
-    targetPosition: props.targetPosition ?? opposite[props.sourcePosition],
-    borderRadius: 16,
-  });
-  return path;
-});
+const d = computed(() => edgePath({
+  sourceX: props.sourceX, sourceY: props.sourceY,
+  targetX: props.targetX, targetY: props.targetY,
+  sourceBox: props.sourceBox ?? nodeBox(props.sourceNode),
+  targetBox: nodeBox(props.targetNode)
+}));
 </script>
 
 <template>

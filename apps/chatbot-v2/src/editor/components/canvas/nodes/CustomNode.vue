@@ -324,9 +324,15 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   top: 50% !important;
 }
 
-/* Saídas internas (Opções e Regras), a 8px da borda interna do botão/caixa */
+/* Saídas das opções e regras: na borda direita do bloco, na altura da opção/regra.
+   -20px = margem interna do corpo (12px) + metade da bolinha (8px), alinhada à saída padrão */
 :deep(.inner-handle) {
-  right: 8px !important;
+  right: -20px !important;
   top: 50% !important;
+}
+
+/* Área de toque maior que a bolinha (dedo, mãos de criança), sem mudar o visual */
+:deep(.node-handle)::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
 }
 </style>

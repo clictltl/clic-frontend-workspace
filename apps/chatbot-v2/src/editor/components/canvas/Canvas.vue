@@ -9,7 +9,8 @@ import GhostPath from './edges/GhostPath.vue';
 import ClickConnectionLine from './edges/ClickConnectionLine.vue';
 import ContextMenu from './ContextMenu.vue';
 import EdgeContextMenu from './edges/EdgeContextMenu.vue';
-import type { NodeType } from '../../../shared/types/chatbot';
+import type { ChatEdge, NodeType } from '../../../shared/types/chatbot';
+import { assignBackEdgeLanes, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
 
 const projectStore = useProjectStore();
 
@@ -49,18 +50,34 @@ const flowNodes = computed(() => {
   }));
 });
 
+// Voltas (laços) ganham faixas próprias; com um bloco selecionado, as conexões dele
+// se destacam e são desenhadas por último (por cima das outras)
 const flowEdges = computed(() => {
-  return Object.values(projectStore.project.edges).map(e => ({
-    id: e.id,
-    type: 'custom',
-    source: e.sourceNode,
-    sourceHandle: e.sourceHandle,
-    target: e.targetNode,
-    targetHandle: 'in', // Todo nó tem uma única entrada
-    data: { edgeData: e },
-    animated: projectStore.selectedEdgeId === e.id,
-    markerEnd: { type: MarkerType.ArrowClosed, color: e.color || '#9ca3af' }
-  }));
+  const edges = Object.values(projectStore.project.edges);
+  const positions = Object.fromEntries(Object.values(projectStore.project.nodes).map(n => [n.id, n.position]));
+  const lanes = assignBackEdgeLanes(edges, positions);
+  const selectedNode = projectStore.selectedNodeId;
+
+  const emphasisOf = (e: ChatEdge): EdgeEmphasis => {
+    if (!selectedNode) return 'normal';
+    return e.sourceNode === selectedNode || e.targetNode === selectedNode ? 'highlight' : 'dim';
+  };
+
+  return edges
+    .map(e => {
+      const data: FlowEdgeData = { color: e.color, lane: lanes[e.id] ?? 0, emphasis: emphasisOf(e) };
+      return {
+        id: e.id,
+        type: 'custom',
+        source: e.sourceNode,
+        sourceHandle: e.sourceHandle,
+        target: e.targetNode,
+        targetHandle: 'in', // Todo nó tem uma única entrada
+        data,
+        markerEnd: { type: MarkerType.ArrowClosed, color: e.color || '#9ca3af' }
+      };
+    })
+    .sort((a, b) => Number(a.data.emphasis === 'highlight') - Number(b.data.emphasis === 'highlight'));
 });
 
 // Bloqueia visualmente (durante o arraste) o que o domínio recusaria
@@ -165,7 +182,12 @@ function onPaneClick() {
 
       <!-- Modo drag: só renderiza se NÃO estiver no modo click -->
       <template #connection-line="props">
-        <GhostPath v-if="!connectionClickStartHandle" v-bind="props" />
+        <GhostPath
+          v-if="!connectionClickStartHandle"
+          :source-x="props.sourceX" :source-y="props.sourceY"
+          :target-x="props.targetX" :target-y="props.targetY"
+          :source-node="props.sourceNode" :target-node="props.targetNode"
+        />
       </template>
 
       <!-- Modo click (ViewportPortal garante que renderiza sempre atualizado com pan/zoom) -->

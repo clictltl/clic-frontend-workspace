@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
 import { useVueFlow, Position } from '@vue-flow/core';
+import { nodeBox } from '../../../utils/edgePath';
 import GhostPath from './GhostPath.vue';
 
 const { connectionClickStartHandle, findNode, screenToFlowCoordinate, viewport } = useVueFlow();
@@ -16,21 +17,18 @@ const source = computed(() => {
   const bounds = node?.handleBounds?.[h.type as 'source' | 'target'];
   if (!node || !bounds || bounds.length === 0) return null;
 
-  // Flexibilidade de versão: pega o ID do handle dependendo de como a biblioteca chama
-  const targetHandleId = (h as any).handleId || (h as any).id;
-  const hb = bounds.find((b) => b.id === targetHandleId) || bounds[0];
-  
-  // Blindagem TypeScript
+  const hb = bounds.find(b => b.id === h.id) ?? bounds[0];
   if (!hb) return null;
 
   const x = node.computedPosition.x + hb.x;
   const y = node.computedPosition.y + hb.y;
+  const box = nodeBox(node);
 
   switch (hb.position) {
-    case Position.Top:    return { x: x + hb.width / 2, y, position: hb.position };
-    case Position.Bottom: return { x: x + hb.width / 2, y: y + hb.height, position: hb.position };
-    case Position.Left:   return { x, y: y + hb.height / 2, position: hb.position };
-    default:              return { x: x + hb.width, y: y + hb.height / 2, position: hb.position };
+    case Position.Top:    return { x: x + hb.width / 2, y, box };
+    case Position.Bottom: return { x: x + hb.width / 2, y: y + hb.height, box };
+    case Position.Left:   return { x, y: y + hb.height / 2, box };
+    default:              return { x: x + hb.width, y: y + hb.height / 2, box };
   }
 });
 
@@ -72,7 +70,7 @@ onBeforeUnmount(detach);
       <GhostPath
         :source-x="source.x"
         :source-y="source.y"
-        :source-position="source.position"
+        :source-box="source.box"
         :target-x="cursor.x"
         :target-y="cursor.y"
       />
