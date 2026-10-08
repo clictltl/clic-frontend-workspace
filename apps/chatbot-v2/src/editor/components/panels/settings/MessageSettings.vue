@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { Timer } from '@lucide/vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { getNodeOfType } from '../../../../shared/domain/graph';
-import { MESSAGE_DELAY_MAX } from '../../../../shared/types/chatbot';
 import DraftInput from '../../common/DraftInput.vue';
 
 const props = defineProps<{ nodeId: string }>();
@@ -21,8 +20,6 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'm
       <DraftInput
         type="number"
         :model-value="node.data.delay"
-        :min="0"
-        :max="MESSAGE_DELAY_MAX"
         @commit="value => projectStore.setMessageDelay(nodeId, Number(value))"
       />
       <span>{{ t('chatbot.properties.delay_unit') }}</span>

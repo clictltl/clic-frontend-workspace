@@ -4,6 +4,8 @@ import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 /**
  * Input com rascunho local: o valor só é confirmado (`commit`) no blur ou no Enter.
  * Evita uma action (e um evento de telemetria) por tecla digitada. Esc descarta o rascunho.
+ * `type="number"` vira um campo de texto com teclado numérico: as setinhas nativas mudavam
+ * o valor sem dar foco (Firefox), e sem foco não há blur para confirmar.
  */
 const props = withDefaults(defineProps<{
   modelValue: string | number;
@@ -26,7 +28,6 @@ watch(() => props.modelValue, value => {
 
 function commit() {
   isFocused.value = false;
-  // Em type="number" o v-model do Vue converte para número: normaliza para string
   const value = String(draft.value);
   if (value !== String(props.modelValue)) emit('commit', value);
   // Se o valor foi recusado ou ajustado (ex.: limite, nome repetido), mostra o que ficou no store
@@ -49,7 +50,8 @@ function cancel(event: KeyboardEvent) {
 <template>
   <input
     v-model="draft"
-    :type="type"
+    type="text"
+    :inputmode="type === 'number' ? 'decimal' : undefined"
     :placeholder="placeholder"
     @focus="isFocused = true"
     @blur="commit"

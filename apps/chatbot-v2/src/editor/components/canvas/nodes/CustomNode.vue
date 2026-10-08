@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { Dices, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
-import { HANDLE_ELSE, HANDLE_OUT, MESSAGE_DELAY_MAX, type ComparisonOperator } from '../../../../shared/types/chatbot';
+import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
 import RichTextView from './RichTextView.vue';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
@@ -109,8 +109,6 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
             type="number"
             class="delay-input"
             :model-value="node.data.delay"
-            :min="0"
-            :max="MESSAGE_DELAY_MAX"
             @commit="value => projectStore.setMessageDelay(id, Number(value))"
           />
           <span>{{ t('chatbot.editor.delay_unit_short') }}</span>
@@ -260,7 +258,6 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   width: 32px; border: none; background: transparent; outline: none; padding: 0;
   font: inherit; color: inherit; text-align: right;
 }
-.delay-input::-webkit-inner-spin-button { display: none; }
 .delay-field:focus-within { box-shadow: 0 0 0 1px #3b82f6; }
 
 /* Resumo Lógico (Matemática e Definir Variável) */
