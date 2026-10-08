@@ -237,7 +237,10 @@ export default {
       colors: 'Cores',
       rich_text: {
         link: 'Link',
-        link_prompt: 'URL do link (inclua https://):',
+        link_placeholder: 'Endereço, ex.: www.site.com.br',
+        link_apply: 'Aplicar',
+        link_remove: 'Remover link',
+        link_invalid: 'Endereço inválido. Use algo como www.site.com.br',
         emoji: 'Emoji',
         insert_variable: 'Inserir Variável',
         add_variable: 'Adicionar Variável',

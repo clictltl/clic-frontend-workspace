@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isSafeMediaUrl, isValidMedia } from '../media';
+import { isSafeMediaUrl, isValidMedia, normalizeWebUrl } from '../media';
 import { setChoiceMedia, setMediaPosition, setNodeMedia } from '../graph';
 import type { Media } from '../../types/chatbot';
 import { setup } from './helpers';
@@ -13,6 +13,16 @@ describe('media links', () => {
     expect(isSafeMediaUrl('javascript:alert(1)')).toBe(false);
     expect(isSafeMediaUrl('data:image/png;base64,AAAA')).toBe(false);
     expect(isSafeMediaUrl('not a url')).toBe(false);
+  });
+
+  it('completes typed addresses and refuses unsafe or incomplete ones', () => {
+    expect(normalizeWebUrl(' www.site.com.br ')).toBe('https://www.site.com.br');
+    expect(normalizeWebUrl('site.com/pagina?x=1')).toBe('https://site.com/pagina?x=1');
+    expect(normalizeWebUrl('http://example.com')).toBe('http://example.com');
+    expect(normalizeWebUrl('javascript:alert(1)')).toBeNull();
+    expect(normalizeWebUrl('mailto:a@b.com')).toBeNull();
+    expect(normalizeWebUrl('oi')).toBeNull();
+    expect(normalizeWebUrl('   ')).toBeNull();
   });
 
   it('validates uploads and future media types', () => {

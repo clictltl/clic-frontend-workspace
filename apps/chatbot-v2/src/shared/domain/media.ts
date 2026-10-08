@@ -10,6 +10,19 @@ export function isSafeMediaUrl(url: string): boolean {
   }
 }
 
+/**
+ * Endereço digitado por quem edita → link http(s) válido, ou `null`.
+ * Sem protocolo, completa com `https://` ("www.site.com" vira "https://www.site.com").
+ * Exige um domínio com ponto, para "oi" ou "teste" não virarem links quebrados.
+ */
+export function normalizeWebUrl(raw: string): string | null {
+  const text = raw.trim();
+  if (!text) return null;
+  const url = /^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`;
+  if (!isSafeMediaUrl(url)) return null;
+  return new URL(url).hostname.includes('.') ? url : null;
+}
+
 export function isValidSource(source: MediaSource): boolean {
   return source.kind === 'upload' ? !!source.assetId : isSafeMediaUrl(source.url);
 }

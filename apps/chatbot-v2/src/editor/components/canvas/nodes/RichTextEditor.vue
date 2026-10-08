@@ -2,7 +2,7 @@
 import { watch, onBeforeUnmount, ref, nextTick, onMounted } from 'vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import {
-  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Smile, Braces, Plus, Type, Hash
+  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Unlink, Smile, Braces, Plus, Type, Hash
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
@@ -12,6 +12,7 @@ import { findVariableByName } from '../../../../shared/domain/variables';
 import { editorRichTextExtensions } from '../../../utils/richText';
 import { EMOJI_PICKER_SIZE, useEmojiPicker } from '../../../utils/useEmojiPicker';
 import { placePopover } from '../../../utils/popover';
+import { normalizeWebUrl } from '../../../../shared/domain/media';
 
 const props = withDefaults(defineProps<{
   modelValue: RichText;
@@ -68,7 +69,21 @@ const varPickerContainer = ref<HTMLElement | null>(null);
 const varBtnRef = ref<HTMLButtonElement | null>(null);
 const varPopoverStyle = ref({ top: '0px', left: '0px' });
 
+// Popover de link
+const LINK_POPOVER_SIZE = { width: 280, height: 120 };
+const showLinkPopover = ref(false);
+const linkContainer = ref<HTMLElement | null>(null);
+const linkBtnRef = ref<HTMLButtonElement | null>(null);
+const linkInputRef = ref<HTMLInputElement | null>(null);
+const linkPopoverStyle = ref({ top: '0px', left: '0px' });
+const linkUrl = ref('');
+const linkError = ref(false);
+const hasLink = ref(false);
+
 function updatePositions() {
+  if (showLinkPopover.value && linkBtnRef.value) {
+    linkPopoverStyle.value = placePopover(linkBtnRef.value.getBoundingClientRect(), LINK_POPOVER_SIZE);
+  }
   if (showEmojiPicker.value && emojiBtnRef.value) {
     popoverStyle.value = placePopover(emojiBtnRef.value.getBoundingClientRect(), EMOJI_PICKER_SIZE);
   }
@@ -89,6 +104,11 @@ function closePopover(e: Event) {
   
   if (showVarPicker.value && !varPickerContainer.value?.contains(target) && !varBtnRef.value?.contains(target)) {
     showVarPicker.value = false;
+    didCloseSomething = true;
+  }
+
+  if (showLinkPopover.value && !linkContainer.value?.contains(target) && !linkBtnRef.value?.contains(target)) {
+    showLinkPopover.value = false;
     didCloseSomething = true;
   }
 
@@ -148,6 +168,7 @@ async function toggleEmojiPicker() {
 function toggleVarPicker() {
   showVarPicker.value = !showVarPicker.value;
   showEmojiPicker.value = false;
+  showLinkPopover.value = false;
   isCreatingVar.value = false;
   if (showVarPicker.value) nextTick(updatePositions);
 }
@@ -157,7 +178,7 @@ const editor = useEditor({
   extensions: editorRichTextExtensions,
   onBlur: ({ editor }) => {
     // Ignora a perda de foco se qualquer um dos popovers estiver aberto
-    if (editor.isDestroyed || showEmojiPicker.value || showVarPicker.value) return;
+    if (editor.isDestroyed || showEmojiPicker.value || showVarPicker.value || showLinkPopover.value) return;
     finishEditing();
   },
 });
@@ -175,20 +196,53 @@ watch(
   }
 );
 
-function toggleLink() {
+/** Abre o painel de link, já com o endereço se o trecho tiver link. */
+async function toggleLinkPopover() {
   if (!editor.value) return;
-  if (editor.value.isActive('link')) {
-    editor.value.chain().focus().unsetLink().run();
+  showLinkPopover.value = !showLinkPopover.value;
+  showEmojiPicker.value = false;
+  showVarPicker.value = false;
+  if (!showLinkPopover.value) return;
+
+  hasLink.value = editor.value.isActive('link');
+  linkUrl.value = editor.value.getAttributes('link').href ?? '';
+  linkError.value = false;
+  updatePositions();
+  await nextTick();
+  linkInputRef.value?.focus();
+  linkInputRef.value?.select();
+}
+
+function closeLinkPopover() {
+  showLinkPopover.value = false;
+  editor.value?.commands.focus();
+}
+
+function applyLink() {
+  if (!editor.value) return;
+  const href = normalizeWebUrl(linkUrl.value);
+  if (!href) {
+    linkError.value = true;
     return;
   }
-  const previousUrl = editor.value.getAttributes('link').href;
-  const url = window.prompt(t('chatbot.editor.rich_text.link_prompt'), previousUrl);
-  if (url === null) return; 
-  if (url === '') {
-    editor.value.chain().focus().extendMarkRange('link').unsetLink().run();
-    return;
+  const chain = editor.value.chain().focus();
+  // Sem texto selecionado (e fora de um link): o próprio endereço vira o texto do link
+  const { state } = editor.value;
+  if (state.selection.empty && !hasLink.value) {
+    // Separa da palavra anterior, se estiver grudado nela
+    const { from } = state.selection;
+    const before = state.doc.textBetween(Math.max(0, from - 1), from);
+    const space = before && !/\s/.test(before) ? [{ type: 'text', text: ' ' }] : [];
+    chain.insertContent([...space, { type: 'text', text: href, marks: [{ type: 'link', attrs: { href } }] }]).run();
+  } else {
+    chain.extendMarkRange('link').setLink({ href }).run();
   }
-  editor.value.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  showLinkPopover.value = false;
+}
+
+function removeLink() {
+  editor.value?.chain().focus().extendMarkRange('link').unsetLink().run();
+  showLinkPopover.value = false;
 }
 </script>
 
@@ -207,7 +261,7 @@ function toggleLink() {
       <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><Quote :size="14" /></button>
       <button type="button" @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }"><Code :size="14" /></button>
       <div class="divider"></div>
-      <button type="button" @click="toggleLink" :class="{ 'is-active': editor.isActive('link') }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
+      <button ref="linkBtnRef" type="button" @click="toggleLinkPopover" :class="{ 'is-active': editor.isActive('link') || showLinkPopover }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
       <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>      <div class="divider"></div>
       <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" :title="t('chatbot.editor.rich_text.insert_variable')"><Braces :size="14" /></button>
     </div>
@@ -216,6 +270,29 @@ function toggleLink() {
   </div>
 
   <Teleport to="body">
+    <!-- Link: endereço, aplicar e remover -->
+    <div v-if="showLinkPopover" ref="linkContainer" class="link-popover-teleported" :style="linkPopoverStyle">
+      <input
+        ref="linkInputRef"
+        v-model="linkUrl"
+        type="url"
+        inputmode="url"
+        class="var-input"
+        :class="{ 'has-error': linkError }"
+        :placeholder="t('chatbot.editor.rich_text.link_placeholder')"
+        @input="linkError = false"
+        @keydown.enter.prevent="applyLink"
+        @keydown.esc.prevent="closeLinkPopover"
+      />
+      <p v-if="linkError" class="link-error">{{ t('chatbot.editor.rich_text.link_invalid') }}</p>
+      <div class="link-actions">
+        <button v-if="hasLink" type="button" class="btn-remove-link" @click="removeLink">
+          <Unlink :size="14" /> {{ t('chatbot.editor.rich_text.link_remove') }}
+        </button>
+        <button type="button" class="btn-confirm-var" @click="applyLink">{{ t('chatbot.editor.rich_text.link_apply') }}</button>
+      </div>
+    </div>
+
     <div v-show="showEmojiPicker" ref="pickerContainer" class="emoji-popover-teleported" :style="popoverStyle"></div>
     
     <!-- Menu de Variáveis -->
@@ -367,4 +444,22 @@ function toggleLink() {
   padding: 0 12px; cursor: pointer; font-weight: 600; font-size: 12px;
 }
 .btn-confirm-var:hover { background: #2563eb; }
+
+/* Popover de Link */
+.link-popover-teleported {
+  position: fixed; z-index: 999999; width: 280px; box-sizing: border-box;
+  background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  display: flex; flex-direction: column; gap: 8px; padding: 10px;
+}
+.var-input.has-error { border-color: #dc2626; }
+.link-error { margin: 0; font-size: 12px; color: #dc2626; }
+.link-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.link-actions .btn-confirm-var { padding: 6px 14px; }
+.btn-remove-link {
+  display: flex; align-items: center; gap: 4px; margin-right: auto;
+  background: transparent; border: none; color: #b91c1c; font-size: 12px; font-weight: 600;
+  cursor: pointer; padding: 6px 4px; border-radius: 4px;
+}
+.btn-remove-link:hover { background: #fee2e2; }
 </style>
