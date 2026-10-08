@@ -236,7 +236,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 .choice-wrapper { position: relative; display: flex; align-items: center; }
 .choice-bubble {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 6px 32px 6px 12px; /* 32px de respiro interno para a bolinha não cobrir o texto */
+  padding: 6px 12px;
   border: 1px solid #e5e7eb; border-radius: 16px; background: #f9fafb;
   transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 0;
 }
@@ -277,7 +277,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 .rules-list { display: flex; flex-direction: column; gap: 8px; }
 .rule-box {
   position: relative; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;
-  padding: 8px 32px 8px 8px; /* 32px de respiro interno */
+  padding: 8px;
   display: flex; align-items: center; min-height: 20px;
 }
 .else-box { background: #fef2f2; border-color: #fca5a5; }
