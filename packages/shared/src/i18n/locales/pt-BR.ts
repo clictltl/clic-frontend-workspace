@@ -233,6 +233,8 @@ export default {
       click_to_edit: 'Clique para editar',
       start_hint: 'O bate-papo começará por aqui! Ligue este bloco à sua primeira mensagem.',
       configure_in_sidebar: 'Configure na barra lateral',
+      answer_not_saved: 'A resposta não está sendo salva em nenhuma variável',
+      answer_saved_in: 'A resposta será salva em {variable}',
       edge_color: 'Cor da Conexão',
       colors: 'Cores',
       rich_text: {

@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
-import { Dices, Timer, Trash2 } from '@lucide/vue';
+import { Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
@@ -186,6 +186,26 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
       </div>
     </div>
 
+    <!-- PERGUNTA ABERTA: onde a resposta fica guardada (variável apagada conta como "não salva") -->
+    <div
+      v-if="node.type === 'open_question'"
+      class="node-footer"
+      :class="isMissing(node.data.variableId) ? 'is-unsaved' : 'is-saved'"
+    >
+      <template v-if="isMissing(node.data.variableId)">
+        <SaveOff :size="14" class="footer-icon" />
+        <span>{{ t('chatbot.editor.answer_not_saved') }}</span>
+      </template>
+      <template v-else>
+        <Save :size="14" class="footer-icon" />
+        <i18n-t keypath="chatbot.editor.answer_saved_in" tag="span">
+          <template #variable>
+            <span class="var-pill">{{ varName(node.data.variableId) }}</span>
+          </template>
+        </i18n-t>
+      </template>
+    </div>
+
     <!-- SAÍDA PADRÃO -->
     <Handle
       v-if="!['end', 'choice_question', 'condition'].includes(node.type)"
@@ -267,6 +287,17 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 .random-summary { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; vertical-align: middle; }
 .random-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .random-icon { flex: 0 0 auto; color: #6b7280; }
+
+/* Rodapé da pergunta aberta (onde a resposta fica guardada) */
+.node-footer {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; font-size: 11px; line-height: 1.4;
+  border-top: 1px solid #e5e7eb; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+}
+.node-footer .var-pill { padding: 0 5px; }
+.footer-icon { flex: 0 0 auto; }
+.node-footer.is-saved { background: #f0fdf4; color: #166534; }
+.node-footer.is-unsaved { background: #fffbeb; color: #92400e; }
 
 /* Pílula de Variável (Matemática, Definir Variável e Condição) */
 .var-pill { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 0 2px; }

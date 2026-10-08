@@ -232,6 +232,8 @@ export default {
       click_to_edit: 'Click to edit',
       start_hint: 'The chat will start here! Connect this block to your first message.',
       configure_in_sidebar: 'Configure in the sidebar',
+      answer_not_saved: 'The answer is not being saved in any variable',
+      answer_saved_in: 'The answer will be saved in {variable}',
       edge_color: 'Connection Color',
       colors: 'Colors',
       rich_text: {
