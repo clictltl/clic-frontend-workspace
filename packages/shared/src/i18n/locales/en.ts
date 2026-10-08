@@ -282,6 +282,8 @@ export default {
       label_final_message: 'Final Message',
       variable_name: 'Variable Name',
       variable_select: 'Select a variable',
+      new_variable_option: '+ New variable…',
+      create_variable: 'Create',
       value: 'Value',
       value_placeholder: 'Enter value...',
       variable: 'Variable',

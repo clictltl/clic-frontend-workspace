@@ -283,6 +283,8 @@ export default {
       label_final_message: 'Mensagem Final',
       variable_name: 'Nome da Variável',
       variable_select: 'Selecione uma variável',
+      new_variable_option: '+ Nova variável…',
+      create_variable: 'Criar',
       value: 'Valor',
       value_placeholder: 'Digite o valor...',
       variable: 'Variável',
