@@ -65,6 +65,17 @@ describe('validateFlow', () => {
     expect(issues).toContainEqual({ code: 'MISSING_VARIABLE', severity: 'error', nodeId: math.id, variableId: 'deleted' });
     expect(issues).toContainEqual({ code: 'MISSING_VARIABLE', severity: 'error', nodeId: message.id, variableId: 'deleted' });
   });
+
+  it('warns about a random pick without filled options', () => {
+    const { project, add, addVariable } = setup();
+    const v = addVariable('v');
+    const pick = add('set_variable');
+    pick.data = { variableId: v.id, value: { kind: 'random', options: ['', ' '] } };
+    expect(validateFlow(project)).toContainEqual({ code: 'EMPTY_RANDOM', severity: 'warning', nodeId: pick.id });
+
+    pick.data.value = { kind: 'random', options: ['', 'x'] };
+    expect(validateFlow(project).some(i => i.code === 'EMPTY_RANDOM')).toBe(false);
+  });
 });
 
 describe('usages', () => {

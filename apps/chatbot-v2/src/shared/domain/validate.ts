@@ -1,4 +1,4 @@
-import type { ChatbotProject, ChatNode, Value } from '../types/chatbot';
+import type { AssignmentValue, ChatbotProject, ChatNode } from '../types/chatbot';
 import { edgeId, getOutputHandles } from './graph';
 import { collectVariableIds } from './richText';
 
@@ -20,6 +20,7 @@ export type FlowIssue =
   | { code: 'VARIABLE_NOT_SELECTED'; severity: 'error'; nodeId: string; conditionId?: string }
   | { code: 'MISSING_VARIABLE'; severity: 'error'; nodeId: string; variableId: string }
   | { code: 'VARIABLE_NOT_NUMBER'; severity: 'error'; nodeId: string; variableId: string }
+  | { code: 'EMPTY_RANDOM'; severity: 'warning'; nodeId: string }
   | { code: 'INVALID_EDGE'; severity: 'error'; edgeId: string };
 
 export function validateFlow(project: ChatbotProject): FlowIssue[] {
@@ -103,7 +104,7 @@ function validateNodeVariables(node: ChatNode, variables: ChatbotProject['variab
       issues.push({ code: 'VARIABLE_NOT_NUMBER', severity: 'error', nodeId: node.id, variableId });
     }
   };
-  const checkValue = (value: Value, mustBeNumber = false) => {
+  const checkValue = (value: AssignmentValue, mustBeNumber = false) => {
     if (value.kind !== 'variable') return;
     if (mustBeNumber) checkNumber(value.variableId);
     else exists(value.variableId);
@@ -119,6 +120,9 @@ function validateNodeVariables(node: ChatNode, variables: ChatbotProject['variab
       if (!node.data.variableId) issues.push({ code: 'VARIABLE_NOT_SELECTED', severity: 'error', nodeId: node.id });
       else exists(node.data.variableId);
       checkValue(node.data.value);
+      if (node.data.value.kind === 'random' && !node.data.value.options.some(option => option.trim())) {
+        issues.push({ code: 'EMPTY_RANDOM', severity: 'warning', nodeId: node.id });
+      }
       break;
     case 'math':
       if (!node.data.variableId) issues.push({ code: 'VARIABLE_NOT_SELECTED', severity: 'error', nodeId: node.id });

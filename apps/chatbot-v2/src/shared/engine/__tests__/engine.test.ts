@@ -260,6 +260,65 @@ describe('set variable and math', () => {
     expect(startChat(project).values[n.id]).toBe(29); // ((10 + 5) * 2) / 0 → 30, - 1
   });
 
+  /** Mensagem → sorteio → pergunta aberta que volta para o sorteio. */
+  function randomLoop(options: string[], type: 'text' | 'number' = 'text') {
+    const ctx = flow();
+    const v = ctx.addVariable('v', type);
+    const pick = ctx.add('set_variable');
+    const ask = ctx.add('open_question');
+    pick.data = { variableId: v.id, value: { kind: 'random', options } };
+    ctx.link(ctx.message, pick);
+    ctx.link(pick, ask);
+    ctx.link(ask, pick);
+    return { ...ctx, v };
+  }
+
+  it('picks one of the filled options, reproducibly for the same seed', () => {
+    const { project, v } = randomLoop(['pedra', ' ', 'papel', 'tesoura']);
+    const picked = new Set<string | number>();
+    for (let seed = 0; seed < 50; seed++) {
+      const state = startChat(project, seed);
+      expect(startChat(project, seed).values[v.id]).toBe(state.values[v.id]);
+      picked.add(state.values[v.id]!);
+    }
+    expect([...picked].sort()).toEqual(['papel', 'pedra', 'tesoura']);
+  });
+
+  it('draws again each time the conversation passes through the block', () => {
+    const { project, v } = randomLoop(['a', 'b', 'c', 'd', 'e']);
+    let state = startChat(project, 123);
+    const draws = [state.values[v.id]];
+    for (let i = 0; i < 9; i++) {
+      const before = state.rng;
+      state = submitText(project, state, 'de novo');
+      expect(state.rng).not.toBe(before);
+      draws.push(state.values[v.id]);
+    }
+    expect(new Set(draws).size).toBeGreaterThan(1);
+
+    // Mesmas respostas e mesma semente: mesmos sorteios
+    let replay = startChat(project, 123);
+    const replayed = [replay.values[v.id]];
+    for (let i = 0; i < 9; i++) {
+      replay = submitText(project, replay, 'de novo');
+      replayed.push(replay.values[v.id]);
+    }
+    expect(replayed).toEqual(draws);
+  });
+
+  it('keeps the variable when there is no filled option', () => {
+    const { project, v } = randomLoop(['', '  ']);
+    project.variables[v.id]!.defaultValue = 'antes';
+    const state = startChat(project, 1);
+    expect(state.values[v.id]).toBe('antes');
+    expect(state.rng).toBe(1);
+  });
+
+  it('converts the picked option for old number variables', () => {
+    const { project, v } = randomLoop(['3', '3,5'], 'number');
+    expect([3, 3.5]).toContain(startChat(project, 5).values[v.id]);
+  });
+
   it('skips nodes whose variable was deleted and shows ? in text', () => {
     const { project, message, add, link, setText } = flow();
     const setVar = add('set_variable');

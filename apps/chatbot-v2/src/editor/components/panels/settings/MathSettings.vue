@@ -38,7 +38,7 @@ const OPERATORS: MathOperator[] = ['+', '-', '*', '/'];
         <ValueInput
           :model-value="node.data.operand"
           numeric
-          @commit="operand => projectStore.setMathOperation(nodeId, { operand })"
+          @commit="operand => operand.kind !== 'random' && projectStore.setMathOperation(nodeId, { operand })"
         />
       </div>
     </div>

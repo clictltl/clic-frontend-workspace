@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
-import { Timer, Trash2 } from '@lucide/vue';
+import { Dices, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT, MESSAGE_DELAY_MAX, type ComparisonOperator } from '../../../../shared/types/chatbot';
@@ -47,6 +47,11 @@ function isMissing(id: string | null) {
 
 function literalText(value: string | number) {
   return value === '' ? '""' : String(value);
+}
+
+/** Opções preenchidas do sorteio, separadas por " / ". */
+function randomText(options: string[]) {
+  return options.filter(o => o.trim()).join(' / ') || '""';
 }
 
 const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': '≠', '>': '>', '<': '<', '>=': '≥', '<=': '≤' };
@@ -160,6 +165,10 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
           <span class="var-pill" :class="{ 'is-missing': isMissing(node.data.variableId) }">{{ varName(node.data.variableId) }}</span>
           =
           <span v-if="node.data.value.kind === 'variable'" class="var-pill" :class="{ 'is-missing': isMissing(node.data.value.variableId) }">{{ varName(node.data.value.variableId) }}</span>
+          <span v-else-if="node.data.value.kind === 'random'" class="random-summary">
+            <Dices :size="12" class="random-icon" />
+            <strong>{{ randomText(node.data.value.options) }}</strong>
+          </span>
           <strong v-else>{{ literalText(node.data.value.value) }}</strong>
         </div>
         <div v-else class="subtext">{{ t('chatbot.editor.configure_in_sidebar') }}</div>
@@ -258,6 +267,9 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 .logic-summary { text-align: center; background: #f9fafb; border-radius: 6px; border: 1px dashed #d1d5db; padding: 12px 8px; }
 .subtext { font-size: 11px; color: #9ca3af; }
 .logic-code { font-family: monospace; font-size: 12px; color: #111827; }
+.random-summary { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; vertical-align: middle; }
+.random-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.random-icon { flex: 0 0 auto; color: #6b7280; }
 
 /* Pílula de Variável (Matemática, Definir Variável e Condição) */
 .var-pill { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 0 2px; }

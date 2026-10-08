@@ -37,6 +37,12 @@ export type Value =
   | { kind: 'literal'; value: string | number }
   | { kind: 'variable'; variableId: string };
 
+/** Uma das opções é sorteada a cada passagem pelo bloco (opções vazias são ignoradas). */
+export type RandomValue = { kind: 'random'; options: string[] };
+
+/** Valor atribuído pelo bloco "Definir variável": além de `Value`, aceita sorteio. */
+export type AssignmentValue = Value | RandomValue;
+
 export type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=';
 export type MathOperator = '+' | '-' | '*' | '/';
 
@@ -99,7 +105,7 @@ export interface NodeDataMap {
   open_question: { content: RichText; media: NodeMedia | null; variableId: string | null };
   choice_question: { content: RichText; media: NodeMedia | null; choices: Choice[] };
   condition: { rules: Rule[] };
-  set_variable: { variableId: string | null; value: Value };
+  set_variable: { variableId: string | null; value: AssignmentValue };
   math: { variableId: string | null; operator: MathOperator; operand: Value };
   end: { content: RichText; media: NodeMedia | null };
 }

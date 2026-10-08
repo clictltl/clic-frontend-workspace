@@ -1,10 +1,12 @@
 import {
   HANDLE_ELSE, HANDLE_OUT,
-  type ChatbotProject, type ChatNode, type ComparisonOperator, type Condition, type NodeMedia, type RichText, type Rule, type Value
+  type AssignmentValue, type ChatbotProject, type ChatNode, type ComparisonOperator, type Condition, type NodeMedia, type RichText,
+  type Rule, type Value
 } from '../types/chatbot';
 import { edgeId } from '../domain/graph';
 import { RICH_TEXT_NODES } from '../domain/richText';
 import { coerceVariableValue, parseNumber } from '../domain/variables';
+import { nextRandom } from './random';
 import type { ChatMessage, ChatState, ChatValues } from './types';
 
 /**
@@ -20,11 +22,12 @@ import type { ChatMessage, ChatState, ChatValues } from './types';
 /** Passos automáticos permitidos sem nenhuma pergunta (protege contra ciclos infinitos). */
 export const MAX_AUTO_STEPS = 1000;
 
-export function startChat(project: ChatbotProject): ChatState {
+/** `seed` inicia o gerador dos sorteios: a mesma semente reproduz a mesma conversa. */
+export function startChat(project: ChatbotProject, seed = 0): ChatState {
   const values: ChatValues = {};
   for (const variable of Object.values(project.variables)) values[variable.id] = variable.defaultValue;
 
-  const state: ChatState = { status: 'ended', currentNodeId: null, messages: [], choices: [], values, error: null };
+  const state: ChatState = { status: 'ended', currentNodeId: null, messages: [], choices: [], values, rng: seed >>> 0, error: null };
   const start = Object.values(project.nodes).find(n => n.type === 'start');
   if (!start) return { ...state, error: 'NO_START_BLOCK' };
 
@@ -109,7 +112,7 @@ function run(project: ChatbotProject, state: ChatState, firstNodeId: string | nu
 
       case 'set_variable': {
         const variable = node.data.variableId ? project.variables[node.data.variableId] : undefined;
-        const value = resolveValue(state.values, node.data.value);
+        const value = resolveAssignment(state, node.data.value);
         if (variable && value !== undefined) state.values[variable.id] = coerceVariableValue(variable.type, value);
         nodeId = target(project, node.id, HANDLE_OUT);
         break;
@@ -146,6 +149,16 @@ function pushBotMessage(
 
 function resolveValue(values: ChatValues, value: Value): string | number | undefined {
   return value.kind === 'literal' ? value.value : values[value.variableId];
+}
+
+/** Valor do bloco "Definir variável". O sorteio avança o gerador guardado no estado. */
+function resolveAssignment(state: ChatState, value: AssignmentValue): string | number | undefined {
+  if (value.kind !== 'random') return resolveValue(state.values, value);
+  const options = value.options.filter(option => option.trim() !== '');
+  if (options.length === 0) return undefined;
+  const [random, next] = nextRandom(state.rng);
+  state.rng = next;
+  return options[Math.floor(random * options.length)];
 }
 
 function calculate(current: number, operator: '+' | '-' | '*' | '/', operand: number): number {

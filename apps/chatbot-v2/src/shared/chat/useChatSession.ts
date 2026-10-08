@@ -2,6 +2,7 @@ import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import type { ChatbotProject } from '../types/chatbot';
 import type { ChatState } from '../engine/types';
 import { selectChoice, startChat, submitText } from '../engine/engine';
+import { createSeed } from '../engine/random';
 
 /** Tempo do indicador "digitando…" antes de cada mensagem do bot. */
 export const TYPING_MS = 700;
@@ -10,6 +11,8 @@ export interface ChatSessionOptions {
   getProject: () => ChatbotProject;
   /** Eventos do teste no editor (telemetria). O runtime público não informa. */
   onEvent?: (name: 'preview_start' | 'preview_text' | 'preview_choice' | 'preview_stop', payload?: Record<string, unknown>) => void;
+  /** Semente dos sorteios de cada conversa (os testes injetam uma fixa). */
+  createSeed?: () => number;
 }
 
 /**
@@ -78,8 +81,10 @@ export function useChatSession(options: ChatSessionOptions) {
     runToken++;
     clearTimer();
     project = JSON.parse(JSON.stringify(options.getProject())) as ChatbotProject;
-    options.onEvent?.('preview_start');
-    state.value = startChat(project);
+    // A semente vai no log: com ela, o replay reproduz os mesmos sorteios
+    const seed = (options.createSeed ?? createSeed)();
+    options.onEvent?.('preview_start', { seed });
+    state.value = startChat(project, seed);
     visibleCount.value = 0;
     reveal();
   }

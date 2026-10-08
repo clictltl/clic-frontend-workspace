@@ -81,7 +81,7 @@ function isNumericVariable(variableId: string | null) {
               <ValueInput
                 :model-value="condition.value"
                 :numeric="isNumericVariable(condition.variableId)"
-                @commit="value => projectStore.updateCondition(nodeId, rule.id, condition.id, { value })"
+                @commit="value => value.kind !== 'random' && projectStore.updateCondition(nodeId, rule.id, condition.id, { value })"
               />
             </div>
           </div>

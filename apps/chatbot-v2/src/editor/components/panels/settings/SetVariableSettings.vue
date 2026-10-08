@@ -31,6 +31,7 @@ const isNumeric = computed(() => {
       <ValueInput
         :model-value="node.data.value"
         :numeric="isNumeric"
+        allow-random
         @commit="value => projectStore.setAssignment(nodeId, { value })"
       />
     </div>

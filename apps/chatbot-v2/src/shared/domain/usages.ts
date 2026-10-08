@@ -1,8 +1,8 @@
-import type { ChatbotProject, ChatNode, RichText, Value } from '../types/chatbot';
+import type { AssignmentValue, ChatbotProject, ChatNode, RichText } from '../types/chatbot';
 import { collectVariableIds } from './richText';
 import { choiceMediaAssetId, nodeMediaAssetId } from './media';
 
-const valueVariableId = (value: Value): string | null => (value.kind === 'variable' ? value.variableId : null);
+const valueVariableId = (value: AssignmentValue): string | null => (value.kind === 'variable' ? value.variableId : null);
 
 function nodeContent(node: ChatNode): RichText | undefined {
   return 'content' in node.data ? node.data.content : undefined;

@@ -8,7 +8,11 @@ import { setup } from '../../domain/__tests__/helpers';
 function sessionFor(project: ReturnType<typeof setup>['project']) {
   const events: [string, unknown][] = [];
   const scope = effectScope();
-  const session = scope.run(() => useChatSession({ getProject: () => project, onEvent: (name, payload) => events.push([name, payload]) }))!;
+  const session = scope.run(() => useChatSession({
+    getProject: () => project,
+    onEvent: (name, payload) => events.push([name, payload]),
+    createSeed: () => 42
+  }))!;
   return { session, events, scope };
 }
 
@@ -24,7 +28,7 @@ describe('useChatSession', () => {
 
     const { session, events } = sessionFor(ctx.project);
     session.start();
-    expect(events).toEqual([['preview_start', undefined]]);
+    expect(events).toEqual([['preview_start', { seed: 42 }]]); // Semente no log para o replay
     expect(session.messages.value).toHaveLength(0);
     expect(session.isTyping.value).toBe(true);
 

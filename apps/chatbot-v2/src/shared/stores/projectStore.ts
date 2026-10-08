@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type {
+  AssignmentValue,
   ChatbotProject,
   ChatNodeOf,
   ChoiceMedia,
@@ -247,7 +248,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       if (node) node.data.variableId = variableId;
     },
 
-    setAssignment(nodeId: string, changes: Partial<{ variableId: string | null; value: Value }>) {
+    setAssignment(nodeId: string, changes: Partial<{ variableId: string | null; value: AssignmentValue }>) {
       const node = graph.getNodeOfType(this.project, nodeId, 'set_variable');
       if (node) Object.assign(node.data, changes);
     },

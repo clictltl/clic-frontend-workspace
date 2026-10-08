@@ -30,5 +30,6 @@ export interface ChatState {
   messages: ChatMessage[];
   choices: Choice[];            // Opções disponíveis quando status = 'waiting_choice'
   values: ChatValues;
+  rng: number;                  // Estado do gerador do sorteio (ver random.ts)
   error: ChatError | null;
 }
