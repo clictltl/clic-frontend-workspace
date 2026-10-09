@@ -3,6 +3,7 @@ import type {
   Appearance,
   AssignmentValue,
   ChatbotProject,
+  ChatNode,
   ChatNodeOf,
   ChoiceMedia,
   MathOperator,
@@ -20,10 +21,14 @@ import * as graph from '../domain/graph';
 import { ProjectLoadError, createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
 import { checkVariableName, coerceVariableValue } from '../domain/variables';
 import { withoutUnusedAssets } from '../domain/usages';
+import { cloneNode } from '../domain/clone';
 
 const now = () => new Date().toISOString();
 
 const deps = appDomainDeps;
+
+/** Distância da cópia em relação ao original ao duplicar. */
+const DUPLICATE_OFFSET = 40;
 
 /**
  * STORE DO PROJETO
@@ -45,6 +50,8 @@ export const useProjectStore = defineStore('chatbot-project', {
       setAppearance: 'chatbot.history.setAppearance',
       addNode: 'chatbot.history.addNode',
       addConnectedNode: 'chatbot.history.addConnectedNode',
+      duplicateNode: 'chatbot.history.duplicateNode',
+      pasteNode: 'chatbot.history.pasteNode',
       moveNodes: 'chatbot.history.moveNodes',
       deleteNode: 'chatbot.history.deleteNode',
       setNodeContent: 'chatbot.history.setNodeContent',
@@ -165,6 +172,29 @@ export const useProjectStore = defineStore('chatbot-project', {
       const node = createNode(type, position, deps);
       graph.addNode(this.project, node);
       graph.connect(this.project, sourceNode, sourceHandle, node.id);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
+    },
+
+    /** Cópia ao lado do original, já selecionada (sem as conexões). */
+    duplicateNode(id: string) {
+      const source = this.project.nodes[id];
+      if (!source) return null;
+      const position = { x: source.position.x + DUPLICATE_OFFSET, y: source.position.y + DUPLICATE_OFFSET };
+      const node = cloneNode(source, this.project, position, deps);
+      if (!node) return null;
+      graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
+    },
+
+    /** Cola um bloco copiado (talvez de outro projeto): o que não existe aqui é removido. */
+    pasteNode(copied: ChatNode, position: Position) {
+      const node = cloneNode(copied, this.project, position, deps);
+      if (!node) return null;
+      graph.addNode(this.project, node);
       this.selectedNodeId = node.id;
       this.selectedEdgeId = null;
       return node.id;

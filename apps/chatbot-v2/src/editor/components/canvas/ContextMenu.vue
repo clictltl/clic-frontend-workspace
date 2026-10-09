@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { ClipboardPaste } from '@lucide/vue';
 import { NODE_CONFIG, CREATABLE_NODES } from '../../utils/nodeConfig';
 import type { NodeType } from '../../../shared/types/chatbot';
 
 const props = defineProps<{
   x: number;
   y: number;
+  canPaste?: boolean; // Há um bloco copiado: mostra "Colar bloco" no topo
 }>();
 
 const emit = defineEmits<{
   (e: 'select', type: NodeType): void;
+  (e: 'paste'): void;
   (e: 'close'): void;
 }>();
 
@@ -45,6 +48,13 @@ onUnmounted(() => {
       @click.stop
       @contextmenu.stop.prevent
     >
+      <template v-if="canPaste">
+        <button class="menu-item" @click="emit('paste')">
+          <ClipboardPaste :size="16" color="#4b5563" />
+          <span>{{ t('chatbot.editor.paste_block') }}</span>
+        </button>
+        <div class="menu-divider"></div>
+      </template>
       <div class="menu-header">{{ t('chatbot.editor.add_node') }}</div>
       <button 
         v-for="type in CREATABLE_NODES" 
@@ -73,6 +83,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
 }
+.menu-divider { height: 1px; background: #e5e7eb; margin: 2px 0; }
 .menu-header {
   font-size: 12px;
   color: #9ca3af;

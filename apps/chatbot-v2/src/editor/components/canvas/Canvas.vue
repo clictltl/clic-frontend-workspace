@@ -17,21 +17,37 @@ import EdgeContextMenu from './edges/EdgeContextMenu.vue';
 import type { ChatEdge, NodeType } from '../../../shared/types/chatbot';
 import { assignBackEdgeLanes, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
 import { connectTargetNodeId } from '../../utils/connectTarget';
+import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
+import { useToast } from '@clic/shared';
+import NodeContextMenu from './NodeContextMenu.vue';
 
 const projectStore = useProjectStore();
 
 // Extraímos as funções nativas e o estado de clique
 const { screenToFlowCoordinate, connectionClickStartHandle, connectionStartHandle } = useVueFlow();
 const { t } = useI18n();
+const toast = useToast();
 
 // --- INTERCEPTADOR DE TECLADO ---
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') hidePlus();
-  if (e.key === 'Backspace' || e.key === 'Delete') {
-    const target = e.target as HTMLElement;
-    const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-    if (isTyping) return;
+  const target = e.target as HTMLElement;
+  const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+  if (isTyping) return; // Atalhos não atrapalham quem está digitando (Ctrl+C/V do texto continuam normais)
 
+  // Copiar, colar e duplicar blocos
+  if (e.ctrlKey || e.metaKey) {
+    const key = e.key.toLowerCase();
+    const selected = projectStore.selectedNodeId;
+    if (key === 'c' && selected) copySelected(selected);
+    else if (key === 'v' && hasCopiedNode.value) pasteAt(pointerPosition());
+    else if (key === 'd' && selected) projectStore.duplicateNode(selected);
+    else return;
+    e.preventDefault(); // Ctrl+D do navegador é "adicionar favorito"
+    return;
+  }
+
+  if (e.key === 'Backspace' || e.key === 'Delete') {
     if (projectStore.selectedNodeId) {
       projectStore.deleteNode(projectStore.selectedNodeId);
     } else if (projectStore.selectedEdgeId) {
@@ -114,6 +130,54 @@ function onPaneContextMenu(event: MouseEvent) {
   };
 }
 
+// --- COPIAR, COLAR E DUPLICAR ---
+const nodeMenu = ref({ show: false, x: 0, y: 0, nodeId: '' });
+const wrapper = ref<HTMLElement | null>(null);
+let lastPointer: { x: number; y: number } | null = null;
+
+function trackPointer(event: PointerEvent | null) {
+  lastPointer = event ? { x: event.clientX, y: event.clientY } : null;
+}
+
+function copySelected(nodeId: string) {
+  const node = projectStore.project.nodes[nodeId];
+  if (node && copyNode(node)) toast.info(t('chatbot.editor.block_copied'));
+}
+
+/** Onde colar com Ctrl+V: sob o mouse, ou no meio do canvas se o mouse não passou por ele. */
+function pointerPosition(): XYPosition {
+  if (lastPointer) return screenToFlowCoordinate(lastPointer);
+  const rect = wrapper.value?.getBoundingClientRect();
+  return screenToFlowCoordinate(rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : { x: 0, y: 0 });
+}
+
+function pasteAt(position: XYPosition) {
+  const copied = readCopiedNode();
+  if (copied) projectStore.pasteNode(copied, position);
+}
+
+function onNodeContextMenu(event: NodeMouseEvent) {
+  const mouse = event.event as MouseEvent;
+  mouse.preventDefault();
+  closeMenu();
+  if (projectStore.project.nodes[event.node.id]?.type === 'start') return;
+  projectStore.selectNode(event.node.id);
+  nodeMenu.value = { show: true, x: mouse.clientX, y: mouse.clientY, nodeId: event.node.id };
+}
+
+function onNodeMenu(action: 'duplicate' | 'copy' | 'delete') {
+  const id = nodeMenu.value.nodeId;
+  nodeMenu.value.show = false;
+  if (action === 'duplicate') projectStore.duplicateNode(id);
+  else if (action === 'copy') copySelected(id);
+  else projectStore.deleteNode(id);
+}
+
+function handlePaste() {
+  pasteAt(menu.value.flowPosition);
+  menu.value.show = false;
+}
+
 function handleAddNode(type: NodeType) {
   const { flowPosition, source } = menu.value;
   if (source) {
@@ -129,6 +193,7 @@ function handleAddNode(type: NodeType) {
 function closeMenu() {
   menu.value.show = false;
   edgeMenu.value.show = false;
+  nodeMenu.value.show = false;
 }
 
 // --- EVENTOS DO VUE FLOW ---
@@ -265,7 +330,7 @@ function onPaneClick(event: MouseEvent) {
 </script>
 
 <template>
-  <div class="canvas-wrapper">
+  <div ref="wrapper" class="canvas-wrapper" @pointermove="trackPointer" @pointerleave="trackPointer(null)">
     <VueFlow
       :nodes="flowNodes"
       :edges="flowEdges"
@@ -287,6 +352,7 @@ function onPaneClick(event: MouseEvent) {
       @edge-click="onEdgeClick"
       @pane-click="onPaneClick"
       @pane-context-menu="onPaneContextMenu"
+      @node-context-menu="onNodeContextMenu"
     >
       <Background pattern-color="#aaa" :gap="16" />
       
@@ -316,7 +382,9 @@ function onPaneClick(event: MouseEvent) {
       v-if="menu.show"
       :x="menu.x"
       :y="menu.y"
+      :can-paste="hasCopiedNode && !menu.source"
       @select="handleAddNode"
+      @paste="handlePaste"
       @close="closeMenu"
     />
 
@@ -332,6 +400,16 @@ function onPaneClick(event: MouseEvent) {
     >
       <Plus :size="18" :stroke-width="3" />
     </button>
+
+    <NodeContextMenu
+      v-if="nodeMenu.show"
+      :x="nodeMenu.x"
+      :y="nodeMenu.y"
+      @duplicate="onNodeMenu('duplicate')"
+      @copy="onNodeMenu('copy')"
+      @delete="onNodeMenu('delete')"
+      @close="nodeMenu.show = false"
+    />
 
     <EdgeContextMenu
       v-if="edgeMenu.show"

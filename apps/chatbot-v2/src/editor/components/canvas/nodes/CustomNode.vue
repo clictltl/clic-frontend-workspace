@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Handle, Position, useVueFlow } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
-import { Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
+import { CopyPlus, Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
@@ -76,14 +76,24 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
         <component :is="config.icon" :size="16" />
         <span class="node-title">{{ t(config.titleKey) }}</span>
       </div>
-      <button
-        v-if="node.type !== 'start'"
-        class="btn-delete-node"
-        @click.stop="projectStore.deleteNode(id)"
-        :title="t('chatbot.editor.delete_block')"
-      >
-        <Trash2 :size="14" />
-      </button>
+      <div v-if="node.type !== 'start'" class="header-actions">
+        <button
+          class="btn-delete-node"
+          @click.stop="projectStore.duplicateNode(id)"
+          :title="t('chatbot.editor.duplicate_block')"
+          :aria-label="t('chatbot.editor.duplicate_block')"
+        >
+          <CopyPlus :size="14" />
+        </button>
+        <button
+          class="btn-delete-node"
+          @click.stop="projectStore.deleteNode(id)"
+          :title="t('chatbot.editor.delete_block')"
+          :aria-label="t('chatbot.editor.delete_block')"
+        >
+          <Trash2 :size="14" />
+        </button>
+      </div>
     </div>
 
     <div class="node-body nodrag nowheel">
@@ -248,6 +258,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 }
 .node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 .header-left { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.header-actions { display: flex; gap: 4px; }
 .btn-delete-node {
   background: rgba(0,0,0,0.15); border: none; color: white; cursor: pointer;
   padding: 4px; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s;

@@ -86,6 +86,15 @@ export function createProject(deps: DomainDeps, now: string): ChatbotProject {
 
 // --- LEITURA DE JSON EXTERNO ---
 
+/** Campos adicionados ao longo da versão 2.x recebem o valor padrão (altera o nó recebido). */
+export function fillNodeDefaults(node: ChatNode) {
+  if ('content' in node.data) node.data.media ??= null;
+  if (node.type === 'message' && typeof node.data.delay !== 'number') node.data.delay = 0;
+  if (node.type === 'choice_question') {
+    for (const choice of node.data.choices) choice.media ??= null;
+  }
+}
+
 export type ProjectLoadErrorCode = 'INVALID_PROJECT' | 'UNSUPPORTED_VERSION';
 
 /** Informada quando o JSON veio de uma versão anterior e foi convertido. */
@@ -147,14 +156,7 @@ export function parseProject(json: unknown, deps: DomainDeps, now: string): Pars
     assets: asRecord(data.assets)
   };
 
-  // Campos adicionados ao longo da versão 2.x recebem o valor padrão
-  for (const node of Object.values(project.nodes)) {
-    if ('content' in node.data) node.data.media ??= null;
-    if (node.type === 'message' && typeof node.data.delay !== 'number') node.data.delay = 0;
-    if (node.type === 'choice_question') {
-      for (const choice of node.data.choices) choice.media ??= null;
-    }
-  }
+  for (const node of Object.values(project.nodes)) fillNodeDefaults(node);
 
   // Todo fluxo precisa de um Início: recria se o JSON veio corrompido
   if (!Object.values(project.nodes).some(n => n.type === 'start')) {
