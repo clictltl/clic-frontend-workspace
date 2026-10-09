@@ -289,14 +289,17 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 
 /* Espera (editável no próprio nó) */
 .delay-field {
-  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
-  padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #4b5563;
-  font-size: 11px; font-weight: 600; cursor: text;
+  display: inline-flex; align-items: center; gap: 3px; margin-top: 8px;
+  padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; cursor: text;
+  /* Sem espera (0 s, o padrão): discreto, só um contorno tracejado indicando que dá para editar */
+  background: transparent; color: #6b7280; border: 1px dashed #d1d5db;
 }
-.delay-field.is-active { background: #eff6ff; color: #1d4ed8; }
+.delay-field:hover { background: #f9fafb; }
+.delay-field.is-active { background: #eff6ff; color: #1d4ed8; border: 1px solid transparent; }
 .delay-input {
-  width: 32px; border: none; background: transparent; outline: none; padding: 0;
-  font: inherit; color: inherit; text-align: right;
+  /* Largura de dois dígitos (0 a 10), logo depois do ícone */
+  width: 2.2ch; border: none; background: transparent; outline: none; padding: 0;
+  font: inherit; color: inherit; text-align: center;
 }
 .delay-field:focus-within { box-shadow: 0 0 0 1px #3b82f6; }
 
