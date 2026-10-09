@@ -250,6 +250,13 @@ export default {
       edge_color: 'Cor da Conexão',
       colors: 'Cores',
       rich_text: {
+        bold: 'Negrito',
+        italic: 'Itálico',
+        heading: 'Título',
+        bullet_list: 'Lista com marcadores',
+        ordered_list: 'Lista numerada',
+        quote: 'Citação',
+        code: 'Código',
         link: 'Link',
         link_placeholder: 'Endereço, ex.: www.site.com.br',
         link_apply: 'Aplicar',
@@ -260,6 +267,7 @@ export default {
         add_variable: 'Adicionar Variável',
         confirm: 'OK'
       },
+      page_title: 'Novelo: editor de chatbot',
       delay_unit_short: 's',
       test: {
         button: 'Testar',
@@ -453,6 +461,8 @@ export default {
         btn_start: 'Iniciar'
       },
       chat: {
+        conversation: 'Conversa',
+        ended: 'Fim da conversa',
         placeholder: 'Digite sua resposta...',
         send: 'Enviar',
         restart: 'Recomeçar',

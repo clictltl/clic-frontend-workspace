@@ -249,6 +249,13 @@ export default {
       edge_color: 'Connection Color',
       colors: 'Colors',
       rich_text: {
+        bold: 'Bold',
+        italic: 'Italic',
+        heading: 'Heading',
+        bullet_list: 'Bulleted list',
+        ordered_list: 'Numbered list',
+        quote: 'Quote',
+        code: 'Code',
         link: 'Link',
         link_placeholder: 'Address, e.g. www.site.com',
         link_apply: 'Apply',
@@ -259,6 +266,7 @@ export default {
         add_variable: 'Add Variable',
         confirm: 'OK'
       },
+      page_title: 'Novelo: chatbot editor',
       delay_unit_short: 's',
       test: {
         button: 'Test',
@@ -452,6 +460,8 @@ export default {
         btn_start: 'Start'
       },
       chat: {
+        conversation: 'Conversation',
+        ended: 'End of conversation',
         placeholder: 'Type your response...',
         send: 'Send',
         restart: 'Restart',

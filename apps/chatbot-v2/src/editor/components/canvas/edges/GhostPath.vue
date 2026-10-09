@@ -43,4 +43,7 @@ const d = computed(() => edgePath({
 @keyframes ghost-dash {
   to { stroke-dashoffset: -10; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .ghost-path { animation: none; }
+}
 </style>

@@ -290,7 +290,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 /* Espera (editável no próprio nó) */
 .delay-field {
   display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
-  padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #6b7280;
+  padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #4b5563;
   font-size: 11px; font-weight: 600; cursor: text;
 }
 .delay-field.is-active { background: #eff6ff; color: #1d4ed8; }

@@ -19,6 +19,7 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'm
     <div class="delay-row">
       <DraftInput
         type="number"
+        :aria-label="t('chatbot.properties.delay_label')"
         :model-value="node.data.delay"
         @commit="value => projectStore.setMessageDelay(nodeId, Number(value))"
       />

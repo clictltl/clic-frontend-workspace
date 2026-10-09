@@ -64,6 +64,7 @@ const isTesting = ref(false);
     </AppHeader>
 
     <main class="editor-main">
+      <h1 class="sr-only">{{ t('chatbot.editor.page_title') }}</h1>
       <div class="canvas-area">
         <Canvas />
         <button v-if="!isTesting" class="btn-test" @click="isTesting = true">

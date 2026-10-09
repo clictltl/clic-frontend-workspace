@@ -78,6 +78,9 @@ const strokeWidth = computed(() => {
 @keyframes edge-dash {
   to { stroke-dashoffset: -10; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .edge-path.is-animated { animation: none; }
+}
 
 .edge-interaction {
   cursor: pointer;

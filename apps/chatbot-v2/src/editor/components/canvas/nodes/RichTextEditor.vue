@@ -176,6 +176,10 @@ function toggleVarPicker() {
 const editor = useEditor({
   content: props.modelValue,
   extensions: editorRichTextExtensions,
+  // Nome para leitores de tela (o rótulo "Texto do balão" não fica ligado ao contenteditable)
+  editorProps: {
+    attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': t('chatbot.properties.bubble_text') }
+  },
   onBlur: ({ editor }) => {
     // Ignora a perda de foco se qualquer um dos popovers estiver aberto
     if (editor.isDestroyed || showEmojiPicker.value || showVarPicker.value || showLinkPopover.value) return;
@@ -250,16 +254,16 @@ function removeLink() {
   <div class="rich-text-editor" :class="`variant-${variant}`" v-if="editor">
     <!-- Toolbar Flutuante acima do nó -->
     <div class="toolbar" @mousedown.prevent @click.stop>
-      <button type="button" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><Bold :size="14" /></button>
-      <button type="button" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }"><Italic :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.bold')" :aria-label="t('chatbot.editor.rich_text.bold')" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><Bold :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.italic')" :aria-label="t('chatbot.editor.rich_text.italic')" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }"><Italic :size="14" /></button>
       <div class="divider"></div>
-      <button type="button" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"><Heading3 :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.heading')" :aria-label="t('chatbot.editor.rich_text.heading')" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"><Heading3 :size="14" /></button>
       <div class="divider"></div>
-      <button type="button" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }"><List :size="14" /></button>
-      <button type="button" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }"><ListOrdered :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.bullet_list')" :aria-label="t('chatbot.editor.rich_text.bullet_list')" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }"><List :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.ordered_list')" :aria-label="t('chatbot.editor.rich_text.ordered_list')" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }"><ListOrdered :size="14" /></button>
       <div class="divider"></div>
-      <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><Quote :size="14" /></button>
-      <button type="button" @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }"><Code :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.quote')" :aria-label="t('chatbot.editor.rich_text.quote')" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><Quote :size="14" /></button>
+      <button type="button" :title="t('chatbot.editor.rich_text.code')" :aria-label="t('chatbot.editor.rich_text.code')" @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }"><Code :size="14" /></button>
       <div class="divider"></div>
       <button ref="linkBtnRef" type="button" @click="toggleLinkPopover" :class="{ 'is-active': editor.isActive('link') || showLinkPopover }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
       <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>      <div class="divider"></div>

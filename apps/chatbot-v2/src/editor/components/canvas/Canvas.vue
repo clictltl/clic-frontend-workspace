@@ -579,5 +579,8 @@ function onPaneClick(event: MouseEvent) {
 }
 .connect-plus:hover { background: #2563eb; transform: translate(-50%, -50%) scale(1.1); }
 @keyframes plus-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } }
+@media (prefers-reduced-motion: reduce) {
+  .connect-plus { animation: none; }
+}
 :deep(.vue-flow__panel.vue-flow__attribution) { display: none; }
 </style>
