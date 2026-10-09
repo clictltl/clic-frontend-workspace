@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Handle, Position } from '@vue-flow/core';
+import { Handle, Position, useVueFlow } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
 import { Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
 import RichTextView from './RichTextView.vue';
+import { connectTargetNodeId } from '../../../utils/connectTarget';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
 import ChoiceMediaView from '../../../../shared/components/ChoiceMediaView.vue';
@@ -31,7 +32,11 @@ watch(isSelected, selected => {
   if (!selected) isEditingInline.value = false;
 });
 
+const { connectionClickStartHandle } = useVueFlow();
+
 function enableInlineEdit() {
+  // Com uma conexão pendente, o clique no bloco é "ligar aqui" (tratado no canvas), não editar
+  if (connectionClickStartHandle.value) return;
   if (!isSelected.value) projectStore.selectNode(props.id);
   isEditingInline.value = true;
 }
@@ -61,7 +66,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   <div
     v-if="node && config"
     class="custom-node"
-    :class="{ 'is-selected': isSelected, 'is-running': testActiveNodeId === id }"
+    :class="{ 'is-selected': isSelected, 'is-running': testActiveNodeId === id, 'is-connect-target': connectTargetNodeId === id }"
     :style="{ borderColor: isSelected ? config.color : '#e5e7eb' }"
   >
     <Handle v-if="node.type !== 'start'" type="target" id="in" :position="Position.Left" class="node-handle in-handle" />
@@ -233,6 +238,10 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   transform: translateY(-2px);
 }
 /* Nó "falando" durante o teste da conversa */
+.custom-node.is-connect-target {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 .custom-node.is-running {
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45), 0 10px 20px -4px rgba(16, 185, 129, 0.35);
   transform: translateY(-2px);

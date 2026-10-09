@@ -44,6 +44,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       renameProject: 'chatbot.history.renameProject',
       setAppearance: 'chatbot.history.setAppearance',
       addNode: 'chatbot.history.addNode',
+      addConnectedNode: 'chatbot.history.addConnectedNode',
       moveNodes: 'chatbot.history.moveNodes',
       deleteNode: 'chatbot.history.deleteNode',
       setNodeContent: 'chatbot.history.setNodeContent',
@@ -154,6 +155,16 @@ export const useProjectStore = defineStore('chatbot-project', {
     addNode(type: NodeType, position: Position) {
       const node = createNode(type, position, deps);
       graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
+    },
+
+    /** Cria o bloco já ligado a uma saída (conexão solta no vazio): um gesto, um desfazer. */
+    addConnectedNode(type: NodeType, position: Position, sourceNode: string, sourceHandle: string) {
+      const node = createNode(type, position, deps);
+      graph.addNode(this.project, node);
+      graph.connect(this.project, sourceNode, sourceHandle, node.id);
       this.selectedNodeId = node.id;
       this.selectedEdgeId = null;
       return node.id;
