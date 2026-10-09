@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useMenuPosition } from '../../utils/popover';
 import { useI18n } from 'vue-i18n';
 import { Copy, CopyPlus, Trash2 } from '@lucide/vue';
 
 /** Menu do clique direito num bloco: duplicar, copiar e excluir. */
-defineProps<{ x: number; y: number }>();
+const props = defineProps<{ x: number; y: number }>();
 
 const emit = defineEmits<{
   (e: 'duplicate'): void;
@@ -14,6 +15,9 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+const menuRef = ref<HTMLElement | null>(null);
+const menuStyle = useMenuPosition(menuRef, () => ({ x: props.x, y: props.y }));
 
 function onGlobalEvent() {
   emit('close');
@@ -37,7 +41,7 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="context-menu" :style="{ top: `${y}px`, left: `${x}px` }" @click.stop @contextmenu.stop.prevent>
+    <div ref="menuRef" class="context-menu" :style="menuStyle" @click.stop @contextmenu.stop.prevent>
       <button class="menu-item" @click="emit('duplicate')">
         <CopyPlus :size="16" /> <span>{{ t('chatbot.editor.duplicate_block') }}</span>
       </button>

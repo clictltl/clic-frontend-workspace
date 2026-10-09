@@ -88,8 +88,10 @@ function updatePositions() {
     popoverStyle.value = placePopover(emojiBtnRef.value.getBoundingClientRect(), EMOJI_PICKER_SIZE);
   }
   if (showVarPicker.value && varBtnRef.value) {
-    const rect = varBtnRef.value.getBoundingClientRect();
-    varPopoverStyle.value = { top: `${rect.bottom + 8}px`, left: `${rect.left}px` };
+    // Mede o menu já visível e encaixa na tela (no painel lateral, abre para a esquerda)
+    const rect = varPickerContainer.value?.getBoundingClientRect();
+    const size = { width: Math.max(rect?.width ?? 0, 180), height: rect?.height || 250 };
+    varPopoverStyle.value = placePopover(varBtnRef.value.getBoundingClientRect(), size);
   }
 }
 
@@ -132,6 +134,7 @@ const newVarName = ref('');
 function startCreateVariable() {
   isCreatingVar.value = true;
   newVarName.value = '';
+  nextTick(updatePositions); // O formulário muda o tamanho do menu
 }
 
 function confirmCreateVariable() {

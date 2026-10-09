@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useMenuPosition } from '../../../utils/popover';
 import { Palette, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
@@ -8,6 +9,9 @@ const props = defineProps<{ edgeId: string; x: number; y: number; }>();
 const emit = defineEmits(['close']);
 const { t } = useI18n();
 const projectStore = useProjectStore();
+const menuRef = ref<HTMLElement | null>(null);
+const menuStyle = useMenuPosition(menuRef, () => ({ x: props.x, y: props.y }), 'above');
+
 const COLORS = ['#9ca3af', '#3b82f6', '#10b981', '#facc15', '#ef4444', '#a855f7'];
 
 const edge = computed(() => projectStore.project.edges[props.edgeId]);
@@ -23,7 +27,7 @@ function deleteEdge() {
 </script>
 
 <template>
-  <div class="edge-menu" :style="{ top: `${y}px`, left: `${x}px` }" v-if="edge">
+  <div v-if="edge" ref="menuRef" class="edge-menu" :style="menuStyle">
     <div class="menu-section">
       <div class="menu-header"><Palette :size="12" /> {{ t('chatbot.editor.colors') }}</div>
       <div class="color-grid">
@@ -40,7 +44,7 @@ function deleteEdge() {
 </template>
 
 <style scoped>
-.edge-menu { position: fixed; z-index: 999999; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 8px; width: 160px; display: flex; flex-direction: column; gap: 4px; transform: translate(-50%, -100%); margin-top: -10px; }
+.edge-menu { position: fixed; z-index: 999999; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 8px; width: 160px; display: flex; flex-direction: column; gap: 4px; }
 .menu-header { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; }
 .color-grid { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .color-btn { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }

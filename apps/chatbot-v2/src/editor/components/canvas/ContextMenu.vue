@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useMenuPosition } from '../../utils/popover';
 import { useI18n } from 'vue-i18n';
 import { ClipboardPaste } from '@lucide/vue';
 import { NODE_CONFIG, CREATABLE_NODES } from '../../utils/nodeConfig';
@@ -18,6 +19,10 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+// Perto das bordas, o menu vira para caber na tela
+const menuRef = ref<HTMLElement | null>(null);
+const menuStyle = useMenuPosition(menuRef, () => ({ x: props.x, y: props.y }));
 
 // Fecha se clicar fora ou rolar a tela
 function onGlobalEvent() {
@@ -43,8 +48,9 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <div 
-      class="context-menu" 
-      :style="{ top: `${y}px`, left: `${x}px` }"
+      ref="menuRef"
+      class="context-menu"
+      :style="menuStyle"
       @click.stop
       @contextmenu.stop.prevent
     >
