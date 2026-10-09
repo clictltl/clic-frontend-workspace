@@ -23,7 +23,7 @@ import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
 import ZoomControls from './ZoomControls.vue';
-import { FIT_VIEW_OPTIONS } from '../../utils/viewport';
+import { FIT_VIEW_OPTIONS, OPEN_MIN_ZOOM, OPEN_SUBSET_MAX_ZOOM, nodesToFrameOnOpen } from '../../utils/viewport';
 
 const projectStore = useProjectStore();
 
@@ -43,13 +43,23 @@ function fitWhenMeasured(frame = 0) {
   const nodes = getNodes.value;
   const measured = nodes.length > 0 && nodes.every(n => n.dimensions.width > 0 && n.dimensions.height > 0);
   if (measured || frame >= FIT_MAX_FRAMES) {
-    fitView(FIT_VIEW_OPTIONS);
+    fitOnOpen();
     return;
   }
   requestAnimationFrame(() => fitWhenMeasured(frame + 1));
 }
 
 watch(() => projectStore.project.uuid, () => nextTick(() => fitWhenMeasured()));
+
+// Fluxo grande: em vez de abrir minúsculo, abre no começo da conversa com zoom legível.
+// O botão "Ajustar à tela" continua mostrando tudo quando a criança pede.
+function fitOnOpen() {
+  const view = wrapper.value?.getBoundingClientRect();
+  const rects = Object.fromEntries(getNodes.value.map(n => [n.id, { ...n.computedPosition, ...n.dimensions }]));
+  const subset = view ? nodesToFrameOnOpen(projectStore.project, rects, view) : null;
+  if (subset) fitView({ nodes: subset, padding: FIT_VIEW_OPTIONS.padding, minZoom: OPEN_MIN_ZOOM, maxZoom: OPEN_SUBSET_MAX_ZOOM });
+  else fitView(FIT_VIEW_OPTIONS);
+}
 
 // Painel de variáveis destacou blocos: enquadra só eles para a criança achar onde estão
 watch(highlightedNodeIds, ids => {

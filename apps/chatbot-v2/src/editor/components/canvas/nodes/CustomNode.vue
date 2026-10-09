@@ -262,18 +262,19 @@ function randomText(options: string[]) {
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45), 0 10px 20px -4px rgba(16, 185, 129, 0.35);
   transform: translateY(-2px);
 }
+/* Tamanhos de letra pensados para crianças e para o enquadramento automático (zoom ~75%) */
 /* Texto escuro em todos os cabeçalhos (cores vivas, contraste AA; ver nodeConfig.ts) */
 .node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: #111827; border-top-left-radius: 6px; border-top-right-radius: 6px; }
-.header-left { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.header-left { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
 .header-actions { display: flex; gap: 4px; }
 .btn-delete-node {
   background: rgba(0,0,0,0.1); border: none; color: inherit; cursor: pointer;
   padding: 4px; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s;
 }
 .btn-delete-node:hover { background: rgba(255,255,255,0.5); }
-.node-body { padding: 12px; font-size: 13px; color: #4b5563; min-height: 40px; cursor: text; }
+.node-body { padding: 12px; font-size: 15px; color: #4b5563; min-height: 40px; cursor: text; }
 
-.start-message { font-size: 12px; color: #6b7280; font-style: italic; text-align: center; padding: 8px 0; }
+.start-message { font-size: 13px; color: #6b7280; font-style: italic; text-align: center; padding: 8px 0; }
 .read-only-text { display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
 .editable-text { min-height: 20px; width: 100%; }
 .editable-text:hover { background: #f3f4f6; border-radius: 4px; cursor: text; }
@@ -290,14 +291,14 @@ function randomText(options: string[]) {
 .choice-bubble:focus-within { border-color: #3b82f6; background: #eff6ff; }
 .choice-bubble-input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none; padding: 2px 0;
-  font-size: 12px; text-align: center; color: #374151; font-weight: 500;
+  font-size: 14px; text-align: center; color: #374151; font-weight: 500;
 }
 .node-media { margin: 8px 0; }
 
 /* Espera (editável no próprio nó) */
 .delay-field {
   display: inline-flex; align-items: center; gap: 3px; margin-top: 8px;
-  padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; cursor: text;
+  padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: text;
   /* Sem espera (0 s, o padrão): discreto, só um contorno tracejado indicando que dá para editar */
   background: transparent; color: #6b7280; border: 1px dashed #d1d5db;
 }
@@ -312,8 +313,8 @@ function randomText(options: string[]) {
 
 /* Resumo Lógico (Matemática e Definir Variável) */
 .logic-summary { text-align: center; background: #f9fafb; border-radius: 6px; border: 1px dashed #d1d5db; padding: 12px 8px; }
-.subtext { font-size: 11px; color: #9ca3af; }
-.logic-code { font-size: 12px; color: #111827; }
+.subtext { font-size: 12px; color: #9ca3af; }
+.logic-code { font-size: 14px; color: #111827; }
 .random-summary { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; vertical-align: middle; }
 .random-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .random-icon { flex: 0 0 auto; color: #6b7280; }
@@ -321,7 +322,7 @@ function randomText(options: string[]) {
 /* Rodapé da pergunta aberta (onde a resposta fica guardada) */
 .node-footer {
   display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px; font-size: 11px; line-height: 1.4;
+  padding: 6px 12px; font-size: 12px; line-height: 1.4;
   border-top: 1px solid #e5e7eb; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
 }
 .node-footer .var-pill { padding: 0 5px; }
@@ -330,7 +331,7 @@ function randomText(options: string[]) {
 .node-footer.is-unsaved { background: #fffbeb; color: #92400e; }
 
 /* Pílula de variável: estilo global em shared/richText/richText.css (igual à do texto) */
-.logic-connector { font-size: 10px; color: #9ca3af; font-weight: 700; margin: 0 4px; }
+.logic-connector { font-size: 12px; color: #9ca3af; font-weight: 700; margin: 0 4px; }
 
 /* Condição (Caixas separadas) */
 .rules-list { display: flex; flex-direction: column; gap: 8px; }
@@ -340,12 +341,12 @@ function randomText(options: string[]) {
   display: flex; align-items: center; min-height: 20px;
 }
 .else-box { background: #fef2f2; border-color: #fca5a5; }
-.rule-label { font-size: 12px; font-weight: 500; color: #374151; width: 100%; text-align: left; line-height: 1.6; }
+.rule-label { font-size: 14px; font-weight: 500; color: #374151; width: 100%; text-align: left; line-height: 1.6; }
 .rule-label .operator { color: #6b7280; margin: 0 4px; } /* O template não preserva espaços entre elementos */
 .rule-number {
-  flex: 0 0 auto; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%;
+  flex: 0 0 auto; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: #4b5563; color: white; font-size: 11px; font-weight: 700;
+  background: #4b5563; color: white; font-size: 12px; font-weight: 700;
 }
 .else-box .rule-label { color: #991b1b; }
 

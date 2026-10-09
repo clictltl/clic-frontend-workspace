@@ -386,6 +386,8 @@ function removeLink() {
   left: 0;
   box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);
 }
+/* No bloco, o texto em edição tem o mesmo tamanho do texto exibido (15px) */
+.variant-canvas :deep(.tiptap) { font-size: 15px; }
 /* Toolbar Embutida (Barra Lateral) */
 .variant-sidebar .toolbar {
   position: relative; top: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0;

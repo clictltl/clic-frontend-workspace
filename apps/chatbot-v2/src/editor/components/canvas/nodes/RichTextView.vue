@@ -34,6 +34,6 @@ const html = computed(() => {
 .rich-text-view :deep(ul), .rich-text-view :deep(ol) { padding-left: 20px; margin: 0 0 0.5em 0; }
 .rich-text-view :deep(blockquote) { border-left: 3px solid #d1d5db; margin: 0; padding-left: 10px; color: #6b7280; }
 .rich-text-view :deep(a) { color: #3b82f6; text-decoration: underline; }
-.rich-text-view :deep(code) { background: #f3f4f6; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+.rich-text-view :deep(code) { background: #f3f4f6; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
 .rich-text-empty { margin: 0; color: #9ca3af; font-style: italic; }
 </style>
