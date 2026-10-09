@@ -1,20 +1,22 @@
-/* Nós customizados do texto rico (editor, visualização e runtime) */
-.clic-variable {
+/* Pílula de variável: a mesma no texto rico (editor e visualização) e nos resumos dos blocos */
+.clic-variable,
+.var-pill {
   display: inline-block;
   background: #dbeafe;
   color: #1d4ed8;
   padding: 0 6px;
   border-radius: 4px;
-  font-size: 0.9em;
+  font-size: 0.95em;
   font-weight: 600;
-  font-family: monospace;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   margin: 0 2px;
   box-shadow: 0 0 0 1px #bfdbfe inset;
   user-select: none;
 }
 
 /* Variável excluída: continua no texto até o aluno corrigir */
-.clic-variable.is-missing {
+.clic-variable.is-missing,
+.var-pill.is-missing {
   background: #fee2e2;
   color: #b91c1c;
   box-shadow: 0 0 0 1px #fca5a5 inset;

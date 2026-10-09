@@ -6,6 +6,8 @@ import { RICH_TEXT_NODES } from '../domain/richText';
 export interface RichTextOptions {
   /** Resolve o nome atual da variável (o documento guarda só o ID). */
   variableName: (variableId: string) => string | undefined;
+  /** Palavra lida só pelo leitor de tela antes do nome ("variável nome"); o texto fica invisível. */
+  variablePrefix?: () => string;
 }
 
 /**
@@ -31,9 +33,14 @@ export function createRichTextExtensions(options: RichTextOptions): Extensions {
       return [{ tag: 'span[data-variable-id]' }];
     },
     renderHTML({ node, HTMLAttributes }) {
+      // Só o nome, sem chaves: a pílula azul já diferencia a variável do texto (igual aos resumos dos blocos)
       const name = options.variableName(node.attrs.variableId);
       const className = name ? 'clic-variable' : 'clic-variable is-missing';
-      return ['span', mergeAttributes(HTMLAttributes, { class: className }), `{ ${name ?? '?'} }`];
+      const prefix = options.variablePrefix?.();
+      const attrs = mergeAttributes(HTMLAttributes, { class: className });
+      return prefix
+        ? ['span', attrs, ['span', { class: 'sr-only' }, `${prefix} `], name ?? '?']
+        : ['span', attrs, name ?? '?'];
     },
     renderText({ node }) {
       return `{${options.variableName(node.attrs.variableId) ?? '?'}}`;

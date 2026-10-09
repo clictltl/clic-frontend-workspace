@@ -319,9 +319,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 .node-footer.is-saved { background: #f0fdf4; color: #166534; }
 .node-footer.is-unsaved { background: #fffbeb; color: #92400e; }
 
-/* Pílula de Variável (Matemática, Definir Variável e Condição) */
-.var-pill { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 0 2px; }
-.var-pill.is-missing { background: #fee2e2; color: #b91c1c; }
+/* Pílula de variável: estilo global em shared/richText/richText.css (igual à do texto) */
 .logic-connector { font-size: 10px; color: #9ca3af; font-weight: 700; margin: 0 4px; }
 
 /* Condição (Caixas separadas) */
