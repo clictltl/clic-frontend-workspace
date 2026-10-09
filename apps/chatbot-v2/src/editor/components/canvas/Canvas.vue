@@ -75,8 +75,19 @@ function onCtrlWheel(event: WheelEvent) {
 onMounted(() => {
   nextTick(() => fitWhenMeasured());
   wrapper.value?.addEventListener('wheel', onCtrlWheel, { capture: true, passive: false });
+  wrapper.value?.addEventListener('pointerdown', onTouchPointerDown, true);
+  window.addEventListener('pointermove', onTouchPointerMove, true);
+  for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, cancelLongPress, true);
+  window.addEventListener('click', onCaptureClick, true);
 });
-onBeforeUnmount(() => wrapper.value?.removeEventListener('wheel', onCtrlWheel, { capture: true }));
+onBeforeUnmount(() => {
+  wrapper.value?.removeEventListener('wheel', onCtrlWheel, { capture: true });
+  wrapper.value?.removeEventListener('pointerdown', onTouchPointerDown, true);
+  window.removeEventListener('pointermove', onTouchPointerMove, true);
+  for (const type of ['pointerup', 'pointercancel']) window.removeEventListener(type, cancelLongPress, true);
+  window.removeEventListener('click', onCaptureClick, true);
+  cancelLongPress();
+});
 
 // --- INTERCEPTADOR DE TECLADO ---
 function onKeyDown(e: KeyboardEvent) {
@@ -171,6 +182,7 @@ const edgeMenu = ref({ show: false, x: 0, y: 0, edgeId: '' });
 
 function onPaneContextMenu(event: MouseEvent) {
   event.preventDefault();
+  if (justLongPressed()) return;
   menu.value = {
     show: true,
     x: event.clientX,
@@ -209,10 +221,73 @@ function pasteAt(position: XYPosition) {
 function onNodeContextMenu(event: NodeMouseEvent) {
   const mouse = event.event as MouseEvent;
   mouse.preventDefault();
+  if (justLongPressed()) return; // O Android também dispara o contextmenu ao segurar o dedo
+  openNodeMenu(event.node.id, mouse.clientX, mouse.clientY);
+}
+
+function openNodeMenu(nodeId: string, x: number, y: number) {
   closeMenu();
-  if (projectStore.project.nodes[event.node.id]?.type === 'start') return;
-  projectStore.selectNode(event.node.id);
-  nodeMenu.value = { show: true, x: mouse.clientX, y: mouse.clientY, nodeId: event.node.id };
+  if (projectStore.project.nodes[nodeId]?.type === 'start') return;
+  projectStore.selectNode(nodeId);
+  nodeMenu.value = { show: true, x, y, nodeId };
+}
+
+function openPaneMenu(x: number, y: number) {
+  closeMenu();
+  menu.value = { show: true, x, y, flowPosition: screenToFlowCoordinate({ x, y }), source: null };
+}
+
+// --- TOQUE LONGO (tablet) ---
+// Dedo parado por meio segundo abre o mesmo menu do clique direito (o Safari do iPad não
+// dispara o contextmenu). Se o dedo se mexer antes, o gesto continua sendo arrastar.
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_TOLERANCE = 10; // px que o dedo pode tremer sem cancelar
+let longPress: { timer: ReturnType<typeof setTimeout>; x: number; y: number } | null = null;
+let longPressFiredAt = 0;
+let suppressNextClick = false;
+
+function justLongPressed() {
+  return Date.now() - longPressFiredAt < 1000;
+}
+
+function cancelLongPress() {
+  if (longPress) clearTimeout(longPress.timer);
+  longPress = null;
+}
+
+function onTouchPointerDown(event: PointerEvent) {
+  cancelLongPress();
+  suppressNextClick = false; // Toque novo: o clique dele vale normalmente
+  if (event.pointerType !== 'touch' || !event.isPrimary) return;
+  const target = event.target as HTMLElement;
+  // Campos de texto, editor e bolinhas de conexão mantêm o comportamento próprio
+  if (target.closest('input, textarea, select, [contenteditable="true"], .vue-flow__handle, .context-menu, .canvas-toolbar, .zoom-controls')) return;
+
+  const { clientX: x, clientY: y } = event;
+  longPress = {
+    x, y,
+    timer: setTimeout(() => {
+      longPress = null;
+      longPressFiredAt = Date.now();
+      suppressNextClick = true;
+      const nodeId = target.closest<HTMLElement>('.vue-flow__node')?.dataset.id;
+      if (nodeId) openNodeMenu(nodeId, x, y);
+      else if (target.closest('.vue-flow__pane')) openPaneMenu(x, y);
+    }, LONG_PRESS_MS)
+  };
+}
+
+function onTouchPointerMove(event: PointerEvent) {
+  if (longPress && Math.hypot(event.clientX - longPress.x, event.clientY - longPress.y) > LONG_PRESS_TOLERANCE) cancelLongPress();
+}
+
+// O toque que abriu o menu não pode, ao soltar, virar um clique que o fecha ou seleciona algo.
+// Só esse primeiro clique é bloqueado: o toque seguinte (numa opção do menu) funciona.
+function onCaptureClick(event: MouseEvent) {
+  if (!suppressNextClick) return;
+  suppressNextClick = false;
+  event.preventDefault();
+  event.stopPropagation();
 }
 
 function onNodeMenu(action: 'duplicate' | 'copy' | 'delete') {
@@ -492,6 +567,8 @@ function onPaneClick(event: MouseEvent) {
 
 <style scoped>
 .canvas-wrapper { width: 100%; height: 100%; position: relative; }
+/* Segurar o dedo no fundo não seleciona texto nem abre o menu nativo do iPad */
+:deep(.vue-flow__pane) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .connect-plus {
   position: fixed; z-index: 1001; transform: translate(-50%, -50%);
   width: 32px; height: 32px; border-radius: 50%; border: 2px solid white;

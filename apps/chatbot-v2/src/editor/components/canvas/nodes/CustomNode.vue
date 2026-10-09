@@ -386,4 +386,25 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 :deep(.node-handle)::after {
   content: ''; position: absolute; inset: -6px; border-radius: 50%;
 }
+
+/* ========================================================
+   TELAS DE TOQUE (tablet): alvos maiores para dedos de criança.
+   No computador com mouse nada muda.
+   ======================================================== */
+@media (pointer: coarse) {
+  /* Mais espaço entre opções/regras: não puxar a conexão da vizinha */
+  .choices-container, .rules-list { gap: 14px; }
+
+  /* Bolinha de 20px com área de toque de 44px (mínimo recomendado) */
+  :deep(.node-handle) { width: 20px !important; height: 20px !important; }
+  :deep(.node-handle)::after { inset: -12px; }
+  :deep(.in-handle) { left: -10px !important; }
+  :deep(.standard-handle) { right: -10px !important; }
+  :deep(.inner-handle) { right: -22px !important; } /* 12px do corpo + metade da bolinha */
+
+  .btn-delete-node { padding: 7px; }
+
+  /* Segurar o dedo abre o menu do bloco: sem seleção de texto nem menu nativo do iPad */
+  .node-header, .read-only-text { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+}
 </style>
