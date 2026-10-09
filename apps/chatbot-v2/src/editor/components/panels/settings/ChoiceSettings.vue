@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Plus, Trash2 } from '@lucide/vue';
+import { ListChecks, Plus, Trash2 } from '@lucide/vue';
+import PanelSection from '../../common/PanelSection.vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { getNodeOfType } from '../../../../shared/domain/graph';
 import DraftInput from '../../common/DraftInput.vue';
@@ -15,8 +16,7 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'c
 </script>
 
 <template>
-  <div v-if="node" class="form-group">
-    <label>{{ t('chatbot.properties.choices_label') }}</label>
+  <PanelSection v-if="node" :icon="ListChecks" :title="t('chatbot.properties.section_choices')">
     <div class="list-container">
       <div v-for="choice in node.data.choices" :key="choice.id" class="list-item">
         <ChoiceMediaPicker :media="choice.media" @change="media => projectStore.setChoiceMedia(nodeId, choice.id, media)" />
@@ -38,5 +38,5 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'c
     <button class="btn-outline" @click="projectStore.addChoice(nodeId)">
       <Plus :size="14" /> {{ t('chatbot.properties.add_choice') }}
     </button>
-  </div>
+  </PanelSection>
 </template>

@@ -5,9 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { CopyPlus, Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
-import { HANDLE_ELSE, HANDLE_OUT, type ComparisonOperator } from '../../../../shared/types/chatbot';
+import { HANDLE_ELSE, HANDLE_OUT } from '../../../../shared/types/chatbot';
 import RichTextView from './RichTextView.vue';
 import { connectTargetNodeId } from '../../../utils/connectTarget';
+import { OPERATOR_KEYS } from '../../../utils/operators';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
 import ChoiceMediaView from '../../../../shared/components/ChoiceMediaView.vue';
@@ -59,7 +60,7 @@ function randomText(options: string[]) {
   return options.filter(o => o.trim()).join(' / ') || '""';
 }
 
-const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': '≠', '>': '>', '<': '<', '>=': '≥', '<=': '≤' };
+
 </script>
 
 <template>
@@ -148,8 +149,10 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 
       <!-- CONDIÇÃO -->
       <div v-else-if="node.type === 'condition'" class="rules-list">
-        <div v-for="rule in node.data.rules" :key="rule.id" class="rule-box">
-          <div class="rule-label code-style">
+        <div v-for="(rule, rIndex) in node.data.rules" :key="rule.id" class="rule-box">
+          <!-- Mesmo número do cartão "Caminho N" no painel -->
+          <span class="rule-number">{{ rIndex + 1 }}</span>
+          <div class="rule-label">
             <template v-for="(condition, cIndex) in rule.conditions" :key="condition.id">
               <span v-if="cIndex > 0" class="logic-connector">
                 {{ rule.match === 'any' ? t('chatbot.properties.logic_or') : t('chatbot.properties.logic_and') }}
@@ -157,9 +160,9 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
               <span v-if="!condition.variableId">…</span>
               <template v-else>
                 <span class="var-pill" :class="{ 'is-missing': isMissing(condition.variableId) }">{{ varName(condition.variableId) }}</span>
-                <strong> {{ OPERATOR_SYMBOLS[condition.operator] }} </strong>
+                <span class="operator"> {{ t(OPERATOR_KEYS[condition.operator]) }} </span>
                 <span v-if="condition.value.kind === 'variable'" class="var-pill" :class="{ 'is-missing': isMissing(condition.value.variableId) }">{{ varName(condition.value.variableId) }}</span>
-                <span v-else>{{ literalText(condition.value.value) }}</span>
+                <strong v-else>{{ literalText(condition.value.value) }}</strong>
               </template>
             </template>
           </div>
@@ -306,7 +309,7 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
 /* Resumo Lógico (Matemática e Definir Variável) */
 .logic-summary { text-align: center; background: #f9fafb; border-radius: 6px; border: 1px dashed #d1d5db; padding: 12px 8px; }
 .subtext { font-size: 11px; color: #9ca3af; }
-.logic-code { font-family: monospace; font-size: 12px; color: #111827; }
+.logic-code { font-size: 12px; color: #111827; }
 .random-summary { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; vertical-align: middle; }
 .random-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .random-icon { flex: 0 0 auto; color: #6b7280; }
@@ -333,9 +336,14 @@ const OPERATOR_SYMBOLS: Record<ComparisonOperator, string> = { '==': '=', '!=': 
   display: flex; align-items: center; min-height: 20px;
 }
 .else-box { background: #fef2f2; border-color: #fca5a5; }
-.rule-label { font-size: 12px; font-weight: 600; color: #374151; width: 100%; text-align: left; }
+.rule-label { font-size: 12px; font-weight: 500; color: #374151; width: 100%; text-align: left; line-height: 1.6; }
+.rule-label .operator { color: #6b7280; margin: 0 4px; } /* O template não preserva espaços entre elementos */
+.rule-number {
+  flex: 0 0 auto; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #4b5563; color: white; font-size: 11px; font-weight: 700;
+}
 .else-box .rule-label { color: #991b1b; }
-.code-style { font-family: monospace; font-size: 12px; }
 
 /* ========================================================
    BOLINHAS DE CONEXÃO (HANDLES)

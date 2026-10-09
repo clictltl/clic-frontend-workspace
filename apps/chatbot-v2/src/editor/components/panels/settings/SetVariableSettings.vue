@@ -3,7 +3,9 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { getNodeOfType } from '../../../../shared/domain/graph';
+import { Box, PenLine } from '@lucide/vue';
 import VariableSelect from '../../common/VariableSelect.vue';
+import PanelSection from '../../common/PanelSection.vue';
 import ValueInput from '../../common/ValueInput.vue';
 
 const props = defineProps<{ nodeId: string }>();
@@ -19,21 +21,19 @@ const isNumeric = computed(() => {
 
 <template>
   <template v-if="node">
-    <div class="form-group">
-      <label>{{ t('chatbot.properties.set_variable_target') }}</label>
+    <PanelSection :icon="Box" :title="t('chatbot.properties.section_target')">
       <VariableSelect
         :model-value="node.data.variableId"
         @change="variableId => projectStore.setAssignment(nodeId, { variableId })"
       />
-    </div>
-    <div v-if="node.data.variableId" class="form-group">
-      <label>{{ t('chatbot.properties.new_value') }}</label>
+    </PanelSection>
+    <PanelSection v-if="node.data.variableId" :icon="PenLine" :title="t('chatbot.properties.section_new_value')">
       <ValueInput
         :model-value="node.data.value"
         :numeric="isNumeric"
         allow-random
         @commit="value => projectStore.setAssignment(nodeId, { value })"
       />
-    </div>
+    </PanelSection>
   </template>
 </template>

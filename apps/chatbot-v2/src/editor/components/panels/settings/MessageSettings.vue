@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Timer } from '@lucide/vue';
+import PanelSection from '../../common/PanelSection.vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { getNodeOfType } from '../../../../shared/domain/graph';
 import DraftInput from '../../common/DraftInput.vue';
@@ -14,8 +15,7 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'm
 </script>
 
 <template>
-  <div v-if="node" class="form-group">
-    <label class="delay-label"><Timer :size="14" /> {{ t('chatbot.properties.delay_label') }}</label>
+  <PanelSection v-if="node" :icon="Timer" :title="t('chatbot.properties.section_delay')">
     <div class="delay-row">
       <DraftInput
         type="number"
@@ -25,11 +25,11 @@ const node = computed(() => getNodeOfType(projectStore.project, props.nodeId, 'm
       />
       <span>{{ t('chatbot.properties.delay_unit') }}</span>
     </div>
-  </div>
+    <p class="section-hint">{{ t('chatbot.properties.delay_hint') }}</p>
+  </PanelSection>
 </template>
 
 <style scoped>
-.delay-label { display: flex; align-items: center; gap: 6px; }
 .delay-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4b5563; }
 .delay-row input { width: 80px; }
 </style>

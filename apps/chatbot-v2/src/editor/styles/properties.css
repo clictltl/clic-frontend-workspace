@@ -38,3 +38,6 @@
 .properties .btn-text:hover { text-decoration: underline; }
 
 .properties .editor-wrapper { border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden; }
+
+/* Texto de apoio dentro das seções (cartões) do painel */
+.properties .section-hint { margin: 0; font-size: 12px; line-height: 1.5; color: #4b5563; }

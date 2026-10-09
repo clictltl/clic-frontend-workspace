@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ArrowDownToLine, ArrowUpToLine, Trash2 } from '@lucide/vue';
+import { ArrowDownToLine, ArrowUpToLine, Image, Plus, Trash2, X } from '@lucide/vue';
+import PanelSection from '../../common/PanelSection.vue';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import type { MediaSource } from '../../../../shared/types/chatbot';
 import MediaView from '../../../../shared/components/MediaView.vue';
@@ -16,14 +17,25 @@ const nodeMedia = computed(() => {
   return node && 'media' in node.data ? node.data.media : null;
 });
 
+// Sem imagem, a seção fica numa linha só; o seletor só abre quando pedido
+const isPicking = ref(false);
+
 function select(source: MediaSource) {
   projectStore.setNodeMedia(props.nodeId, { type: 'image', source });
+  isPicking.value = false;
 }
 </script>
 
 <template>
-  <div class="form-group">
-    <label>{{ t('chatbot.properties.media_label') }}</label>
+  <PanelSection :icon="Image" :title="t('chatbot.properties.section_image')">
+    <template v-if="!nodeMedia" #actions>
+      <button v-if="!isPicking" type="button" class="btn-text" @click="isPicking = true">
+        <Plus :size="14" /> {{ t('chatbot.properties.add_short') }}
+      </button>
+      <button v-else type="button" class="btn-icon" :title="t('global.cancel')" :aria-label="t('global.cancel')" @click="isPicking = false">
+        <X :size="16" />
+      </button>
+    </template>
 
     <template v-if="nodeMedia">
       <MediaView :media="nodeMedia.media" />
@@ -50,8 +62,8 @@ function select(source: MediaSource) {
       </div>
     </template>
 
-    <MediaSourcePicker v-else @select="select" />
-  </div>
+    <MediaSourcePicker v-else-if="isPicking" @select="select" />
+  </PanelSection>
 </template>
 
 <style scoped>

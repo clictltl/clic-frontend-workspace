@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ArrowLeft } from '@lucide/vue';
+import { ArrowLeft, MessageSquareText } from '@lucide/vue';
+import PanelSection from '../common/PanelSection.vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { NODE_CONFIG } from '../../utils/nodeConfig';
@@ -30,29 +31,20 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
 
     <!-- :key recria os editores ao trocar de nó; cada um confirma pendências no nó certo ao desmontar -->
     <div class="panel-content properties" :key="activeNode.id">
-      <div v-if="'content' in activeNode.data" class="form-group">
-        <label>{{ t('chatbot.properties.bubble_text') }}</label>
+      <!-- Cada seção é um cartão. Texto e imagem juntos (aparecem juntos no balão), depois o que é de cada bloco -->
+      <PanelSection v-if="'content' in activeNode.data" :icon="MessageSquareText" :title="t('chatbot.properties.section_text')">
         <div class="editor-wrapper">
           <NodeContentEditor :node-id="activeNode.id" variant="sidebar" />
         </div>
-      </div>
+      </PanelSection>
       <NodeMediaSettings v-if="'media' in activeNode.data" :node-id="activeNode.id" />
 
-      <template v-if="activeNode.type === 'message'">
-        <hr class="divider" />
-        <MessageSettings :node-id="activeNode.id" />
-      </template>
-      <template v-else-if="activeNode.type === 'choice_question'">
-        <hr class="divider" />
-        <ChoiceSettings :node-id="activeNode.id" />
-      </template>
+      <OpenQuestionSettings v-if="activeNode.type === 'open_question'" :node-id="activeNode.id" />
+      <ChoiceSettings v-else-if="activeNode.type === 'choice_question'" :node-id="activeNode.id" />
       <ConditionSettings v-else-if="activeNode.type === 'condition'" :node-id="activeNode.id" />
       <SetVariableSettings v-else-if="activeNode.type === 'set_variable'" :node-id="activeNode.id" />
       <MathSettings v-else-if="activeNode.type === 'math'" :node-id="activeNode.id" />
-      <template v-else-if="activeNode.type === 'open_question'">
-        <hr class="divider" />
-        <OpenQuestionSettings :node-id="activeNode.id" />
-      </template>
+      <MessageSettings v-if="activeNode.type === 'message'" :node-id="activeNode.id" />
     </div>
   </div>
 </template>
@@ -63,5 +55,5 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
 .panel-header h2 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
 .btn-back { background: transparent; border: none; cursor: pointer; color: #6b7280; display: flex; align-items: center; padding: 4px; border-radius: 4px; }
 .btn-back:hover { background: #e5e7eb; color: #374151; }
-.panel-content { padding: 16px; }
+.panel-content { padding: 12px; gap: 12px; background: #f3f4f6; flex: 1; }
 </style>
