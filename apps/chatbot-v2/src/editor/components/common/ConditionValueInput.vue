@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Braces } from '@lucide/vue';
+import { Box } from '@lucide/vue';
 import type { Value } from '../../../shared/types/chatbot';
 import DraftInput from './DraftInput.vue';
 import VariableSelect from './VariableSelect.vue';
 
 /**
- * Valor comparado numa condição. O caso comum (digitar um valor) vem por padrão; o botão {x}
+ * Valor comparado numa condição. O caso comum (digitar um valor) vem por padrão; o botão com a caixa (ícone das variáveis)
  * troca para "usar o valor de uma variável" sem precisar entender "valor fixo" antes.
  */
 const props = withDefaults(defineProps<{
@@ -73,7 +73,7 @@ const toggleTitle = computed(() => t(usesVariable.value ? 'chatbot.properties.va
       :aria-label="toggleTitle"
       @click="toggle"
     >
-      <Braces :size="16" />
+      <Box :size="16" />
     </button>
   </div>
 </template>

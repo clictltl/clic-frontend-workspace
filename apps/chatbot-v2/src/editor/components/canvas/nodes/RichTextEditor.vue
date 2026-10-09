@@ -2,7 +2,7 @@
 import { watch, onBeforeUnmount, ref, nextTick, onMounted } from 'vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import {
-  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Unlink, Smile, Braces, Plus, Hash
+  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Unlink, Smile, Box, Plus, Hash
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
@@ -270,7 +270,7 @@ function removeLink() {
       <div class="divider"></div>
       <button ref="linkBtnRef" type="button" @click="toggleLinkPopover" :class="{ 'is-active': editor.isActive('link') || showLinkPopover }" :title="t('chatbot.editor.rich_text.link')"><LinkIcon :size="14" /></button>
       <button ref="emojiBtnRef" type="button" @click="toggleEmojiPicker" :class="{ 'is-active': showEmojiPicker }" :title="t('chatbot.editor.rich_text.emoji')"><Smile :size="14" /></button>      <div class="divider"></div>
-      <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" :title="t('chatbot.editor.rich_text.insert_variable')"><Braces :size="14" /></button>
+      <button ref="varBtnRef" type="button" @click="toggleVarPicker" class="btn-special" :class="{ 'is-active': showVarPicker }" :title="t('chatbot.editor.rich_text.insert_variable')"><Box :size="14" /></button>
     </div>
     
     <EditorContent :editor="editor" class="editor-content" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ChevronDown, ChevronRight, CircleDashed, Crosshair, Database, Hash, Pencil, Plus, Trash2 } from '@lucide/vue';
+import { ChevronDown, ChevronRight, Box, CircleDashed, Crosshair, Hash, Pencil, Plus, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { checkVariableName, type VariableNameError } from '../../../shared/domain/variables';
@@ -105,7 +105,7 @@ function confirmDelete() {
       <p class="section-hint">{{ t('chatbot.variables.what_is') }}</p>
     </PanelSection>
 
-    <PanelSection :icon="Database" :title="t('chatbot.variables.section_list')">
+    <PanelSection :icon="Box" :title="t('chatbot.variables.section_list')">
       <div v-if="variables.length > 0" class="var-list">
         <div v-for="vari in variables" :key="vari.id" class="var-item" :class="{ 'is-highlighted': highlightedVariableId === vari.id }">
           <div class="var-row">

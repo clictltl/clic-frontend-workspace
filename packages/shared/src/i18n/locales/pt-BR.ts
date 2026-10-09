@@ -268,6 +268,8 @@ export default {
         confirm: 'OK'
       },
       page_title: 'Novelo: editor de chatbot',
+      block_tab_empty: 'Clique em um bloco no canvas para editar o que ele faz.',
+      block_tab_hint: 'Para criar um bloco, use "Adicionar bloco" no canto do canvas.',
       variable_prefix: 'variável',
       delay_unit_short: 's',
       test: {

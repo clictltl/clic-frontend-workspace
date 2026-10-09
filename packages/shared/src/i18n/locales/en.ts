@@ -267,6 +267,8 @@ export default {
         confirm: 'OK'
       },
       page_title: 'Novelo: chatbot editor',
+      block_tab_empty: 'Click a block on the canvas to edit what it does.',
+      block_tab_hint: 'To create a block, use "Add block" in the corner of the canvas.',
       variable_prefix: 'variable',
       delay_unit_short: 's',
       test: {

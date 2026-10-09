@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Component } from 'vue';
+import { Comment, useSlots, type Component, type VNode } from 'vue';
 
 /**
  * Seção do painel de propriedades: cartão com ícone, título e (opcional) ação no cabeçalho.
@@ -13,6 +13,14 @@ withDefaults(defineProps<{
 }>(), {
   tone: 'default'
 });
+
+// Só mostra o corpo se o conteúdo renderizar algo (ex.: seção de imagem fechada fica só no cabeçalho)
+const slots = useSlots();
+const hasBody = () => (slots.default?.() ?? []).some(isRendered);
+function isRendered(vnode: VNode): boolean {
+  if (vnode.type === Comment) return false;
+  return Array.isArray(vnode.children) ? (vnode.children as VNode[]).some(isRendered) : true;
+}
 </script>
 
 <template>
@@ -23,7 +31,7 @@ withDefaults(defineProps<{
       <h3 class="section-title">{{ title }}</h3>
       <div v-if="$slots.actions" class="section-actions"><slot name="actions" /></div>
     </header>
-    <div v-if="$slots.default" class="section-body"><slot /></div>
+    <div v-if="hasBody()" class="section-body"><slot /></div>
   </section>
 </template>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ArrowLeft, MessageSquareText } from '@lucide/vue';
+import { MessageSquareText } from '@lucide/vue';
 import PanelSection from '../common/PanelSection.vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../shared/stores/projectStore';
@@ -24,7 +24,6 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
 <template>
   <div class="panel" v-if="activeNode && nodeConfig">
     <div class="panel-header" :style="{ borderBottomColor: nodeConfig.color }">
-      <button class="btn-back" @click="projectStore.clearSelection()" :title="t('chatbot.editor.back')"><ArrowLeft :size="18" /></button>
       <component :is="nodeConfig.icon" :size="20" :color="nodeConfig.color" />
       <h2>{{ t(nodeConfig.titleKey) }}</h2>
     </div>
@@ -51,9 +50,7 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
 
 <style scoped>
 .panel { display: flex; flex-direction: column; height: 100%; }
-.panel-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 2px solid #e5e7eb; background: #f9fafb; color: #374151; }
+.panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 3px solid #e5e7eb; background: white; color: #374151; }
 .panel-header h2 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
-.btn-back { background: transparent; border: none; cursor: pointer; color: #6b7280; display: flex; align-items: center; padding: 4px; border-radius: 4px; }
-.btn-back:hover { background: #e5e7eb; color: #374151; }
 .panel-content { padding: 12px; gap: 12px; background: #f3f4f6; flex: 1; }
 </style>

@@ -102,6 +102,13 @@ function onKeyDown(e: KeyboardEvent) {
   const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
   if (isTyping) return; // Atalhos não atrapalham quem está digitando (Ctrl+C/V do texto continuam normais)
 
+  // Esc desmarca o bloco ou a conexão (substitui a antiga seta "voltar" do painel)
+  if (e.key === 'Escape') {
+    projectStore.clearSelection();
+    closeMenu();
+    return;
+  }
+
   // Copiar, colar e duplicar blocos
   if (e.ctrlKey || e.metaKey) {
     const key = e.key.toLowerCase();
