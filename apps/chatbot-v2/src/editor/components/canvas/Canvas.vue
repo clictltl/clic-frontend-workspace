@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import {
@@ -21,13 +21,62 @@ import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboa
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
+import ZoomControls from './ZoomControls.vue';
+import { FIT_VIEW_OPTIONS } from '../../utils/viewport';
 
 const projectStore = useProjectStore();
 
 // Extraímos as funções nativas e o estado de clique
-const { screenToFlowCoordinate, connectionClickStartHandle, connectionStartHandle } = useVueFlow();
+const { screenToFlowCoordinate, connectionClickStartHandle, connectionStartHandle, fitView, getNodes, viewport, setViewport } = useVueFlow();
 const { t } = useI18n();
 const toast = useToast();
+
+// --- ENQUADRAMENTO AO ABRIR ---
+// Projeto aberto, importado ou novo (uuid diferente): enquadra todos os blocos assim que o
+// Vue Flow tiver medido cada um. Editar o projeto não muda o uuid, então não reenquadra.
+// (O evento nodesInitialized não basta: blocos com os mesmos IDs do projeto anterior já
+// estão medidos e o evento não se repete.)
+const FIT_MAX_FRAMES = 30;
+
+function fitWhenMeasured(frame = 0) {
+  const nodes = getNodes.value;
+  const measured = nodes.length > 0 && nodes.every(n => n.dimensions.width > 0 && n.dimensions.height > 0);
+  if (measured || frame >= FIT_MAX_FRAMES) {
+    fitView(FIT_VIEW_OPTIONS);
+    return;
+  }
+  requestAnimationFrame(() => fitWhenMeasured(frame + 1));
+}
+
+watch(() => projectStore.project.uuid, () => nextTick(() => fitWhenMeasured()));
+
+// --- ZOOM COM CTRL+RODA E PINÇA ---
+// A roda move o canvas (como no Scratch). Com Ctrl (ou na pinça do trackpad, que chega como
+// roda + ctrlKey), dá zoom mantendo o ponto sob o cursor. O Vue Flow só faz isso no Mac.
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 4;
+
+function onCtrlWheel(event: WheelEvent) {
+  if (!event.ctrlKey && !event.metaKey) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const rect = wrapper.value?.getBoundingClientRect();
+  if (!rect) return;
+  // Pinça do trackpad manda passos pequenos e frequentes; a roda do mouse, passos de ~100px.
+  // Cada passo da roda vale ~15% (perto dos botões); a pinça fica suave e proporcional.
+  const delta = event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
+  const step = -delta * (Math.abs(delta) < 50 ? 0.01 : 0.002);
+  const { x, y, zoom } = viewport.value;
+  const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * 2 ** step));
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+  setViewport({ x: px - ((px - x) / zoom) * nextZoom, y: py - ((py - y) / zoom) * nextZoom, zoom: nextZoom });
+}
+onMounted(() => {
+  nextTick(() => fitWhenMeasured());
+  wrapper.value?.addEventListener('wheel', onCtrlWheel, { capture: true, passive: false });
+});
+onBeforeUnmount(() => wrapper.value?.removeEventListener('wheel', onCtrlWheel, { capture: true }));
 
 // --- INTERCEPTADOR DE TECLADO ---
 function onKeyDown(e: KeyboardEvent) {
@@ -351,8 +400,9 @@ function onPaneClick(event: MouseEvent) {
       :nodes="flowNodes"
       :edges="flowEdges"
       :default-viewport="{ zoom: 1 }"
-      :min-zoom="0.2"
-      :max-zoom="4"
+      :pan-on-scroll="true"
+      :min-zoom="MIN_ZOOM"
+      :max-zoom="MAX_ZOOM"
       :delete-key-code="null"
       :connect-on-click="true"
       :is-valid-connection="isValidConnection"
@@ -405,6 +455,7 @@ function onPaneClick(event: MouseEvent) {
     />
 
     <CanvasToolbar @add="openAddFromToolbar" />
+    <ZoomControls />
 
     <!-- "+" onde a conexão terminou no vazio: cria um bloco já ligado -->
     <button
