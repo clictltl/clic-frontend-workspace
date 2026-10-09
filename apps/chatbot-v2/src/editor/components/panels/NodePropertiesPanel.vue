@@ -24,7 +24,7 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
 <template>
   <div class="panel" v-if="activeNode && nodeConfig">
     <div class="panel-header" :style="{ borderBottomColor: nodeConfig.color }">
-      <component :is="nodeConfig.icon" :size="20" :color="nodeConfig.color" />
+      <component :is="nodeConfig.icon" :size="20" :color="nodeConfig.ink" />
       <h2>{{ t(nodeConfig.titleKey) }}</h2>
     </div>
 

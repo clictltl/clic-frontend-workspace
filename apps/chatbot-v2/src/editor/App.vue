@@ -89,9 +89,10 @@ body { overflow: hidden; background: #f3f4f6; }
 .btn-test {
   position: absolute; top: 16px; right: 16px; z-index: 10;
   display: flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;
-  background: #10b981; color: white; font-size: 14px; font-weight: 600;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  padding: 7px 15px; border: 2px solid #047857; border-radius: 8px; cursor: pointer;
+  /* Contornado: diferente do bloco Início (verde preenchido), contraste 5,5 */
+  background: white; color: #047857; font-size: 14px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-.btn-test:hover { background: #059669; }
+.btn-test:hover { background: #ecfdf5; }
 </style>

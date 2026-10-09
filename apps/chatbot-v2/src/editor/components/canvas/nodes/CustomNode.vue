@@ -262,14 +262,15 @@ function randomText(options: string[]) {
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45), 0 10px 20px -4px rgba(16, 185, 129, 0.35);
   transform: translateY(-2px);
 }
-.node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; }
+/* Texto escuro em todos os cabeçalhos (cores vivas, contraste AA; ver nodeConfig.ts) */
+.node-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: #111827; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 .header-left { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
 .header-actions { display: flex; gap: 4px; }
 .btn-delete-node {
-  background: rgba(0,0,0,0.15); border: none; color: white; cursor: pointer;
+  background: rgba(0,0,0,0.1); border: none; color: inherit; cursor: pointer;
   padding: 4px; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s;
 }
-.btn-delete-node:hover { background: rgba(255,255,255,0.3); }
+.btn-delete-node:hover { background: rgba(255,255,255,0.5); }
 .node-body { padding: 12px; font-size: 13px; color: #4b5563; min-height: 40px; cursor: text; }
 
 .start-message { font-size: 12px; color: #6b7280; font-style: italic; text-align: center; padding: 8px 0; }

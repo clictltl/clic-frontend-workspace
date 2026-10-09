@@ -68,7 +68,7 @@ onUnmounted(() => {
         class="menu-item"
         @click="emit('select', type)"
       >
-        <component :is="NODE_CONFIG[type].icon" :size="16" :color="NODE_CONFIG[type].color" />
+        <component :is="NODE_CONFIG[type].icon" :size="16" :color="NODE_CONFIG[type].ink" />
         <span>{{ t(NODE_CONFIG[type].titleKey) }}</span>
       </button>
     </div>
