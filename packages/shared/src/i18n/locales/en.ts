@@ -415,6 +415,8 @@ export default {
       title_placeholder: 'E.g.: Mrs. Owl',
       avatar: 'Avatar',
       welcome_title: 'Start screen title',
+      section_identity: 'Title and avatar',
+      section_text: 'Text',
       theme: 'Theme',
       themes: {
         classic: 'Classic',
@@ -444,6 +446,14 @@ export default {
       }
     },
     variables: {
+      default_hint: 'The value the variable has when the conversation starts.',
+      usages_hint: 'Click to highlight these blocks on the canvas',
+      unused: 'Not used yet',
+      usages: 'Used in {n} block | Used in {n} blocks',
+      show_details: 'Show details',
+      what_is: 'Variables keep information during the conversation, like the name of who is chatting.',
+      section_list: 'Your variables',
+      section_create: 'Create variable',
       title_new: 'New variable',
       title_list: 'Created variables',
       name_placeholder: 'variable_name',
@@ -457,7 +467,7 @@ export default {
       error_invalid: 'Invalid name. Use only letters, numbers, and underscore. Cannot start with a number.',
       confirm_delete: 'Do you want to remove the variable "{name}"?',
       used_in: 'Used in {n} block. Delete anyway? | Used in {n} blocks. Delete anyway?',
-      default_value: 'Initial value:',
+      default_value: 'Initial value',
       default_empty: '(empty)'
     },
     runtime: {

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Check } from '@lucide/vue';
+import { Check, IdCard, Palette, Type } from '@lucide/vue';
+import PanelSection from '../common/PanelSection.vue';
 import { useProjectStore } from '../../../shared/stores/projectStore';
 import { CHAT_FONTS, FONT_SIZES, THEMES } from '../../../shared/types/chatbot';
 import { FONT_FAMILIES, FONT_SIZE_PX, THEME_COLORS, WELCOME_TITLE_MAX } from '../../../shared/domain/appearance';
@@ -25,6 +26,7 @@ function commitWelcomeTitle(raw: string) {
 
 <template>
   <div class="panel-content properties">
+    <PanelSection :icon="IdCard" :title="t('chatbot.appearance.section_identity')">
     <div class="form-group">
       <label>{{ t('chatbot.appearance.title') }}</label>
       <DraftInput
@@ -54,11 +56,9 @@ function commitWelcomeTitle(raw: string) {
         @commit="commitWelcomeTitle"
       />
     </div>
+    </PanelSection>
 
-    <hr class="divider" />
-
-    <div class="form-group">
-      <label>{{ t('chatbot.appearance.theme') }}</label>
+    <PanelSection :icon="Palette" :title="t('chatbot.appearance.theme')">
       <div class="theme-grid">
         <button
           v-for="theme in THEMES"
@@ -81,8 +81,9 @@ function commitWelcomeTitle(raw: string) {
           <span class="theme-name">{{ t(`chatbot.appearance.themes.${theme}`) }}</span>
         </button>
       </div>
-    </div>
+    </PanelSection>
 
+    <PanelSection :icon="Type" :title="t('chatbot.appearance.section_text')">
     <div class="form-group">
       <label>{{ t('chatbot.appearance.font') }}</label>
       <div class="font-list">
@@ -119,11 +120,13 @@ function commitWelcomeTitle(raw: string) {
         </button>
       </div>
     </div>
+    </PanelSection>
   </div>
 </template>
 
 <style scoped>
-.panel-content { padding: 16px; }
+.panel-content { padding: 12px; gap: 12px; background: #f3f4f6; flex: 1; }
+.panel-content :deep(.section-body) { gap: 14px; }
 .avatar-row { display: flex; align-items: center; min-height: 40px; }
 
 /* Botões de escolha (tema, fonte, tamanho) */
@@ -149,10 +152,11 @@ function commitWelcomeTitle(raw: string) {
 }
 .theme-name { font-size: 11px; font-weight: 600; line-height: 1.2; }
 
-.font-list { display: flex; flex-direction: column; gap: 6px; }
-.font-option { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 8px 10px; text-align: left; }
+/* Duas colunas: cada opção mostra o nome na própria fonte */
+.font-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.font-option { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; text-align: left; min-width: 0; }
 .font-name { font-size: 15px; font-weight: 700; }
-.font-sample { font-size: 14px; color: #6b7280; white-space: nowrap; }
+.font-sample { font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .font-option.active .font-sample { color: #1d4ed8; }
 
 .size-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

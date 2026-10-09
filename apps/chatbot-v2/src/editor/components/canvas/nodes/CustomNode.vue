@@ -8,6 +8,7 @@ import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT } from '../../../../shared/types/chatbot';
 import RichTextView from './RichTextView.vue';
 import { connectTargetNodeId } from '../../../utils/connectTarget';
+import { highlightedNodeIds } from '../../../utils/highlight';
 import { OPERATOR_KEYS } from '../../../utils/operators';
 import DraftInput from '../../common/DraftInput.vue';
 import NodeContentEditor from '../../common/NodeContentEditor.vue';
@@ -67,7 +68,7 @@ function randomText(options: string[]) {
   <div
     v-if="node && config"
     class="custom-node"
-    :class="{ 'is-selected': isSelected, 'is-running': testActiveNodeId === id, 'is-connect-target': connectTargetNodeId === id }"
+    :class="{ 'is-selected': isSelected, 'is-running': testActiveNodeId === id, 'is-connect-target': connectTargetNodeId === id, 'is-highlighted': highlightedNodeIds.includes(id) }"
     :style="{ borderColor: isSelected ? config.color : '#e5e7eb' }"
   >
     <Handle v-if="node.type !== 'start'" type="target" id="in" :position="Position.Left" class="node-handle in-handle" />
@@ -251,6 +252,8 @@ function randomText(options: string[]) {
   transform: translateY(-2px);
 }
 /* Nó "falando" durante o teste da conversa */
+/* Destacado pelo painel de variáveis ("usada em N blocos") */
+.custom-node.is-highlighted { box-shadow: 0 0 0 4px #fcd34d, 0 4px 12px rgba(0, 0, 0, 0.1); }
 .custom-node.is-connect-target {
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(0, 0, 0, 0.1);

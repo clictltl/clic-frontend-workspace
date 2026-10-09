@@ -17,6 +17,7 @@ import EdgeContextMenu from './edges/EdgeContextMenu.vue';
 import type { ChatEdge, NodeType } from '../../../shared/types/chatbot';
 import { assignBackEdgeLanes, NODE_WIDTH, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
 import { connectTargetNodeId } from '../../utils/connectTarget';
+import { clearHighlight, highlightedNodeIds } from '../../utils/highlight';
 import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
@@ -49,6 +50,11 @@ function fitWhenMeasured(frame = 0) {
 }
 
 watch(() => projectStore.project.uuid, () => nextTick(() => fitWhenMeasured()));
+
+// Painel de variáveis destacou blocos: enquadra só eles para a criança achar onde estão
+watch(highlightedNodeIds, ids => {
+  if (ids.length) fitView({ nodes: ids, padding: 0.3, maxZoom: 1, duration: 300 });
+});
 
 // --- ZOOM COM CTRL+RODA E PINÇA ---
 // A roda move o canvas (como no Scratch). Com Ctrl (ou na pinça do trackpad, que chega como
@@ -91,7 +97,7 @@ onBeforeUnmount(() => {
 
 // --- INTERCEPTADOR DE TECLADO ---
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') hidePlus();
+  if (e.key === 'Escape') { hidePlus(); clearHighlight(); }
   const target = e.target as HTMLElement;
   const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
   if (isTyping) return; // Atalhos não atrapalham quem está digitando (Ctrl+C/V do texto continuam normais)
@@ -461,6 +467,7 @@ function onEdgeClick(event: any) {
 
 function onPaneClick(event: MouseEvent) {
   closeMenu();
+  clearHighlight();
   projectStore.clearSelection();
   // Modo clique: o clique no fundo cancela a conexão, mas oferece o "+" naquele ponto
   const source = connectionClickStartHandle.value ? pendingSource.value : null;

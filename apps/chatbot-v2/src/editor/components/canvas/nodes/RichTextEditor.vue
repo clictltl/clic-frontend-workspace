@@ -2,7 +2,7 @@
 import { watch, onBeforeUnmount, ref, nextTick, onMounted } from 'vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import {
-  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Unlink, Smile, Braces, Plus, Type, Hash
+  Bold, Italic, Heading3, List, ListOrdered, Quote, Code, Link as LinkIcon, Unlink, Smile, Braces, Plus, Hash
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
@@ -327,8 +327,8 @@ function removeLink() {
           class="var-item"
           @click="insertVariable(vari.id)"
         >
-          <Type v-if="vari.type === 'text'" :size="14" color="#6b7280" />
-          <Hash v-else :size="14" color="#6b7280" />
+          <!-- Só as variáveis antigas do tipo número têm ícone: todas as novas são de texto -->
+          <Hash v-if="vari.type === 'number'" :size="14" color="#6b7280" />
           {{ vari.name }}
         </button>
       </template>

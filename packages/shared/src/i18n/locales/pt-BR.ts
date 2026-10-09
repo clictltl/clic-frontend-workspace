@@ -416,6 +416,8 @@ export default {
       title_placeholder: 'Ex.: Dona Coruja',
       avatar: 'Avatar',
       welcome_title: 'Título da tela inicial',
+      section_identity: 'Título e avatar',
+      section_text: 'Letra',
       theme: 'Tema',
       themes: {
         classic: 'Clássico',
@@ -445,6 +447,14 @@ export default {
       }
     },
     variables: {
+      default_hint: 'Valor que a variável tem no começo da conversa.',
+      usages_hint: 'Clique para destacar esses blocos no canvas',
+      unused: 'Ainda não usada',
+      usages: 'Usada em {n} bloco | Usada em {n} blocos',
+      show_details: 'Mostrar detalhes',
+      what_is: 'Variáveis guardam informações durante a conversa, como o nome de quem está conversando.',
+      section_list: 'Suas variáveis',
+      section_create: 'Criar variável',
       title_new: 'Nova variável',
       title_list: 'Variáveis criadas',
       name_placeholder: 'nome_da_variavel',
@@ -458,7 +468,7 @@ export default {
       error_invalid: 'Nome inválido. Use apenas letras, números e underscore. Não pode começar com número.',
       confirm_delete: 'Deseja remover a variável "{name}"?',
       used_in: 'Usada em {n} bloco. Excluir mesmo assim? | Usada em {n} blocos. Excluir mesmo assim?',
-      default_value: 'Valor inicial:',
+      default_value: 'Valor inicial',
       default_empty: '(vazio)'
     },
     runtime: {
