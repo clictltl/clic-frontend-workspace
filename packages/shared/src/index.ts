@@ -12,7 +12,7 @@ export { useAuth, checkLogin, getNonce, refreshNonce } from './auth/auth';
 export { default as AuthMenu } from './auth/AuthMenu.vue';
 
 // composables
-export { useHistoryShortcuts } from './composables/useHistoryShortcuts';
+export { useHistoryActions, useHistoryShortcuts } from './composables/useHistoryShortcuts';
 export { useEditorBootstrap } from './composables/useEditorBootstrap';
 export type { EditorBootstrapOptions } from './composables/useEditorBootstrap';
 

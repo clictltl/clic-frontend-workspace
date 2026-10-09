@@ -232,7 +232,11 @@ export default {
         delete: 'Deletar',
         no_actions: 'Sem ações disponíveis'
       },
-      add_node: 'Adicionar Nó',
+      add_node: 'Adicionar bloco',
+      undo_action: 'Desfazer: {action} (Ctrl+Z)',
+      undo_none: 'Nada para desfazer',
+      redo_action: 'Refazer: {action} (Ctrl+Shift+Z)',
+      redo_none: 'Nada para refazer',
       back: 'Voltar',
       click_to_edit: 'Clique para editar',
       start_hint: 'O bate-papo começará por aqui! Ligue este bloco à sua primeira mensagem.',

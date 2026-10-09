@@ -231,7 +231,11 @@ export default {
         delete: 'Delete',
         no_actions: 'No actions available'
       },
-      add_node: 'Add Node',
+      add_node: 'Add block',
+      undo_action: 'Undo: {action} (Ctrl+Z)',
+      undo_none: 'Nothing to undo',
+      redo_action: 'Redo: {action} (Ctrl+Shift+Z)',
+      redo_none: 'Nothing to redo',
       back: 'Back',
       click_to_edit: 'Click to edit',
       start_hint: 'The chat will start here! Connect this block to your first message.',

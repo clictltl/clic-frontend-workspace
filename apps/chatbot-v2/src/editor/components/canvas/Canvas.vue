@@ -15,11 +15,12 @@ import ClickConnectionLine from './edges/ClickConnectionLine.vue';
 import ContextMenu from './ContextMenu.vue';
 import EdgeContextMenu from './edges/EdgeContextMenu.vue';
 import type { ChatEdge, NodeType } from '../../../shared/types/chatbot';
-import { assignBackEdgeLanes, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
+import { assignBackEdgeLanes, NODE_WIDTH, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
 import { connectTargetNodeId } from '../../utils/connectTarget';
 import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
+import CanvasToolbar from './CanvasToolbar.vue';
 
 const projectStore = useProjectStore();
 
@@ -176,6 +177,21 @@ function onNodeMenu(action: 'duplicate' | 'copy' | 'delete') {
 function handlePaste() {
   pasteAt(menu.value.flowPosition);
   menu.value.show = false;
+}
+
+// Botão "Adicionar bloco": abre o menu abaixo do botão; o bloco nasce no centro da área
+// visível, deslocado a cada vez para não empilhar exatamente no mesmo lugar
+const TOOLBAR_STAGGER = 30;
+let toolbarAdds = 0;
+
+function openAddFromToolbar(anchor: DOMRect) {
+  closeMenu();
+  const rect = wrapper.value?.getBoundingClientRect();
+  const offset = (toolbarAdds++ % 5) * TOOLBAR_STAGGER;
+  const center = rect
+    ? { x: rect.left + rect.width / 2 - NODE_WIDTH / 2 + offset, y: rect.top + rect.height / 3 + offset }
+    : { x: 0, y: 0 };
+  menu.value = { show: true, x: anchor.left, y: anchor.bottom + 8, flowPosition: screenToFlowCoordinate(center), source: null };
 }
 
 function handleAddNode(type: NodeType) {
@@ -387,6 +403,8 @@ function onPaneClick(event: MouseEvent) {
       @paste="handlePaste"
       @close="closeMenu"
     />
+
+    <CanvasToolbar @add="openAddFromToolbar" />
 
     <!-- "+" onde a conexão terminou no vazio: cria um bloco já ligado -->
     <button

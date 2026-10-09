@@ -24,6 +24,9 @@ declare module 'pinia' {
     clearHistory: () => void;
     canUndo: boolean;
     canRedo: boolean;
+    /** Rótulo (chave de i18n) da ação que o próximo undo/redo desfaz/refaz, ou null. */
+    nextUndoLabel: string | null;
+    nextRedoLabel: string | null;
   }
 }
 
@@ -123,6 +126,9 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
     });
   };
 
+  const labelOf = (entry: HistoryEntry | undefined) =>
+    entry ? actionLabels[entry.actionName] || entry.actionName : null;
+
    const undo = () => {
     if (undoStack.value.length === 0) return;
     const entry = undoStack.value.pop()!;
@@ -159,5 +165,7 @@ export const piniaInteractionHistoryPlugin: PiniaPlugin = ({ store, options }: P
     clearHistory,
     canUndo: computed(() => undoStack.value.length > 0) as unknown as boolean,
     canRedo: computed(() => redoStack.value.length > 0) as unknown as boolean,
+    nextUndoLabel: computed(() => labelOf(undoStack.value[undoStack.value.length - 1])) as unknown as string | null,
+    nextRedoLabel: computed(() => labelOf(redoStack.value[redoStack.value.length - 1])) as unknown as string | null,
   };
 }
