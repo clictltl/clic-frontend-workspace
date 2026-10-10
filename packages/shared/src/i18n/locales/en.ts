@@ -210,6 +210,7 @@ export default {
       block_copied: 'Block copied. To paste it here or in another project, use "Paste block" or Ctrl+V.',
       input_handle: 'Input handle',
       output_handle: 'Output handle',
+      write_text: 'Write the text here',
       no_content: 'No content',
       no_image: 'No image defined',
       connect_label: "Connect '{label}'",

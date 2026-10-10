@@ -31,12 +31,12 @@ const node = <T extends ChatNode['type']>(nodes: Record<string, ChatNode>, id: s
 };
 
 describe('v1 migration', () => {
-  it('keeps ids, positions and metadata and marks the source version', () => {
+  it('keeps ids and metadata, spreads positions and marks the source version', () => {
     const { project, migration } = migrate();
     expect(project.uuid).toBe('project-v1');
     expect(project.meta).toMatchObject({ version: '2.0.0', migratedFrom: '1.0.0', createdAt: '2025-03-01T10:00:00.000Z' });
     expect(Object.keys(project.nodes).sort()).toEqual(['add', 'ask', 'copy', 'cond', 'end', 'hello', 'img', 'img-url', 'mixed', 'msg', 'mul', 'pick', 'start'].sort());
-    expect(project.nodes.msg!.position).toEqual({ x: 420, y: 180 });
+    expect(project.nodes.msg!.position).toEqual({ x: 546, y: 252 }); // 420 × 1,3 e 180 × 1,4: os blocos do v2 são maiores
     expect(project.assets).toEqual(v1Project().assets);
     expect(migration?.from).toBe('1.0.0');
   });

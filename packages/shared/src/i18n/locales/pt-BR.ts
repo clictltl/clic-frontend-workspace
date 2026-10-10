@@ -211,6 +211,7 @@ export default {
       block_copied: 'Bloco copiado. Para colar aqui ou em outro projeto, use "Colar bloco" ou Ctrl+V.',
       input_handle: 'Ponto de entrada',
       output_handle: 'Ponto de saída',
+      write_text: 'Escreva o texto aqui',
       no_content: 'Sem conteúdo',
       no_image: 'Nenhuma imagem definida',
       connect_label: "Conectar '{label}'",

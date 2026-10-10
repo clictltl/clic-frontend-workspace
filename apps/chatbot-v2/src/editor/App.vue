@@ -10,7 +10,7 @@ import appLogo from '../assets/logo_novelo.svg';
 import { useProjectStore } from '../shared/stores/projectStore';
 import { assetStore } from '../shared/stores/assetStore';
 import { provideMediaResolver } from '../shared/media/resolver';
-import { tryLoadProject, useProjects } from './utils/useProjects';
+import { importProjectFile, useProjects } from './utils/useProjects';
 import { resolveMediaSource } from './utils/mediaSource';
 import Canvas from './components/canvas/Canvas.vue';
 import Sidebar from './components/panels/Sidebar.vue';
@@ -54,7 +54,7 @@ const isTesting = ref(false);
           :asset-store="assetStore"
           :has-unsaved-changes="store.hasUnsavedChanges"
           :get-project-data="() => store.getProjectData()"
-          :import-project="(data: unknown) => tryLoadProject(data)"
+          :import-project="importProjectFile"
           @new-project="store.createNew()"
         />
       </template>

@@ -282,8 +282,9 @@ function randomText(options: string[]) {
 /* Múltipla Escolha (Botão de Chat com Bolinha Interna) */
 .choices-container { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .choice-wrapper { position: relative; display: flex; align-items: center; }
+/* Alinhado à esquerda, como o botão no chat: o emoji/imagem não empurra o texto para fora do centro */
 .choice-bubble {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 6px;
   padding: 6px 12px;
   border: 1px solid #e5e7eb; border-radius: 16px; background: #f9fafb;
   transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 0;
@@ -291,7 +292,7 @@ function randomText(options: string[]) {
 .choice-bubble:focus-within { border-color: #3b82f6; background: #eff6ff; }
 .choice-bubble-input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none; padding: 2px 0;
-  font-size: 14px; text-align: center; color: #374151; font-weight: 500;
+  font-size: 14px; text-align: left; color: #374151; font-weight: 500;
 }
 .node-media { margin: 8px 0; }
 

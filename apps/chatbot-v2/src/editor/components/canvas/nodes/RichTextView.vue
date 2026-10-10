@@ -24,7 +24,8 @@ const html = computed(() => {
 
 <template>
   <div v-if="html" class="rich-text-view" v-html="html"></div>
-  <p v-else class="rich-text-empty">({{ t('chatbot.editor.no_content') }})</p>
+  <!-- Vazio (ex.: bloco só com imagem): convite para escrever, não um aviso -->
+  <p v-else class="rich-text-empty">{{ t('chatbot.editor.write_text') }}</p>
 </template>
 
 <style scoped>

@@ -18,7 +18,7 @@ import { createAppearance } from '../appearance';
  * MIGRAÇÃO DO CHATBOT v1 → v2
  *
  * Converte o JSON salvo pelo editor v1 (`blocks[]` + `nextBlockId`) no modelo v2.
- * Mantém ids e posições dos blocos. Só textos que o v1 realmente exibia são convertidos.
+ * Mantém os ids dos blocos e afasta as posições (os blocos do v2 são maiores). Só textos que o v1 realmente exibia são convertidos.
  * Casos sem equivalente exato geram avisos para o aluno revisar.
  */
 
@@ -175,9 +175,16 @@ interface BlockHelpers {
   newId: () => string;
 }
 
+// Os blocos do v2 são maiores (260px de largura contra 220 do v1, letra maior, rodapés):
+// as posições do v1 são afastadas na mesma proporção para os blocos não se sobreporem.
+const V1_SPACING = { x: 1.3, y: 1.4 };
+
 function migrateBlock(block: V1Block, h: BlockHelpers): ChatNode | null {
   const { id } = block;
-  const position = { x: Number(block.position?.x) || 0, y: Number(block.position?.y) || 0 };
+  const position = {
+    x: Math.round((Number(block.position?.x) || 0) * V1_SPACING.x),
+    y: Math.round((Number(block.position?.y) || 0) * V1_SPACING.y)
+  };
 
   switch (block.type) {
     case 'start':

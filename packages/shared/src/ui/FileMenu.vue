@@ -138,9 +138,10 @@ const props = withDefaults(defineProps<{
   getProjectData: () => any;
   /**
    * Alternativa ao evento `import-project` para apps que validam o arquivo:
-   * devolve a mensagem de erro (já traduzida) se o projeto for recusado.
+   * devolve a mensagem de erro (já traduzida) se o projeto for recusado, ou `true` se o
+   * app já avisou o usuário (ex.: projeto convertido), para não somar um segundo aviso.
    */
-  importProject?: (data: any) => string | null | void;
+  importProject?: (data: any) => string | true | null | void;
 }>(), {
   fileExtension: '.clic',
   fileAccept: '.clic,.zip,.json',
@@ -418,13 +419,15 @@ async function handleImport(event: Event) {
   try {
     const project = await importClicFile(file, props.assetStore);
 
+    let notified = false;
     if (props.importProject) {
       // O app pode recusar o arquivo: mantém o projeto atual e o vínculo com a nuvem
-      const rejection = props.importProject(project);
-      if (rejection) {
-        toast.error(rejection);
+      const result = props.importProject(project);
+      if (typeof result === 'string') {
+        toast.error(result);
         return;
       }
+      notified = result === true;
     } else {
       emit('import-project', project);
     }
@@ -432,7 +435,7 @@ async function handleImport(event: Event) {
     // Rompe vínculo com projeto salvo na nuvem
     props.projectsStore.currentProjectId.value = null;
     props.projectsStore.currentProjectName.value = '';
-    toast.success(t('file_menu.success_load'));
+    if (!notified) toast.success(t('file_menu.success_load'));
   } catch (err: any) {
     console.error(err);
     toast.error(t('file_menu.error_load'));
