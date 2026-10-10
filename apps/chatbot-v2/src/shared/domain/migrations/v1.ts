@@ -82,7 +82,19 @@ export function migrateV1(json: Record<string, any>, deps: DomainDeps, now: stri
     idByName.set(key, id);
     idByName.set(name, id);
   }
-  const variableId = (name?: string) => (name ? idByName.get(name.trim()) ?? null : null);
+  // O v1 deixava usar um nome sem a variável existir (no chat aparecia "{{nome}}" literal).
+  // A migração cria uma variável de texto vazia para cada nome desconhecido, para o aluno ver
+  // a pílula e consertar no painel de variáveis.
+  const variableId = (raw?: string) => {
+    const name = raw?.trim();
+    if (!name) return null;
+    const known = idByName.get(name);
+    if (known) return known;
+    const id = deps.newId();
+    variables[id] = { id, name, type: 'text', defaultValue: '' };
+    idByName.set(name, id);
+    return id;
+  };
 
   // --- TEXTO: HTML do Tiptap v1 → JSON v2, com {{nome}} virando pílula de variável ---
   const toRichText = (html?: string): RichText => {
@@ -228,7 +240,7 @@ function migrateBlock(block: V1Block, h: BlockHelpers): ChatNode | null {
   }
 }
 
-/** Troca `{{nome}}` dentro dos textos por pílulas `clicVariable`. Nomes desconhecidos ficam como texto. */
+/** Troca `{{nome}}` dentro dos textos por pílulas `clicVariable` (o resolvedor cria as variáveis que faltam). */
 function replaceVariableMarkers(doc: RichText, variableId: (name: string) => string | null): RichText {
   const visit = (node: RichText): RichText[] => {
     if (node.type === 'text' && typeof node.text === 'string') {

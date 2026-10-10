@@ -50,14 +50,39 @@ describe('v1 migration', () => {
     expect(node(project.nodes, 'ask', 'open_question').data.variableId).toBe(byName.nome!.id);
   });
 
-  it('replaces {{name}} with variable pills and keeps unknown names as text', () => {
+  it('replaces {{name}} with variable pills, creating a text variable for unknown names', () => {
     const { project } = migrate();
-    const nome = Object.values(project.variables).find(v => v.name === 'nome')!;
+    const byName = Object.fromEntries(Object.values(project.variables).map(v => [v.name, v]));
+    expect(byName.desconhecida).toMatchObject({ type: 'text', defaultValue: '' });
     expect(inline(node(project.nodes, 'hello', 'message').data.content)).toEqual([
       { type: 'text', text: 'Olá, ' },
-      { type: 'clicVariable', attrs: { variableId: nome.id } },
-      { type: 'text', text: '! {{desconhecida}}' }
+      { type: 'clicVariable', attrs: { variableId: byName.nome!.id } },
+      { type: 'text', text: '! ' },
+      { type: 'clicVariable', attrs: { variableId: byName.desconhecida!.id } }
     ]);
+  });
+
+  it('creates each missing variable once, also for open questions, assignments and conditions', () => {
+    const json = v1Project();
+    (json.blocks as Record<string, unknown>[]).push(
+      { id: 'ask2', type: 'openQuestion', position: { x: 0, y: 0 }, content: '<p>Cor?</p>', variableName: 'cor', nextBlockId: 'say' },
+      { id: 'say', type: 'message', position: { x: 0, y: 0 }, content: '<p>{{cor}} e {{cor}}</p>' },
+      { id: 'set2', type: 'setVariable', position: { x: 0, y: 0 }, content: '', variableName: ' cor ', variableValue: '{{fruta}}' },
+      { id: 'cond2', type: 'condition', position: { x: 0, y: 0 }, content: '', conditions: [{ id: 'k', variableName: 'fruta', operator: '==', value: 'uva' }, { id: 'k2', variableName: '', operator: '==', value: '' }] }
+    );
+    const result = parseProject(json, deps(), NOW);
+    if (!result.ok) throw new Error(result.error);
+    const { project } = result;
+    const named = (name: string) => Object.values(project.variables).filter(v => v.name === name);
+    expect(named('cor')).toHaveLength(1);
+    expect(named('fruta')).toHaveLength(1);
+    const cor = named('cor')[0]!.id;
+    const fruta = named('fruta')[0]!.id;
+    expect(node(project.nodes, 'ask2', 'open_question').data.variableId).toBe(cor);
+    expect(inline(node(project.nodes, 'say', 'message').data.content).filter(i => i.type === 'clicVariable')).toHaveLength(2);
+    expect(node(project.nodes, 'set2', 'set_variable').data).toMatchObject({ variableId: cor, value: { kind: 'variable', variableId: fruta } });
+    const rules = node(project.nodes, 'cond2', 'condition').data.rules;
+    expect(rules.map(r => r.conditions[0]!.variableId)).toEqual([fruta, null]);
   });
 
   it('follows nextBlockId to create edges and ignores missing targets', () => {
