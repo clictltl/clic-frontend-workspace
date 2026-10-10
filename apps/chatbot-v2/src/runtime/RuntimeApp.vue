@@ -103,7 +103,7 @@ onMounted(loadProject);
 <style scoped>
 .runtime-root { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 .runtime-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; overflow-y: auto; }
-.runtime-widget { width: 100%; max-width: 420px; height: 640px; display: flex; flex-direction: column; background: #f9fafb; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12); }
+.runtime-widget { width: 100%; max-width: 480px; height: 100%; max-height: 820px; /* Acompanha a altura da tela */ display: flex; flex-direction: column; background: #f9fafb; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12); }
 .runtime-header { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; }
 .widget-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #4b5563; font-size: 14px; }
 .runtime-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -111,7 +111,9 @@ onMounted(loadProject);
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Celular: o chat ocupa a tela inteira, como um app de conversa */
 @media (max-width: 480px) {
-  .runtime-widget { height: 100%; max-width: 100%; border-radius: 12px; }
+  .runtime-page { padding: 0; }
+  .runtime-widget { max-height: none; border-radius: 0; box-shadow: none; }
 }
 </style>

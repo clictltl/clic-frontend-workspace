@@ -494,7 +494,7 @@ export default {
       },
       player: {
         title: 'Iniciar conversa',
-        desc: 'Clique em iniciar para começar',
+        desc: 'Aperte em Iniciar para começar.',
         btn_start: 'Iniciar'
       },
       chat: {

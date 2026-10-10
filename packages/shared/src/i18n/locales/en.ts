@@ -493,7 +493,7 @@ export default {
       },
       player: {
         title: 'Start conversation',
-        desc: 'Click start to begin',
+        desc: 'Press Start to begin.',
         btn_start: 'Start'
       },
       chat: {
