@@ -42,10 +42,19 @@ watch(
 // Quando o bot termina de falar, o foco vai para onde o aluno responde (teclado e leitor de tela).
 // Só se o foco já estiver no chat ou em lugar nenhum: no editor, o Testar fica ao lado e não pode
 // tirar o foco de quem está digitando num bloco.
-function focusInChat(target: HTMLElement | null | undefined) {
+// O foco automático num botão chega sem anel ("quieto"): para quem usa mouse ou toque, um botão
+// destacado parece já escolhido. Tab ou setas mostram o anel; Enter responde direto.
+const quietFocus = ref(false);
+function focusInChat(target: HTMLElement | null | undefined, quiet = false) {
   const active = document.activeElement;
   const focusIsFree = !active || active === document.body || !!rootRef.value?.contains(active);
-  if (target && focusIsFree) target.focus({ preventScroll: true });
+  if (target && focusIsFree) {
+    quietFocus.value = quiet;
+    target.focus({ preventScroll: true });
+  }
+}
+function revealFocus(event: KeyboardEvent) {
+  if (event.key === 'Tab' || event.key.startsWith('Arrow')) quietFocus.value = false;
 }
 
 watch(() => props.session.isWaitingText.value, async waiting => {
@@ -56,12 +65,12 @@ watch(() => props.session.isWaitingText.value, async waiting => {
 watch(() => props.session.choices.value.length, async count => {
   if (!count) return;
   await nextTick();
-  focusInChat(choicesRef.value?.querySelector('button'));
+  focusInChat(choicesRef.value?.querySelector('button'), true);
 });
 watch(() => props.session.isEnded.value, async ended => {
   if (!ended) return;
   await nextTick();
-  focusInChat(restartRef.value);
+  focusInChat(restartRef.value, true);
 });
 
 function send() {
@@ -77,7 +86,13 @@ function start() {
 </script>
 
 <template>
-  <div ref="rootRef" class="chat-interface" :style="appearanceStyle(appearance)">
+  <div
+    ref="rootRef"
+    class="chat-interface"
+    :class="{ 'quiet-focus': quietFocus }"
+    :style="appearanceStyle(appearance)"
+    @keydown="revealFocus"
+  >
     <!-- Antes de começar -->
     <div v-if="!session.isActive.value" class="start-screen">
       <ChoiceMediaView v-if="appearance.avatar" :media="appearance.avatar" :size="56" />
@@ -221,6 +236,10 @@ function start() {
 .typing .dot:nth-child(2) { animation-delay: 0.2s; }
 .typing .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+/* Anel de foco na cor do tema, no lugar do preto do navegador */
+.chat-interface button:focus-visible { outline: 3px solid var(--chat-accent); outline-offset: 2px; }
+.quiet-focus button:focus-visible { outline: none; }
 
 .choices-container { display: flex; flex-direction: column; gap: 8px; animation: slideIn 0.3s ease-out; }
 .choice-button {
