@@ -69,7 +69,7 @@ export function createNode<T extends NodeType>(type: T, position: Position, deps
 /** Projeto novo: Início ligado a uma primeira mensagem. */
 export function createProject(deps: DomainDeps, now: string): ChatbotProject {
   const start = createNode('start', { x: 250, y: 150 }, deps);
-  const message = createNode('message', { x: 250, y: 300 }, deps);
+  const message = createNode('message', { x: 590, y: 150 }, deps); // Ao lado do Início, como as ligações (da esquerda para a direita)
   const id = edgeId(start.id, HANDLE_OUT);
 
   return {
