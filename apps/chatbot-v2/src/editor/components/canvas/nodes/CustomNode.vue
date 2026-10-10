@@ -98,7 +98,7 @@ function randomText(options: string[]) {
       </div>
     </div>
 
-    <div class="node-body nodrag nowheel">
+    <div class="node-body nodrag">
 
       <!-- INÍCIO -->
       <div v-if="node.type === 'start'" class="start-message">{{ t('chatbot.editor.start_hint') }}</div>

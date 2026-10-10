@@ -254,7 +254,7 @@ function removeLink() {
 </script>
 
 <template>
-  <div class="rich-text-editor" :class="`variant-${variant}`" v-if="editor">
+  <div class="rich-text-editor" :class="[`variant-${variant}`, { nowheel: variant === 'canvas' }]" v-if="editor">
     <!-- No bloco, barra enxuta embaixo do texto (negrito, itálico, emoji, variável); no painel, completa em cima -->
     <div class="toolbar" @mousedown.prevent @click.stop>
       <button type="button" :title="t('chatbot.editor.rich_text.bold')" :aria-label="t('chatbot.editor.rich_text.bold')" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><Bold :size="14" /></button>

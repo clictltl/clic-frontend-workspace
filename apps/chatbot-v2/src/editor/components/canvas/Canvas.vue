@@ -66,14 +66,15 @@ watch(highlightedNodeIds, ids => {
   if (ids.length) fitView({ nodes: ids, padding: 0.3, maxZoom: 1, duration: 300 });
 });
 
-// --- ZOOM COM CTRL+RODA E PINÇA ---
-// A roda move o canvas (como no Scratch). Com Ctrl (ou na pinça do trackpad, que chega como
-// roda + ctrlKey), dá zoom mantendo o ponto sob o cursor. O Vue Flow só faz isso no Mac.
+// --- ZOOM COM A RODA E A PINÇA ---
+// A roda dá zoom mantendo o ponto sob o cursor, também em cima dos blocos (mover o canvas é
+// arrastando o fundo). A pinça do trackpad chega como roda + ctrlKey e cai no mesmo caminho.
+// Exceção: o texto em edição no bloco (.nowheel) rola o próprio conteúdo.
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 4;
 
-function onCtrlWheel(event: WheelEvent) {
-  if (!event.ctrlKey && !event.metaKey) return;
+function onWheel(event: WheelEvent) {
+  if (!event.ctrlKey && !event.metaKey && (event.target as HTMLElement | null)?.closest('.nowheel')) return;
   event.preventDefault();
   event.stopPropagation();
   const rect = wrapper.value?.getBoundingClientRect();
@@ -90,14 +91,14 @@ function onCtrlWheel(event: WheelEvent) {
 }
 onMounted(() => {
   nextTick(() => fitWhenMeasured());
-  wrapper.value?.addEventListener('wheel', onCtrlWheel, { capture: true, passive: false });
+  wrapper.value?.addEventListener('wheel', onWheel, { capture: true, passive: false });
   wrapper.value?.addEventListener('pointerdown', onTouchPointerDown, true);
   window.addEventListener('pointermove', onTouchPointerMove, true);
   for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, cancelLongPress, true);
   window.addEventListener('click', onCaptureClick, true);
 });
 onBeforeUnmount(() => {
-  wrapper.value?.removeEventListener('wheel', onCtrlWheel, { capture: true });
+  wrapper.value?.removeEventListener('wheel', onWheel, { capture: true });
   wrapper.value?.removeEventListener('pointerdown', onTouchPointerDown, true);
   window.removeEventListener('pointermove', onTouchPointerMove, true);
   for (const type of ['pointerup', 'pointercancel']) window.removeEventListener(type, cancelLongPress, true);
@@ -499,7 +500,6 @@ function onPaneClick(event: MouseEvent) {
       :nodes="flowNodes"
       :edges="flowEdges"
       :default-viewport="{ zoom: 1 }"
-      :pan-on-scroll="true"
       :min-zoom="MIN_ZOOM"
       :max-zoom="MAX_ZOOM"
       :delete-key-code="null"
