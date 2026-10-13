@@ -21,6 +21,7 @@ export { piniaInteractionHistoryPlugin } from './plugins/piniaInteractionHistory
 
 // utils
 export { decodeHtml } from './utils/decodeHtml';
+export { copyText } from './utils/clipboard';
 export { apiErrorMessage, requestErrorMessage, API_ERROR_KEYS, ApiError, NetworkError } from './utils/apiErrors';
 export type { ApiErrorCode } from './utils/apiErrors';
 export { exportClicFile, importClicFile } from './utils/projectIO';

@@ -11,6 +11,7 @@ export default {
     done: 'Concluído',
     copy: 'Copiar',
     copied: 'Copiado!',
+    copy_failed: 'Não foi possível copiar automaticamente. Selecione o link e copie à mão.',
     project: 'Projeto',
     unexpected_error: 'Erro inesperado.',
     error_saving: 'Erro ao salvar.',

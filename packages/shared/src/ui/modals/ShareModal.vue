@@ -59,6 +59,7 @@ import '../../styles/ui.css';
 import { ref, onMounted, computed, useId } from 'vue';
 import { Link, AlertTriangle, Copy } from '@lucide/vue';
 import BaseModal from './BaseModal.vue';
+import { copyText } from '../../utils/clipboard';
 import { useToast } from '../useToast';
 import { useI18n } from 'vue-i18n';
 
@@ -157,8 +158,9 @@ function handleInputClick() { if(isActive.value) inputRef.value?.select(); }
 
 async function copyToClipboard() {
   if (!shareUrl.value || !isActive.value) return;
-  await navigator.clipboard.writeText(shareUrl.value);
-  toast.success(t('global.copied'));
+  if (await copyText(shareUrl.value)) toast.success(t('global.copied'));
+  else toast.error(t('global.copy_failed'));
+  // Selecionado nos dois casos: se a cópia falhou, dá para copiar à mão
   handleInputClick();
 }
 </script>

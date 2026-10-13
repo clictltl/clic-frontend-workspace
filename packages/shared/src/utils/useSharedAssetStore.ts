@@ -3,6 +3,7 @@ import imageCompression from 'browser-image-compression';
 import { fileTypeFromBlob } from 'file-type';
 import type { ClicAsset } from '../types/asset';
 import { i18n } from '../i18n';
+import { generateUUID } from './id';
 
 // --- REGISTRO EM MEMÓRIA (Global para a sessão atual) ---
 const blobRegistry = reactive<Record<string, string>>({});
@@ -125,7 +126,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     }
 
     // 4. Registra
-    const assetId = crypto.randomUUID();
+    const assetId = generateUUID();
     const blobUrl = URL.createObjectURL(finalFile);
     blobRegistry[assetId] = blobUrl;
     rawBlobMap.set(assetId, finalFile);

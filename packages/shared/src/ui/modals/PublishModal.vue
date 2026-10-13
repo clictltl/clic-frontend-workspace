@@ -75,6 +75,7 @@ import '../../styles/ui.css';
 import { ref, onMounted, computed, useId } from 'vue';
 import { Rocket, Moon, AlertTriangle, Copy } from '@lucide/vue';
 import BaseModal from './BaseModal.vue';
+import { copyText } from '../../utils/clipboard';
 import { useToast } from '../../ui/useToast';
 import { useI18n } from 'vue-i18n';
 
@@ -174,6 +175,12 @@ async function handleUnpublish() {
 }
 
 function handleInputClick() { if(isActive.value) inputRef.value?.select(); }
-function copyToClipboard() { if (result.value && isActive.value) { navigator.clipboard.writeText(result.value.publish_url); toast.success(t('global.copied')); handleInputClick(); } }
+async function copyToClipboard() {
+  if (!result.value || !isActive.value) return;
+  if (await copyText(result.value.publish_url)) toast.success(t('global.copied'));
+  else toast.error(t('global.copy_failed'));
+  // Selecionado nos dois casos: se a cópia falhou, dá para copiar à mão
+  handleInputClick();
+}
 function formatDate(dateStr: string) { try { return new Date(dateStr).toLocaleString(locale.value, { dateStyle: 'short', timeStyle: 'short' }); } catch { return dateStr; } }
 </script>

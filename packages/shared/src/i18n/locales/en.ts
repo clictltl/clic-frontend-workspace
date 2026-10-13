@@ -11,6 +11,7 @@ export default {
     done: 'Done',
     copy: 'Copy',
     copied: 'Copied!',
+    copy_failed: 'Could not copy automatically. Select the link and copy it manually.',
     project: 'Project',
     unexpected_error: 'Unexpected error.',
     error_saving: 'Error saving.',

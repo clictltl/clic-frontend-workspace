@@ -1,5 +1,6 @@
 import { useAuth, getNonce, refreshNonce } from '../auth/auth';
 import { getAppVersionInfo } from '../utils/appVersion';
+import { generateUUID } from '../utils/id';
 
 export interface TelemetryEvent {
   event_type: 'mutation' | 'semantic' | 'system';
@@ -102,7 +103,8 @@ class TelemetryManager {
 
     // Os eventos da sessão anterior continuam na fila, presos à própria sessão
     this.session = {
-      sessionId: crypto.randomUUID(),
+      // generateUUID: crypto.randomUUID não existe fora de https/localhost nem em navegadores antigos
+      sessionId: generateUUID(),
       projectUuid,
       appType,
       closed: false,

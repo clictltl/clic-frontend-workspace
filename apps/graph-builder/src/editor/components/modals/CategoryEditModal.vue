@@ -5,6 +5,7 @@ import type { Category, CategoryFormConfig } from '@/shared/types';
 import { useProjectStore, CATEGORY_COLORS } from '@/shared/stores/projectStore';
 import { useProjects } from '@/editor/utils/useProjects';
 import { Palette, Hash, Copy, ExternalLink, Settings2, Link, Unlink, Loader2 } from '@lucide/vue'; // Loader2 adicionado
+import { copyText } from '@clic/shared';
 
 const props = defineProps<{ category?: Category; }>();
 const emit = defineEmits(['close']);
@@ -72,9 +73,9 @@ const handleHexInput = (e: Event) => {
 
 const openNativePicker = () => colorInputRef.value?.click();
 
-const copyLink = () => {
-  navigator.clipboard.writeText(formUrl.value);
-  alert(t('graphBuilder.categoryModal.link_copied'));
+const copyLink = async () => {
+  // copyText: navigator.clipboard não existe fora de https/localhost nem em navegadores antigos
+  alert(await copyText(formUrl.value) ? t('graphBuilder.categoryModal.link_copied') : t('global.copy_failed'));
 };
 
 // 1. AÇÃO LOCAL: Apenas salva a intenção e a configuração no arquivo (Pinia)
