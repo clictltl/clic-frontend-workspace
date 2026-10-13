@@ -63,6 +63,25 @@ describe('useChatSession', () => {
     expect(session.isEnded.value).toBe(true);
   });
 
+  it('tests from a block, logs it, keeps it on restart and goes back to Start on request', () => {
+    const ctx = setup();
+    const second = ctx.add('message');
+    connect(ctx.project, ctx.message.id, HANDLE_OUT, second.id);
+
+    const { session, events } = sessionFor(ctx.project);
+    session.start(second.id);
+    expect(events[events.length - 1]).toEqual(['preview_start', { seed: 42, fromNodeId: second.id }]);
+    vi.advanceTimersByTime(TYPING_MS);
+    expect(session.messages.value.map(m => m.from === 'bot' && m.nodeId)).toEqual([second.id]);
+
+    session.start(); // Recomeçar: mesma partida
+    expect(events[events.length - 1]).toEqual(['preview_start', { seed: 42, fromNodeId: second.id }]);
+
+    session.start(null); // "Testar do início"
+    expect(events[events.length - 1]).toEqual(['preview_start', { seed: 42 }]);
+    expect(session.fromNodeId.value).toBeNull();
+  });
+
   it('only accepts answers after the question is shown and logs them', () => {
     const ctx = setup();
     const question = ctx.add('open_question');

@@ -22,12 +22,18 @@ import type { ChatMessage, ChatState, ChatValues } from './types';
 /** Passos automáticos permitidos sem nenhuma pergunta (protege contra ciclos infinitos). */
 export const MAX_AUTO_STEPS = 1000;
 
-/** `seed` inicia o gerador dos sorteios: a mesma semente reproduz a mesma conversa. */
-export function startChat(project: ChatbotProject, seed = 0): ChatState {
+/**
+ * `seed` inicia o gerador dos sorteios: a mesma semente reproduz a mesma conversa.
+ * `fromNodeId` ("testar a partir daqui") começa nesse bloco, com os valores iniciais;
+ * se o bloco não existir mais, começa pelo Início.
+ */
+export function startChat(project: ChatbotProject, seed = 0, fromNodeId?: string | null): ChatState {
   const values: ChatValues = {};
   for (const variable of Object.values(project.variables)) values[variable.id] = variable.defaultValue;
 
   const state: ChatState = { status: 'ended', currentNodeId: null, messages: [], choices: [], values, rng: seed >>> 0, error: null };
+  if (fromNodeId && project.nodes[fromNodeId]) return run(project, state, fromNodeId);
+
   const start = Object.values(project.nodes).find(n => n.type === 'start');
   if (!start) return { ...state, error: 'NO_START_BLOCK' };
 

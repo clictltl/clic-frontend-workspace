@@ -273,12 +273,15 @@ export default {
       block_tab_hint: 'Para criar um bloco, use "Adicionar bloco" no canto do canvas.',
       variable_prefix: 'variável',
       delay_unit_short: 's',
+      test_from_here: 'Testar a partir daqui',
       test: {
         button: 'Testar',
         title: 'Testar conversa',
         variables: 'Variáveis',
         empty_value: 'vazio',
-        toggle_variables: 'Mostrar ou esconder as variáveis'
+        toggle_variables: 'Mostrar ou esconder as variáveis',
+        from_block: 'Testando a partir de: {block}',
+        from_start: 'Testar do início'
       }
     },
     blocks: {

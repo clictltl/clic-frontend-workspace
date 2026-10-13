@@ -2,12 +2,13 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useMenuPosition } from '../../utils/popover';
 import { useI18n } from 'vue-i18n';
-import { Copy, CopyPlus, Trash2 } from '@lucide/vue';
+import { Copy, CopyPlus, Play, Trash2 } from '@lucide/vue';
 
-/** Menu do clique direito num bloco: duplicar, copiar e excluir. */
+/** Menu do clique direito num bloco (o Início não tem menu): testar a partir dele, duplicar, copiar e excluir. */
 const props = defineProps<{ x: number; y: number }>();
 
 const emit = defineEmits<{
+  (e: 'test'): void;
   (e: 'duplicate'): void;
   (e: 'copy'): void;
   (e: 'delete'): void;
@@ -42,6 +43,9 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <div ref="menuRef" class="context-menu" :style="menuStyle" @click.stop @contextmenu.stop.prevent>
+      <button class="menu-item" @click="emit('test')">
+        <Play :size="16" /> <span>{{ t('chatbot.editor.test_from_here') }}</span>
+      </button>
       <button class="menu-item" @click="emit('duplicate')">
         <CopyPlus :size="16" /> <span>{{ t('chatbot.editor.duplicate_block') }}</span>
       </button>
@@ -57,7 +61,7 @@ onUnmounted(() => {
 
 <style scoped>
 .context-menu {
-  position: fixed; z-index: 999999; width: 180px; padding: 6px;
+  position: fixed; z-index: 999999; width: 200px; padding: 6px;
   background: white; border: 1px solid #e5e7eb; border-radius: 8px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   display: flex; flex-direction: column; gap: 2px;

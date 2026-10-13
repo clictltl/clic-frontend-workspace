@@ -19,6 +19,7 @@ import { assignBackEdgeLanes, NODE_WIDTH, type EdgeEmphasis, type FlowEdgeData }
 import { connectTargetNodeId } from '../../utils/connectTarget';
 import { clearHighlight, highlightedNodeIds } from '../../utils/highlight';
 import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
+import { requestTestFrom } from '../../utils/testRun';
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
@@ -314,10 +315,11 @@ function onCaptureClick(event: MouseEvent) {
   event.stopPropagation();
 }
 
-function onNodeMenu(action: 'duplicate' | 'copy' | 'delete') {
+function onNodeMenu(action: 'test' | 'duplicate' | 'copy' | 'delete') {
   const id = nodeMenu.value.nodeId;
   nodeMenu.value.show = false;
-  if (action === 'duplicate') projectStore.duplicateNode(id);
+  if (action === 'test') requestTestFrom(id);
+  else if (action === 'duplicate') projectStore.duplicateNode(id);
   else if (action === 'copy') copySelected(id);
   else projectStore.deleteNode(id);
 }
@@ -573,6 +575,7 @@ function onPaneClick(event: MouseEvent) {
       v-if="nodeMenu.show"
       :x="nodeMenu.x"
       :y="nodeMenu.y"
+      @test="onNodeMenu('test')"
       @duplicate="onNodeMenu('duplicate')"
       @copy="onNodeMenu('copy')"
       @delete="onNodeMenu('delete')"

@@ -272,12 +272,15 @@ export default {
       block_tab_hint: 'To create a block, use "Add block" in the corner of the canvas.',
       variable_prefix: 'variable',
       delay_unit_short: 's',
+      test_from_here: 'Test from here',
       test: {
         button: 'Test',
         title: 'Test conversation',
         variables: 'Variables',
         empty_value: 'empty',
-        toggle_variables: 'Show or hide the variables'
+        toggle_variables: 'Show or hide the variables',
+        from_block: 'Testing from: {block}',
+        from_start: 'Test from the start'
       }
     },
     blocks: {

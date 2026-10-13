@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Play } from '@lucide/vue';
 import {
@@ -12,6 +12,7 @@ import { assetStore } from '../shared/stores/assetStore';
 import { provideMediaResolver } from '../shared/media/resolver';
 import { importProjectFile, useProjects } from './utils/useProjects';
 import { resolveMediaSource } from './utils/mediaSource';
+import { testFromRequest } from './utils/testRun';
 import Canvas from './components/canvas/Canvas.vue';
 import Sidebar from './components/panels/Sidebar.vue';
 import TestPanel from './components/test/TestPanel.vue';
@@ -36,6 +37,8 @@ const { showInvalidShareModal } = useEditorBootstrap({
 
 // Painel "Testar" ao lado do canvas: editar e testar ao mesmo tempo
 const isTesting = ref(false);
+// "Testar a partir daqui" (menu do bloco) abre o painel; o painel consome o pedido e começa no bloco
+watch(testFromRequest, nodeId => { if (nodeId) isTesting.value = true; });
 </script>
 
 <template>

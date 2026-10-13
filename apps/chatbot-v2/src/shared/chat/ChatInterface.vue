@@ -81,7 +81,7 @@ function send() {
 
 function start() {
   userInput.value = '';
-  props.session.start();
+  props.session.start(); // Mantém a partida atual (Início ou "testar a partir daqui")
 }
 </script>
 

@@ -88,15 +88,20 @@ export function useChatSession(options: ChatSessionOptions) {
     step();
   }
 
-  function start() {
+  /** Bloco de partida do "testar a partir daqui" (null = Início). Recomeçar repete a mesma partida. */
+  const fromNodeId = ref<string | null>(null);
+
+  function start(from?: string | null) {
+    if (from !== undefined) fromNodeId.value = from;
     if (state.value) options.onEvent?.('preview_stop');
     runToken++;
     clearTimer();
     project = JSON.parse(JSON.stringify(options.getProject())) as ChatbotProject;
-    // A semente vai no log: com ela, o replay reproduz os mesmos sorteios
+    // A semente vai no log: com ela, o replay reproduz os mesmos sorteios.
+    // `fromNodeId` só aparece quando o teste não começa no Início (logs antigos não têm).
     const seed = (options.createSeed ?? createSeed)();
-    options.onEvent?.('preview_start', { seed });
-    state.value = startChat(project, seed);
+    options.onEvent?.('preview_start', fromNodeId.value ? { seed, fromNodeId: fromNodeId.value } : { seed });
+    state.value = startChat(project, seed, fromNodeId.value);
     visibleCount.value = 0;
     reveal();
   }
@@ -139,6 +144,7 @@ export function useChatSession(options: ChatSessionOptions) {
     error,
     activeNodeId,
     values,
+    fromNodeId,
     start,
     submit,
     choose,

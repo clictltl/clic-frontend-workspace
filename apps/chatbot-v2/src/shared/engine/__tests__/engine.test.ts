@@ -48,6 +48,19 @@ describe('start and messages', () => {
     expect(state.currentNodeId).toBe(second.id);
   });
 
+  it('starts from a given block with initial values, or from Start if that block is gone', () => {
+    const { project, message, add, addVariable, link, setText } = flow();
+    const v = addVariable('cor');
+    project.variables[v.id]!.defaultValue = 'azul';
+    const second = add('message');
+    setText(message, doc(text('Oi')));
+    setText(second, doc(text('Cor: '), variable(v.id)));
+    link(message, second);
+
+    expect(botTexts(startChat(project, 0, second.id))).toEqual(['Cor: azul']);
+    expect(botTexts(startChat(project, 0, 'apagado'))).toEqual(['Oi', 'Cor: azul']);
+  });
+
   it('ends with an error when there is no Start node', () => {
     const { project, start } = flow();
     delete project.nodes[start.id];
