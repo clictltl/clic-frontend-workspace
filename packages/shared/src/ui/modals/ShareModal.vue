@@ -1,115 +1,65 @@
 <template>
-  <div class="modal-backdrop clic-ui">
-    <div class="modal-overlay" @click="$emit('close')"></div>
-    
-    <div class="modal-card">
-      <div class="modal-header">
-        <!-- Ícone muda de cor conforme status -->
-        <div class="icon-container" :class="{ 'inactive': !isActive }">
-          <Link :size="24" class="icon" />
-        </div>
-        
-        <!-- Título Dinâmico -->
-        <h3>
-          <span v-if="isActive">{{ $t('modals.share.status_active') }}</span>
-          <span v-else-if="exists">{{ $t('modals.share.status_inactive') }}</span>
-          <span v-else>{{ $t('modals.share.title', { itemName }) }}</span>
-        </h3>
-      </div>
+  <BaseModal :title="titleText" :icon="Link" :tone="exists && !isActive ? 'gray' : 'blue'" size="wide" @close="$emit('close')">
+    <template v-if="!loading && !error" #description>
+      <p v-if="isActive">{{ $t('modals.share.desc_active', { itemName: itemName.toLowerCase() }) }}</p>
+      <p v-else-if="exists">{{ $t('modals.share.desc_inactive') }}</p>
+      <p v-else>{{ $t('modals.share.empty', { itemName: itemName.toLowerCase() }) }}</p>
+    </template>
 
-      <div class="modal-body">
-        
-        <div v-if="loading" class="state-container">
-          <span class="spinner"></span>
-          <span>{{ $t(loadingKey) }}</span>
-        </div>
-
-        <div v-else-if="error" class="error-msg">
-          <AlertTriangle :size="16" class="icon" /> {{ error }}
-        </div>
-
-        <!-- MODO GERENCIAMENTO (Se já existe ou está ativo) -->
-        <div v-else-if="exists || isActive" class="share-content">
-          
-          <p class="description-text" v-if="isActive">
-            {{ $t('modals.share.desc_active', { itemName: itemName.toLowerCase() }) }}
-          </p>
-          <p class="description-text warning" v-else>
-            {{ $t('modals.share.desc_inactive') }}
-          </p>
-
-          <label class="input-label">{{ $t('modals.share.public_link') }}</label>
-          <div class="input-group" :class="{ 'disabled': !isActive }">
-            <input
-              ref="inputRef"
-              readonly
-              class="input-copy"
-              :value="shareUrl"
-              @click="handleInputClick"
-              :disabled="!isActive"
-            />
-            <button 
-              class="btn-copy" 
-              @click="copyToClipboard" 
-              :title="$t('global.copy')"
-              :disabled="!isActive"
-            >
-              <Copy :size="18" class="icon" />
-            </button>
-          </div>
-          
-          <div class="actions-row">
-            <!-- BOTÃO ALTERNÁVEL (TOGGLE) -->
-            
-            <button 
-              v-if="isActive" 
-              class="btn-danger-outline" 
-              @click="handleUnshare"
-            >
-              {{ $t('modals.share.btn_disable') }}
-            </button>
-
-            <button 
-              v-else 
-              class="btn-success-outline" 
-              @click="handleReactivate"
-            >
-              {{ $t('modals.share.btn_reactivate') }}
-            </button>
-
-            <button class="btn-primary" @click="$emit('close')">
-              {{ $t('global.done') }}
-            </button>
-          </div>
-        </div>
-
-        <!-- MODO CRIAÇÃO (Primeira vez apenas) -->
-        <div v-else class="empty-state">
-          <p class="description-text">
-            {{ $t('modals.share.empty', { itemName: itemName.toLowerCase() }) }}
-          </p>
-
-          <div class="actions-center">
-            <button class="btn-secondary" @click="$emit('close')" style="margin-right: 10px;">
-              {{ $t('global.cancel') }}
-            </button>
-            <button class="btn-primary large" @click="handleGenerateLink">
-              {{ $t('modals.share.btn_generate') }}
-            </button>
-          </div>
-        </div>
-
-      </div>
+    <div v-if="loading" class="modal-loading">
+      <span class="modal-spinner"></span><span>{{ $t(loadingKey) }}</span>
     </div>
-  </div>
+
+    <p v-else-if="error" class="modal-error">
+      <AlertTriangle :size="16" /> {{ error }}
+    </p>
+
+    <!-- Link já gerado (ativo ou desativado) -->
+    <template v-else-if="exists || isActive">
+      <label class="modal-label" :for="inputId">{{ $t('modals.share.public_link') }}</label>
+      <div class="modal-link-row">
+        <input
+          :id="inputId"
+          ref="inputRef"
+          readonly
+          class="modal-input"
+          :value="shareUrl"
+          @click="handleInputClick"
+          :disabled="!isActive"
+        />
+        <button class="modal-btn secondary modal-icon-btn" @click="copyToClipboard" :title="$t('global.copy')" :aria-label="$t('global.copy')" :disabled="!isActive">
+          <Copy :size="18" />
+        </button>
+      </div>
+    </template>
+
+    <!-- Destrutiva (ou reativar) isolada à esquerda -->
+    <template #footer-start>
+      <button v-if="!loading && isActive" class="modal-btn danger-outline" @click="handleUnshare">
+        {{ $t('modals.share.btn_disable') }}
+      </button>
+      <button v-else-if="!loading && exists" class="modal-btn success-outline" @click="handleReactivate">
+        {{ $t('modals.share.btn_reactivate') }}
+      </button>
+    </template>
+
+    <template #footer>
+      <template v-if="!loading && !error && !exists && !isActive">
+        <button class="modal-btn secondary" @click="$emit('close')">{{ $t('global.cancel') }}</button>
+        <button class="modal-btn primary" @click="handleGenerateLink">{{ $t('modals.share.btn_generate') }}</button>
+      </template>
+      <button v-else class="modal-btn secondary" @click="$emit('close')">{{ $t('global.close') }}</button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../../styles/ui.css';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, useId } from 'vue';
 import { Link, AlertTriangle, Copy } from '@lucide/vue';
-import { useToast } from '@clic/shared';
+import BaseModal from './BaseModal.vue';
+import { useToast } from '../useToast';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -133,6 +83,13 @@ const exists = ref(false);
 const loading = ref(true);
 const loadingKey = ref('modals.share.checking');
 const inputRef = ref<HTMLInputElement | null>(null);
+const inputId = useId();
+
+const titleText = computed(() => {
+  if (isActive.value) return t('modals.share.status_active');
+  if (exists.value) return t('modals.share.status_inactive');
+  return t('modals.share.title', { itemName: itemName.value.toLowerCase() });
+});
 
 onMounted(async () => {
   loading.value = true;
@@ -205,55 +162,3 @@ async function copyToClipboard() {
   handleInputClick();
 }
 </script>
-
-<style scoped>
-/* Estilos Base */
-.modal-backdrop { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); }
-.modal-card { position: relative; background: white; width: 100%; max-width: 420px; padding: 1.5rem; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; text-align: center; }
-
-.modal-header h3 { margin: 0 0 0.5rem 0; color: #111827; font-size: 1.25rem; }
-.icon-container { background: #eff6ff; color: #2563eb; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; transition: all 0.3s; }
-
-.icon-container.inactive { background: #f3f4f6; color: #9ca3af; } /* Cinza quando inativo */
-.icon-container .icon { font-size: 24px; }
-
-.state-container { padding: 2rem 0; display: flex; flex-direction: column; align-items: center; gap: 10px; color: #6b7280; }
-.spinner { width: 24px; height: 24px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
-.error-msg { background: #fef2f2; color: #b91c1c; padding: 0.8rem; border-radius: 6px; }
-
-.description-text { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.description-text.warning { color: #d97706; } /* Laranja para aviso de pausado */
-
-.input-label { display: block; text-align: left; margin-bottom: 6px; font-size: 0.85rem; font-weight: 500; color: #374151; }
-.input-group { display: flex; gap: 8px; margin-bottom: 1.5rem; transition: opacity 0.3s; }
-.input-group.disabled { opacity: 0.6; pointer-events: none; } /* Visualmente desabilitado */
-
-.input-copy { flex: 1; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; outline: none; }
-.btn-copy { background: white; border: 1px solid #d1d5db; width: 40px; border-radius: 6px; cursor: pointer; }
-
-.actions-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 1.2rem; margin-top: 1rem; gap: 10px; }
-.actions-center { display: flex; justify-content: center; margin-top: 1rem; }
-
-.btn-primary { background: #2563eb; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-primary.large { padding: 0.8rem 2rem; }
-
-.btn-secondary { background: white; border: 1px solid #d1d5db; color: #374151; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; }
-.btn-secondary:hover { background: #f9fafb; }
-
-.btn-danger-outline {
-  background: white; border: 1px solid #dc2626; color: #dc2626;
-  padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem;
-}
-.btn-danger-outline:hover { background: #fef2f2; border-color: #b91c1c; }
-
-.btn-success-outline {
-  background: white; border: 1px solid #059669; color: #059669;
-  padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem;
-}
-.btn-success-outline:hover { background: #ecfdf5; border-color: #047857; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>

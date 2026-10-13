@@ -1,62 +1,49 @@
 <template>
-  <div class="modal-backdrop clic-ui">
-    <div class="modal-overlay" @click="close"></div>
-    
-    <div class="modal-card wide">
-      <div class="modal-header">
-        <h3>{{ $t('modals.open.title', { itemName }) }}</h3>
-        <p>{{ $t('modals.open.description') }}</p>
+  <BaseModal :title="$t('modals.open.title', { itemName: itemName.toLowerCase() })" :icon="FolderOpen" size="wide" :description="$t('modals.open.description')" @close="close">
+    <div class="list-container">
+      <!-- Carregando -->
+      <div v-if="loadingList" class="state-msg">
+        <span class="modal-spinner"></span> {{ $t('modals.open.loading') }}
       </div>
 
-      <div class="modal-body list-container">
-        
-        <!-- Loading da Lista -->
-        <div v-if="loadingList" class="state-msg">
-          <span class="spinner"></span> {{ $t('modals.open.loading') }}
-        </div>
+      <!-- Lista vazia -->
+      <div v-else-if="projectsList.length === 0" class="state-msg empty">
+        <FolderOpen :size="32" class="state-icon" />
+        {{ $t('modals.open.empty') }}
+      </div>
 
-        <!-- Lista Vazia -->
-        <div v-else-if="projectsList.length === 0" class="state-msg empty">
-          <FolderOpen :size="32" class="icon" />
-          {{ $t('modals.open.empty') }}
-        </div>
-
-        <!-- Lista de Projetos -->
-        <ul v-else class="project-list">
-          <li 
-            v-for="p in projectsList" 
-            :key="p.id"
+      <!-- Lista de projetos: botões, para funcionar também pelo teclado -->
+      <ul v-else class="project-list">
+        <li v-for="p in projectsList" :key="p.id">
+          <button
+            type="button"
             class="project-item"
             :class="{ 'selected': selectedId === p.id }"
+            :aria-pressed="selectedId === p.id"
             @click="selectProject(p.id)"
             @dblclick="openSelected"
           >
-            <FileText :size="18" class="item-icon text-gray" />
-            <div class="item-info">
+            <FileText :size="18" class="item-icon" />
+            <span class="item-info">
               <span class="item-name">{{ p.name }}</span>
               <span class="item-date">{{ $t('modals.open.edited_at', { date: formatDate(p.updated_at) }) }}</span>
-            </div>
-          </li>
-        </ul>
-
-        <!-- Erro -->
-        <p v-if="error" class="error-msg">
-          <AlertTriangle :size="16" class="icon" /> {{ error }}
-        </p>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" @click="close">{{ $t('global.cancel') }}</button>
-        <button 
-          class="btn-confirm" 
-          :disabled="!selectedId || isOpening" 
-          @click="openSelected"
-        >
-          {{ isOpening ? $t('global.opening') : $t('global.open') }}
-        </button>
-      </div>
+            </span>
+          </button>
+        </li>
+      </ul>
     </div>
-  </div>
+
+    <p v-if="error" class="modal-error">
+      <AlertTriangle :size="16" /> {{ error }}
+    </p>
+
+    <template #footer>
+      <button class="modal-btn secondary" @click="close">{{ $t('global.cancel') }}</button>
+      <button class="modal-btn primary" :disabled="!selectedId || isOpening" @click="openSelected">
+        {{ isOpening ? $t('global.opening') : $t('global.open') }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -64,6 +51,7 @@
 import '../../styles/ui.css';
 import { ref, onMounted, computed } from 'vue';
 import { FolderOpen, FileText, AlertTriangle } from '@lucide/vue';
+import BaseModal from './BaseModal.vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -133,38 +121,11 @@ function formatDate(dateStr: string) {
 </script>
 
 <style scoped>
-/* --- Estrutura Modal Padrão --- */
-.modal-backdrop {
-  position: fixed; inset: 0; z-index: 10000;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.modal-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
-}
-
-.modal-card {
-  position: relative; background: white;
-  width: 100%; max-width: 400px;
-  /* Altura máxima para permitir scroll em listas longas */
-  max-height: 85vh; display: flex; flex-direction: column;
-  padding: 1.5rem; border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-  animation: slideUp 0.3s ease-out;
-}
-
-.modal-card.wide { max-width: 500px; }
-
-.modal-header h3 { margin: 0 0 0.5rem 0; color: #111827; }
-.modal-header p { margin: 0 0 1rem 0; color: #6b7280; font-size: 0.9rem; }
-
-/* --- Lista de Projetos --- */
+/* --- Lista de projetos --- */
 .list-container {
-  flex: 1; /* Ocupa o espaço disponível */
-  overflow-y: auto; /* Scroll se necessário */
   min-height: 200px;
+  max-height: 340px;
+  overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 4px;
@@ -174,74 +135,30 @@ function formatDate(dateStr: string) {
 .project-list { list-style: none; padding: 0; margin: 0; }
 
 .project-item {
+  width: 100%;
   display: flex; align-items: center; gap: 12px;
   padding: 10px; margin-bottom: 2px;
   border-radius: 6px; cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.2s;
   background: white;
+  font: inherit; text-align: left;
+  transition: background 0.15s, border-color 0.15s;
 }
+.project-item:hover { background: #f3f4f6; border-color: #d1d5db; }
+.project-item.selected { background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 0 0 1px #bfdbfe; }
 
-.project-item:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.project-item.selected {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  box-shadow: 0 0 0 1px #bfdbfe;
-}
-
-.item-icon { font-size: 1.2rem; opacity: 0.6; }
-
-.item-info { display: flex; flex-direction: column; }
-.item-name { font-size: 0.95rem; color: #374151; font-weight: 500; }
+.item-icon { color: #9ca3af; flex-shrink: 0; }
+.item-info { display: flex; flex-direction: column; min-width: 0; }
+.item-name { font-size: 14px; color: #374151; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .project-item.selected .item-name { color: #1d4ed8; }
+.item-date { font-size: 12px; color: #6b7280; margin-top: 2px; }
 
-.item-date { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
-
-/* --- Estados (Empty/Loading/Error) --- */
+/* --- Estados (vazio, carregando) --- */
 .state-msg {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  height: 100%; min-height: 150px;
-  color: #6b7280; font-size: 0.9rem;
+  min-height: 180px;
+  color: #6b7280; font-size: 14px; text-align: center;
 }
-.state-msg .icon { font-size: 2rem; opacity: 0.5; margin-bottom: 4px; }
-.state-msg.empty { color: #9ca3af; }
-
-.spinner {
-  width: 20px; height: 20px;
-  border: 2px solid #e5e7eb; border-top-color: #6b7280;
-  border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-
-.error-msg {
-  background: #fef2f2; color: #b91c1c; font-size: 0.85rem;
-  padding: 0.6rem; border-radius: 6px; margin-top: 1rem;
-  display: flex; align-items: center; gap: 6px;
-}
-
-/* --- Ações --- */
-.modal-actions {
-  display: flex; justify-content: flex-end; gap: 10px;
-  margin-top: 1.5rem; padding-top: 1rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.btn-cancel {
-  background: white; border: 1px solid #d1d5db; color: #374151;
-  padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
-}
-.btn-cancel:hover { background: #f9fafb; }
-
-.btn-confirm {
-  background: #2563eb; border: none; color: white;
-  padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;
-}
-.btn-confirm:hover { background: #1d4ed8; }
-.btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.state-msg.empty { color: #6b7280; }
+.state-icon { color: #9ca3af; }
 </style>

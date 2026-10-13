@@ -40,42 +40,39 @@
       </transition>
     </div>
 
-    <!-- Modal de Login -->
-    <transition name="fade">
-      <div v-if="auth.state.showLoginModal" class="modal-backdrop clic-ui">
-        <div class="modal-overlay" @click="closeModal"></div>
-        <div class="modal-card">
-          <div class="modal-header">
-            <h3>{{ $t('auth.welcome_back') }}</h3>
-            <p>{{ $t('auth.login_prompt') }}</p>
-          </div>
-
-          <form @submit.prevent="submitLogin" class="login-form">
-            <div class="form-group">
-              <label>{{ $t('auth.user_or_email') }}</label>
-              <input ref="usernameInput" v-model="username" type="text" required :placeholder="$t('auth.type_user')" />
-            </div>
-
-            <div class="form-group">
-              <label>{{ $t('auth.password') }}</label>
-              <input v-model="password" type="password" required :placeholder="$t('auth.type_password')" />
-            </div>
-
-            <p v-if="error" class="error-msg">
-              <AlertTriangle :size="16" class="icon" /> {{ error }}
-            </p>
-
-            <div class="form-actions">
-              <button type="button" class="btn-cancel" @click="closeModal">{{ $t('global.cancel') }}</button>
-              <button type="submit" class="btn-confirm" :disabled="loading">
-                <span v-if="loading" class="spinner-sm"></span>
-                {{ loading ? $t('auth.logging_in') : $t('auth.login') }}
-              </button>
-            </div>
-          </form>
+    <!-- Modal de Login (BaseModal: teleportado para o body, fecha com Esc e clique fora) -->
+    <BaseModal
+      v-if="auth.state.showLoginModal"
+      :title="$t('auth.welcome_back')"
+      :icon="User"
+      :description="$t('auth.login_prompt')"
+      @close="closeModal"
+    >
+      <form :id="formId" @submit.prevent="submitLogin" class="login-form">
+        <div class="form-group">
+          <label class="modal-label" :for="`${formId}-user`">{{ $t('auth.user_or_email') }}</label>
+          <input :id="`${formId}-user`" ref="usernameInput" v-model="username" type="text" class="modal-input" autocomplete="username" required :placeholder="$t('auth.type_user')" />
         </div>
-      </div>
-    </transition>
+
+        <div class="form-group">
+          <label class="modal-label" :for="`${formId}-pass`">{{ $t('auth.password') }}</label>
+          <input :id="`${formId}-pass`" v-model="password" type="password" class="modal-input" autocomplete="current-password" required :placeholder="$t('auth.type_password')" />
+        </div>
+
+        <p v-if="error" class="modal-error">
+          <AlertTriangle :size="16" /> {{ error }}
+        </p>
+      </form>
+
+      <template #footer>
+        <button type="button" class="modal-btn secondary" @click="closeModal">{{ $t('global.cancel') }}</button>
+        <!-- form="…": o botão fica no rodapé do modal, fora do <form>, mas ainda envia -->
+        <button type="submit" :form="formId" class="modal-btn primary" :disabled="loading">
+          <span v-if="loading" class="spinner-sm"></span>
+          {{ loading ? $t('auth.logging_in') : $t('auth.login') }}
+        </button>
+      </template>
+    </BaseModal>
 
   </div>
 </template>
@@ -83,9 +80,10 @@
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../styles/ui.css';
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, useId } from 'vue';
 import { useAuth, applyLoginResponse } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
+import BaseModal from '../ui/modals/BaseModal.vue';
 import { apiErrorMessage, requestErrorMessage } from '../utils/apiErrors';
 import { telemetryService } from '../analytics/telemetry';
 import { User, LogOut, ChevronDown, AlertTriangle } from '@lucide/vue';
@@ -108,6 +106,7 @@ const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const usernameInput = ref<HTMLInputElement | null>(null);
+const formId = useId();
 
 // Detecta WP
 const isWordPress = typeof window !== 'undefined' && !!window.CLIC_AUTH;
@@ -296,71 +295,16 @@ function logout() {
 .menu-item.danger { color: #dc2626; }
 .menu-item.danger:hover { background: #fef2f2; }
 
-/* --- Modal Login Styles --- */
-.modal-backdrop {
-  position: fixed; inset: 0;
-  z-index: 10000;
-  display: flex; align-items: center; justify-content: center;
+/* --- Modal de login: cartão, campos e botões vêm do BaseModal --- */
+.form-group + .form-group { margin-top: 14px; }
+.spinner-sm {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.5); border-top-color: #fff;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
 }
-
-.modal-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
-}
-
-.modal-card {
-  position: relative;
-  background: white;
-  width: 100%; max-width: 360px;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-  animation: slideUp 0.3s ease-out;
-}
-
-.modal-header h3 { margin: 0 0 0.5rem 0; color: #111827; font-size: 1.25rem; text-align: center; }
-.modal-header p { margin: 0 0 1.5rem 0; color: #6b7280; font-size: 0.875rem; text-align: center; }
-
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 0.4rem; }
-.form-group input {
-  width: 100%; padding: 0.6rem 0.8rem;
-  border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 0.95rem; outline: none; transition: border 0.2s;
-}
-.form-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-
-.error-msg {
-  background: #fef2f2; color: #b91c1c; font-size: 0.85rem;
-  padding: 0.6rem; border-radius: 6px; display: flex; align-items: center; gap: 6px;
-  margin-bottom: 1rem;
-}
-.error-msg .icon { flex-shrink: 0; }
-
-.form-actions {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;
-}
-
-.btn-cancel {
-  background: white; border: 1px solid #d1d5db; color: #374151;
-  padding: 0.6rem; border-radius: 6px; cursor: pointer; font-weight: 500;
-  transition: background 0.2s;
-}
-.btn-cancel:hover { background: #f9fafb; }
-
-.btn-confirm {
-  background: #2563eb; border: none; color: white;
-  padding: 0.6rem; border-radius: 6px; cursor: pointer; font-weight: 500;
-  display: flex; justify-content: center; align-items: center; gap: 8px;
-  transition: background 0.2s;
-}
-.btn-confirm:hover { background: #1d4ed8; }
-.btn-confirm:disabled { opacity: 0.7; cursor: wait; }
 
 /* Animações */
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

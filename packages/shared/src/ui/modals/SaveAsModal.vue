@@ -1,43 +1,34 @@
 <template>
-  <div class="modal-backdrop clic-ui">
-    <div class="modal-overlay" @click="$emit('close')"></div>
-    
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>{{ titleText }}</h3>
-        <p>{{ descriptionText }}</p>
-      </div>
+  <BaseModal :title="titleText" :icon="Save" :description="descriptionText" @close="$emit('close')">
+    <label class="modal-label" :for="inputId">{{ $t('modals.save_as.label_name', { itemName: itemLabel.toLowerCase() }) }}</label>
+    <input
+      :id="inputId"
+      ref="inputRef"
+      v-model="projectName"
+      @keyup.enter="handleConfirm"
+      :placeholder="placeholderText"
+      class="modal-input"
+    />
 
-      <div class="modal-body">
-        <label>{{ $t('modals.save_as.label_name', { itemName: itemLabel }) }}</label>
-        <input 
-          ref="inputRef"
-          v-model="projectName" 
-          @keyup.enter="handleConfirm"
-          :placeholder="placeholderText" 
-          class="input-modern"
-        />
+    <p v-if="error" class="modal-error">
+      <AlertTriangle :size="16" /> {{ error }}
+    </p>
 
-        <p v-if="error" class="error-msg">
-          <AlertTriangle :size="16" class="icon" /> {{ error }}
-        </p>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" @click="$emit('close')">{{ $t('global.cancel') }}</button>
-        <button class="btn-confirm" @click="handleConfirm" :disabled="loading">
-          {{ loading ? $t('global.saving') : confirmText }}
-        </button>
-      </div>
-    </div>
-  </div>
+    <template #footer>
+      <button class="modal-btn secondary" @click="$emit('close')">{{ $t('global.cancel') }}</button>
+      <button class="modal-btn primary" @click="handleConfirm" :disabled="loading">
+        {{ loading ? $t('global.saving') : confirmText }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../../styles/ui.css';
-import { ref, onMounted, computed } from 'vue';
-import { AlertTriangle } from '@lucide/vue';
+import { ref, onMounted, computed, useId } from 'vue';
+import { AlertTriangle, Save } from '@lucide/vue';
+import BaseModal from './BaseModal.vue';
 import { useI18n } from 'vue-i18n';
 
 const props = withDefaults(defineProps<{
@@ -56,13 +47,14 @@ const projectName = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
+const inputId = useId();
 
 // Lógica de Texto Dinâmico Genérica
 const itemLabel = computed(() => props.itemName ?? t('global.project'));
 const isCreateMode = computed(() => props.mode === 'create');
 
 const titleText = computed(() => 
-  isCreateMode.value ? t('modals.save_as.title_new', { itemName: itemLabel.value }) : t('modals.save_as.title_copy')
+  isCreateMode.value ? t('modals.save_as.title_new', { itemName: itemLabel.value.toLowerCase() }) : t('modals.save_as.title_copy')
 );
 
 const descriptionText = computed(() => 
@@ -72,7 +64,7 @@ const descriptionText = computed(() =>
 );
 
 const placeholderText = computed(() => 
-  isCreateMode.value ? t('modals.save_as.placeholder_new', { itemName: itemLabel.value }) : t('modals.save_as.placeholder_copy', { itemName: itemLabel.value })
+  isCreateMode.value ? t('modals.save_as.placeholder_new', { itemName: itemLabel.value.toLowerCase() }) : t('modals.save_as.placeholder_copy', { itemName: itemLabel.value })
 );
 
 const confirmText = computed(() => 
@@ -118,60 +110,3 @@ async function handleConfirm() {
   }
 }
 </script>
-
-<style scoped>
-.modal-backdrop {
-  position: fixed; inset: 0; z-index: 10000;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.modal-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
-}
-
-.modal-card {
-  position: relative; background: white;
-  width: 100%; max-width: 400px;
-  padding: 1.5rem; border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-  animation: slideUp 0.3s ease-out;
-}
-
-.modal-header h3 { margin: 0 0 0.5rem 0; color: #111827; }
-.modal-header p { margin: 0 0 1rem 0; color: #6b7280; font-size: 0.9rem; }
-
-.input-modern {
-  width: 100%; padding: 0.6rem 0.8rem; margin-top: 0.4rem;
-  border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 0.95rem; outline: none; transition: border 0.2s;
-}
-.input-modern:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-
-.error-msg {
-  background: #fef2f2; color: #b91c1c; font-size: 0.85rem;
-  padding: 0.6rem; border-radius: 6px; margin-top: 1rem;
-  display: flex; align-items: center; gap: 6px;
-}
-.error-msg .icon { flex-shrink: 0; }
-
-.modal-actions {
-  display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem;
-}
-
-.btn-cancel {
-  background: white; border: 1px solid #d1d5db; color: #374151;
-  padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
-}
-.btn-cancel:hover { background: #f9fafb; }
-
-.btn-confirm {
-  background: #2563eb; border: none; color: white;
-  padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500;
-}
-.btn-confirm:hover { background: #1d4ed8; }
-.btn-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
-
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>

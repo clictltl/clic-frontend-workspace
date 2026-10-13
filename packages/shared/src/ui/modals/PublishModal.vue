@@ -1,111 +1,80 @@
 <template>
-  <div class="modal-backdrop clic-ui">
-    <div class="modal-overlay" @click="$emit('close')"></div>
+  <BaseModal :title="titleText" :icon="isActive || !exists ? Rocket : Moon" :tone="isActive ? 'green' : exists ? 'gray' : 'blue'" size="wide" @close="$emit('close')">
+    <!-- Status ao lado do título; versão logo abaixo -->
+    <template v-if="!loading && exists" #title-badge>
+      <span class="modal-chip" :class="isActive ? 'green' : 'gray'">
+        {{ isActive ? $t('modals.publish.chip_online') : $t('modals.publish.chip_offline') }}
+      </span>
+    </template>
+    <template v-if="!loading && exists && result" #title-meta>
+      <p class="modal-meta">
+        {{ isActive
+          ? $t('modals.publish.version', { date: formatDate(result.published_at) })
+          : $t('modals.publish.last_version', { date: formatDate(result.published_at) }) }}
+      </p>
+    </template>
 
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="icon-container" :class="{ 'inactive': !isActive }">
-          <Rocket v-if="isActive" :size="28" class="icon" />
-          <Moon v-else :size="28" class="icon" />
-        </div>
-        
-        <h3>
-          <span v-if="isActive">{{ $t('modals.publish.title_published', { itemName }) }}</span>
-          <span v-else-if="exists">{{ $t('modals.publish.title_paused') }}</span>
-          <span v-else>{{ $t('modals.publish.title_publish', { itemName }) }}</span>
-        </h3>
-      </div>
+    <template v-if="!loading && !error && !exists" #description>
+      <p>{{ $t('modals.publish.never_published', { itemName: itemName.toLowerCase() }) }}</p>
+    </template>
 
-      <div class="modal-body">
-        
-        <div v-if="loading" class="state-container">
-          <span class="spinner"></span><span>{{ $t(loadingKey) }}</span>
-        </div>
-        <div v-else-if="error" class="error-msg">
-          <AlertTriangle :size="16" class="icon" /> {{ error }}
-        </div>
-
-        <!-- MODO GERENCIAMENTO -->
-        <div v-else-if="exists || isActive" class="success-content">
-          
-          <div class="success-banner" v-if="isActive">
-            <p class="success-title">{{ $t('modals.publish.status_online', { itemName }) }}</p>
-            <p class="success-date">{{ $t('modals.publish.version', { date: formatDate(result.published_at) }) }}</p>
-          </div>
-          <div class="success-banner warning" v-else>
-            <p class="success-title">{{ $t('modals.publish.status_offline', { itemName }) }}</p>
-            <p class="success-date">{{ $t('modals.publish.last_version', { date: formatDate(result.published_at) }) }}</p>
-          </div>
-
-          <label class="input-label">{{ $t('modals.publish.public_link') }}</label>
-          <div class="input-group" :class="{ 'disabled': !isActive }">
-            <input ref="inputRef" readonly class="input-copy" :value="result.publish_url" @click="handleInputClick" :disabled="!isActive"/>
-            <button class="btn-copy" @click="copyToClipboard" :title="$t('global.copy')" :disabled="!isActive"><Copy :size="18" class="icon" /></button>
-          </div>
-
-          <p class="helper-text" v-if="isActive">
-            {{ $t('modals.publish.hint_update') }}
-          </p>
-          <p class="helper-text" v-else>
-            {{ $t('modals.publish.hint_restore') }}
-          </p>
-
-          <div class="actions-row">
-            <!-- BOTÃO ESQUERDO: Despublicar OU Restaurar -->
-            <button 
-              v-if="isActive" 
-              class="btn-danger-outline" 
-              @click="handleUnpublish" 
-              :title="$t('modals.publish.btn_disable', { itemName: itemName.toLowerCase() })"
-            >
-              {{ $t('modals.publish.btn_unpublish') }}
-            </button>
-            
-            <button 
-              v-else 
-              class="btn-secondary" 
-              @click="handleReactivateOnly"
-              :title="$t('modals.publish.desc_restore')"
-            >
-              {{ $t('modals.publish.btn_restore') }}
-            </button>
-            
-            <div class="right-actions">
-              <button class="btn-secondary" @click="$emit('close')">{{ $t('global.close') }}</button>
-              
-              <!-- BOTÃO DIREITO: Atualizar / Publicar Nova -->
-              <button 
-                class="btn-primary" 
-                @click="handlePublishOrUpdate"
-                :disabled="!isActive && !exists"
-              >
-                {{ isActive ? $t('modals.publish.btn_update') : $t('modals.publish.btn_publish_new') }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MODO CRIAÇÃO -->
-        <div v-else class="empty-state">
-          <p class="description-text">
-            {{ $t('modals.publish.never_published', { itemName: itemName.toLowerCase() }) }}
-          </p>
-          <div class="actions-center">
-            <button class="btn-secondary" @click="$emit('close')" style="margin-right: 10px;">{{ $t('global.cancel') }}</button>
-            <button class="btn-primary large" @click="handlePublishOrUpdate">{{ $t('modals.publish.btn_publish') }}</button>
-          </div>
-        </div>
-
-      </div>
+    <div v-if="loading" class="modal-loading">
+      <span class="modal-spinner"></span><span>{{ $t(loadingKey) }}</span>
     </div>
-  </div>
+
+    <p v-else-if="error" class="modal-error">
+      <AlertTriangle :size="16" /> {{ error }}
+    </p>
+
+    <template v-else-if="exists || isActive">
+      <label class="modal-label" :for="inputId">{{ $t('modals.publish.public_link') }}</label>
+      <div class="modal-link-row">
+        <input :id="inputId" ref="inputRef" readonly class="modal-input" :value="result?.publish_url" @click="handleInputClick" :disabled="!isActive" />
+        <button class="modal-btn secondary modal-icon-btn" @click="copyToClipboard" :title="$t('global.copy')" :aria-label="$t('global.copy')" :disabled="!isActive">
+          <Copy :size="18" />
+        </button>
+      </div>
+      <p class="modal-hint">
+        {{ isActive ? $t('modals.publish.hint_update') : $t('modals.publish.hint_restore') }}
+      </p>
+    </template>
+
+    <!-- Destrutiva (ou restaurar) isolada à esquerda -->
+    <template #footer-start>
+      <button
+        v-if="!loading && isActive"
+        class="modal-btn danger-outline"
+        @click="handleUnpublish"
+        :title="$t('modals.publish.btn_disable', { itemName: itemName.toLowerCase() })"
+      >
+        {{ $t('modals.publish.btn_unpublish') }}
+      </button>
+      <button v-else-if="!loading && exists" class="modal-btn secondary" @click="handleReactivateOnly" :title="$t('modals.publish.desc_restore')">
+        {{ $t('modals.publish.btn_restore') }}
+      </button>
+    </template>
+
+    <template #footer>
+      <template v-if="!exists && !isActive">
+        <button class="modal-btn secondary" @click="$emit('close')">{{ $t('global.cancel') }}</button>
+        <button class="modal-btn primary" @click="handlePublishOrUpdate" :disabled="loading || !!error">{{ $t('modals.publish.btn_publish') }}</button>
+      </template>
+      <template v-else>
+        <button class="modal-btn secondary" @click="$emit('close')">{{ $t('global.close') }}</button>
+        <button class="modal-btn primary" @click="handlePublishOrUpdate" :disabled="loading">
+          {{ isActive ? $t('modals.publish.btn_update') : $t('modals.publish.btn_publish_new') }}
+        </button>
+      </template>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../../styles/ui.css';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, useId } from 'vue';
 import { Rocket, Moon, AlertTriangle, Copy } from '@lucide/vue';
+import BaseModal from './BaseModal.vue';
 import { useToast } from '../../ui/useToast';
 import { useI18n } from 'vue-i18n';
 
@@ -130,6 +99,13 @@ const loadingKey = ref('modals.publish.checking');
 const isActive = ref(false);
 const exists = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
+const inputId = useId();
+
+const titleText = computed(() => {
+  if (isActive.value) return t('modals.publish.title_published', { itemName: itemName.value });
+  if (exists.value) return t('modals.publish.title_paused');
+  return t('modals.publish.title_publish', { itemName: itemName.value.toLowerCase() });
+});
 
 onMounted(async () => {
   loadingKey.value = 'modals.publish.checking';
@@ -201,54 +177,3 @@ function handleInputClick() { if(isActive.value) inputRef.value?.select(); }
 function copyToClipboard() { if (result.value && isActive.value) { navigator.clipboard.writeText(result.value.publish_url); toast.success(t('global.copied')); handleInputClick(); } }
 function formatDate(dateStr: string) { try { return new Date(dateStr).toLocaleString(locale.value, { dateStyle: 'short', timeStyle: 'short' }); } catch { return dateStr; } }
 </script>
-
-<style scoped>
-/* CSS Mantido - Igual ao anterior */
-.modal-backdrop { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); }
-.modal-card { position: relative; background: white; width: 100%; max-width: 440px; padding: 1.5rem; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; text-align: center; }
-
-.modal-header h3 { margin: 0 0 1rem 0; color: #111827; font-size: 1.25rem; }
-.icon-container { background: #ecfdf5; color: #059669; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; transition: all 0.3s; }
-.icon-container.inactive { background: #f3f4f6; color: #9ca3af; }
-.icon-container .icon { font-size: 28px; }
-
-.state-container { padding: 2rem 0; display: flex; flex-direction: column; align-items: center; gap: 10px; color: #6b7280; }
-.spinner { width: 24px; height: 24px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 0.8s linear infinite; }
-.error-msg { background: #fef2f2; color: #b91c1c; padding: 0.8rem; border-radius: 6px; }
-
-.success-banner { margin-bottom: 1.2rem; }
-.success-banner.warning .success-title { color: #d97706; }
-.success-title { font-weight: 600; color: #059669; font-size: 1.1rem; margin: 0; }
-.success-date { font-size: 0.8rem; color: #9ca3af; margin-top: 4px; }
-
-.description-text { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.input-label { display: block; text-align: left; margin-bottom: 6px; font-size: 0.85rem; font-weight: 500; color: #374151; }
-.input-group { display: flex; gap: 8px; margin-bottom: 1rem; transition: opacity 0.3s; }
-.input-group.disabled { opacity: 0.6; pointer-events: none; }
-.input-copy { flex: 1; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; outline: none; }
-.btn-copy { background: white; border: 1px solid #d1d5db; width: 40px; border-radius: 6px; cursor: pointer; }
-
-.helper-text { font-size: 0.8rem; color: #6b7280; margin-bottom: 1.5rem; }
-
-.actions-row { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid #f3f4f6; gap: 10px; }
-.right-actions { display: flex; gap: 10px; }
-.actions-center { display: flex; justify-content: center; margin-top: 1.5rem; }
-
-.btn-primary { background: #059669; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.btn-primary:hover { background: #047857; }
-.btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; opacity: 0.7; }
-.btn-primary.large { padding: 0.8rem 2rem; font-size: 1rem; }
-
-.btn-secondary { background: white; border: 1px solid #d1d5db; color: #374151; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
-.btn-secondary:hover { background: #f9fafb; border-color: #9ca3af; }
-
-.btn-danger-outline { background: white; border: 1px solid #dc2626; color: #dc2626; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.btn-danger-outline:hover { background: #fef2f2; border-color: #b91c1c; }
-
-.btn-success-outline { background: white; border: 1px solid #059669; color: #059669; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
-.btn-success-outline:hover { background: #ecfdf5; border-color: #047857; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>

@@ -126,6 +126,8 @@ export default {
       hint_restore: 'Deseja restaurar a versão antiga ou salvar e publicar suas novas alterações?',
       never_published: 'Este {itemName} nunca foi publicado. Publique para gerar um link único de acesso.',
       btn_publish: 'Publicar',
+      chip_online: 'Online',
+      chip_offline: 'Offline',
       desc_restore: 'Liga o bot como estava antes, sem salvar alterações atuais',
       btn_disable: 'Desativar {itemName}',
       btn_unpublish: 'Despublicar',

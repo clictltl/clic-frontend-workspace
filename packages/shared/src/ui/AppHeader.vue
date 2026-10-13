@@ -89,36 +89,27 @@
     </div>
   </header>
 
-  <!-- Modal de Info/Contato -->
-  <teleport to="body">
-    <div v-if="isInfoModalOpen" class="about-modal-overlay clic-ui" @click.self="isInfoModalOpen = false">
-      <div class="about-modal-content">
-        <div class="about-modal-header">
-          <h2>{{ $t('header.about_clic') }}</h2>
-          <button class="about-close-btn" @click="isInfoModalOpen = false"><X :size="20" /></button>
-        </div>
-        
-        <div class="about-modal-body">
-          <p v-html="$t('header.about_desc')" />
-          
-          <template v-if="!isLoggedIn">
-            <h3 class="about-section-title"><Lock :size="18" /> {{ $t('header.full_access') }}</h3>
-            <p>{{ $t('header.full_access_desc') }}</p>
-          </template>
+  <!-- Modal de Info/Contato: variante de leitura do BaseModal (texto longo, sem rodapé, com X) -->
+  <BaseModal v-if="isInfoModalOpen" :title="t('header.about_clic')" :icon="Info" tone="gray" size="reading" @close="isInfoModalOpen = false">
+    <div class="about-body">
+      <p v-html="$t('header.about_desc')" />
 
-          <h3 class="about-section-title"><Wrench :size="18" /> {{ $t('header.bugs_suggestions') }}</h3>
-          <p>{{ $t('header.bugs_desc') }}</p>
-          
-          <div class="about-footer-info">
-            <p class="about-footer-item"><Mail :size="18" /> <strong>{{ $t('header.contact') }}</strong> <a href="mailto:clic@tltlab.org">clic@tltlab.org</a></p>
-            <p class="about-footer-item"><Globe :size="18" /> <strong>{{ $t('header.site') }}</strong> <a href="https://clic.tltlab.org/" target="_blank">https://clic.tltlab.org/</a></p>
-          </div>
-          <!-- Versão do app: para relatos de problema e para saber o que está publicado -->
-          <p v-if="versionLine" class="about-version">{{ versionLine }}</p>
-        </div>
+      <template v-if="!isLoggedIn">
+        <h4 class="about-section-title"><Lock :size="18" /> {{ $t('header.full_access') }}</h4>
+        <p>{{ $t('header.full_access_desc') }}</p>
+      </template>
+
+      <h4 class="about-section-title"><Wrench :size="18" /> {{ $t('header.bugs_suggestions') }}</h4>
+      <p>{{ $t('header.bugs_desc') }}</p>
+
+      <div class="about-footer-info">
+        <p class="about-footer-item"><Mail :size="18" /> <strong>{{ $t('header.contact') }}</strong> <a href="mailto:clic@tltlab.org">clic@tltlab.org</a></p>
+        <p class="about-footer-item"><Globe :size="18" /> <strong>{{ $t('header.site') }}</strong> <a href="https://clic.tltlab.org/" target="_blank" rel="noopener noreferrer">https://clic.tltlab.org/</a></p>
       </div>
+      <!-- Versão do app: para relatos de problema e para saber o que está publicado -->
+      <p v-if="versionLine" class="about-version">{{ versionLine }}</p>
     </div>
-  </teleport>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -131,6 +122,7 @@ import { useAuth } from '../auth/auth';
 import { useAppInstall } from '../composables/useAppInstall';
 import { useI18n } from 'vue-i18n';
 import LanguageSwitcher from './LanguageSwitcher.vue';
+import BaseModal from './modals/BaseModal.vue';
 import { getAppVersionInfo } from '../utils/appVersion';
 
 const props = defineProps<{
@@ -311,89 +303,19 @@ const isMobileMenuOpen = ref(false);
   background: #f3f4f6;
 }
 
-/* Modal via Teleport (Fica fora do header) */
-:global(.about-modal-overlay) {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+/* Modal de Info: cartão e cabeçalho vêm do BaseModal; aqui só o texto */
+.about-body { font-size: 15px; line-height: 1.55; color: #374151; }
+.about-body p { margin: 0 0 12px; }
+.about-section-title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 20px 0 8px;
+  font-size: 15px; font-weight: 600; color: #1f2937;
 }
-:global(.about-modal-content) {
-  background: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-:global(.about-modal-header) {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e5e7eb;
-}
-:global(.about-modal-header h2) {
-  margin: 0;
-  font-size: 18px;
-  color: #111827;
-}
-:global(.about-close-btn) {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-:global(.about-close-btn:hover) {
-  color: #111827;
-  background-color: #f3f4f6;
-}
-:global(.about-modal-body) {
-  padding: 24px;
-  color: #374151;
-  font-size: 15px;
-  line-height: 1.5;
-}
-:global(.about-section-title) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  color: #111827;
-  margin: 20px 0 8px 0;
-}
-:global(.about-modal-body p) {
-  margin: 0 0 12px 0;
-}
-:global(.about-footer-info) {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
-}
-:global(.about-footer-info a) {
-  color: #2563eb;
-  text-decoration: none;
-}
-:global(.about-footer-info a:hover) {
-  text-decoration: underline;
-}
-:global(.about-version) { margin: 16px 0 0; font-size: 12px; color: #6b7280; text-align: center; }
-:global(.about-footer-item) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 12px 0 !important;
-}
+.about-footer-info { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+.about-footer-info a { color: #2563eb; text-decoration: none; }
+.about-footer-info a:hover { text-decoration: underline; }
+.about-footer-item { display: flex; align-items: center; gap: 8px; margin: 0 0 10px !important; }
+.about-version { margin: 16px 0 0 !important; font-size: 12px; color: #6b7280; }
 
 .show-mobile { display: none !important; }
 
