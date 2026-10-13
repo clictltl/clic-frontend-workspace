@@ -7,6 +7,7 @@ import { useProjectStore } from '../../../shared/stores/projectStore';
 import { useChatSession } from '../../../shared/chat/useChatSession';
 import ChatInterface from '../../../shared/chat/ChatInterface.vue';
 import ChatTitleBar from '../../../shared/chat/ChatTitleBar.vue';
+import TestVariables from './TestVariables.vue';
 import { testActiveNodeId } from '../../utils/testRun';
 
 const emit = defineEmits<{ close: [] }>();
@@ -40,6 +41,8 @@ onBeforeUnmount(() => { testActiveNodeId.value = null; });
         </button>
       </div>
     </header>
+    <!-- Valores das variáveis (só no editor), no ritmo das mensagens -->
+    <TestVariables :values="session.values.value" />
     <!-- Prévia do chat como o aluno vê: acompanha a aba Aparência ao vivo -->
     <ChatTitleBar :title="projectStore.project.title" :appearance="projectStore.project.appearance" />
     <ChatInterface :session="session" :appearance="projectStore.project.appearance" />

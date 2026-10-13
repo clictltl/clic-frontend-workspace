@@ -274,7 +274,10 @@ export default {
       delay_unit_short: 's',
       test: {
         button: 'Test',
-        title: 'Test conversation'
+        title: 'Test conversation',
+        variables: 'Variables',
+        empty_value: 'empty',
+        toggle_variables: 'Show or hide the variables'
       }
     },
     blocks: {

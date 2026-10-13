@@ -43,6 +43,26 @@ describe('useChatSession', () => {
     expect(session.isEnded.value).toBe(true);
   });
 
+  it('shows variable values at the pace of the revealed messages', () => {
+    const ctx = setup();
+    const v = ctx.addVariable('cor');
+    const set = ctx.add('set_variable');
+    const after = ctx.add('message');
+    set.data = { variableId: v.id, value: { kind: 'literal', value: 'azul' } };
+    connect(ctx.project, ctx.message.id, HANDLE_OUT, set.id);
+    connect(ctx.project, set.id, HANDLE_OUT, after.id);
+
+    const { session } = sessionFor(ctx.project);
+    expect(session.values.value).toBeNull();
+    session.start();
+    expect(session.values.value).toEqual({ [v.id]: '' }); // nada na tela: valores iniciais
+    vi.advanceTimersByTime(TYPING_MS);
+    expect(session.values.value).toEqual({ [v.id]: '' }); // 1ª mensagem: antes do "Definir variável"
+    vi.advanceTimersByTime(TYPING_MS);
+    expect(session.values.value).toEqual({ [v.id]: 'azul' });
+    expect(session.isEnded.value).toBe(true);
+  });
+
   it('only accepts answers after the question is shown and logs them', () => {
     const ctx = setup();
     const question = ctx.add('open_question');

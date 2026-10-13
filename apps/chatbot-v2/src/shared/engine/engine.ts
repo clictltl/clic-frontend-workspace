@@ -40,10 +40,10 @@ export function submitText(project: ChatbotProject, state: ChatState, rawText: s
   if (state.status !== 'waiting_text' || !text || node?.type !== 'open_question') return state;
 
   const next = fork(state);
-  pushMessage(next, { from: 'user', text, media: null });
-
+  // A resposta é guardada antes da mensagem: assim a mensagem já leva o valor novo
   const variable = node.data.variableId ? project.variables[node.data.variableId] : undefined;
   if (variable) next.values[variable.id] = coerceVariableValue(variable.type, text);
+  pushMessage(next, { from: 'user', text, media: null });
 
   return run(project, next, target(project, node.id, HANDLE_OUT));
 }
@@ -63,11 +63,12 @@ function fork(state: ChatState): ChatState {
   return { ...state, messages: [...state.messages], values: { ...state.values }, choices: [], error: null };
 }
 
-/** `Omit` distributivo: mantém o union bot/user sem o `id` (gerado aqui). */
-type NewMessage = ChatMessage extends infer M ? (M extends unknown ? Omit<M, 'id'> : never) : never;
+/** `Omit` distributivo: mantém o union bot/user sem `id` e `values` (preenchidos aqui). */
+type NewMessage = ChatMessage extends infer M ? (M extends unknown ? Omit<M, 'id' | 'values'> : never) : never;
 
+/** Cada mensagem guarda uma cópia dos valores: o Testar mostra os valores do que já apareceu na tela. */
 function pushMessage(state: ChatState, message: NewMessage) {
-  state.messages.push({ ...message, id: state.messages.length + 1 } as ChatMessage);
+  state.messages.push({ ...message, values: { ...state.values }, id: state.messages.length + 1 } as ChatMessage);
 }
 
 /** Destino da saída `handle` do nó; saída sem conexão encerra a conversa. */

@@ -105,6 +105,27 @@ describe('open question', () => {
     expect(state.status).toBe('ended');
   });
 
+  it('snapshots the values on each message (the answer is already saved on the student message)', () => {
+    const { project, message, add, addVariable, link } = flow();
+    const name = addVariable('nome');
+    const question = add('open_question');
+    const set = add('set_variable');
+    const reply = add('message');
+    question.data.variableId = name.id;
+    set.data = { variableId: name.id, value: { kind: 'literal', value: 'Bia' } };
+    link(message, question);
+    link(question, set);
+    link(set, reply);
+
+    let state = startChat(project);
+    expect(state.messages.map(m => m.values[name.id])).toEqual(['', '']);
+    state = submitText(project, state, 'Ana');
+    // pergunta (vazio) → resposta do aluno (Ana) → mensagem depois do "Definir variável" (Bia)
+    expect(state.messages.slice(-2).map(m => [m.from, m.values[name.id]])).toEqual([['user', 'Ana'], ['bot', 'Bia']]);
+    state.messages[0]!.values[name.id] = 'mudou';
+    expect(state.values[name.id]).toBe('Bia'); // cópia, não referência
+  });
+
   it('coerces answers for number variables (invalid number becomes 0)', () => {
     const { project, message, add, addVariable, link } = flow();
     const age = addVariable('idade', 'number');

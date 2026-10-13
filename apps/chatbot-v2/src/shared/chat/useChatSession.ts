@@ -1,6 +1,6 @@
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import type { ChatbotProject } from '../types/chatbot';
-import type { ChatState } from '../engine/types';
+import type { ChatState, ChatValues } from '../engine/types';
 import { selectChoice, startChat, submitText } from '../engine/engine';
 import { createSeed } from '../engine/random';
 
@@ -42,6 +42,18 @@ export function useChatSession(options: ChatSessionOptions) {
     if (!isRevealing.value) return state.value.currentNodeId;
     const lastBot = [...messages.value].reverse().find(m => m.from === 'bot');
     return lastBot?.from === 'bot' ? lastBot.nodeId : null;
+  });
+
+  /**
+   * Valores das variáveis para o painel Testar, no mesmo ritmo das mensagens: durante a revelação,
+   * os da última mensagem visível (um sorteio não aparece antes da mensagem que o mostra).
+   */
+  const values = computed<ChatValues | null>(() => {
+    if (!state.value) return null;
+    if (!isRevealing.value) return state.value.values;
+    const last = messages.value[messages.value.length - 1];
+    if (last) return last.values;
+    return Object.fromEntries(Object.values(project?.variables ?? {}).map(v => [v.id, v.defaultValue]));
   });
 
   function clearTimer() {
@@ -126,6 +138,7 @@ export function useChatSession(options: ChatSessionOptions) {
     isEnded,
     error,
     activeNodeId,
+    values,
     start,
     submit,
     choose,

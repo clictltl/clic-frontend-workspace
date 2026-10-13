@@ -11,12 +11,14 @@ export type ChatMessage =
       content: RichText;      // Variáveis já substituídas pelos valores
       media: NodeMedia | null;
       delayAfter: number;     // Segundos de espera antes da próxima mensagem (nó de mensagem)
+      values: ChatValues;     // Valores das variáveis quando a mensagem apareceu (painel Testar)
     }
   | {
       id: number;
       from: 'user';
       text: string;
       media: ChoiceMedia | null; // Emoji/imagem da opção escolhida
+      values: ChatValues;        // Valores com a resposta já guardada
     };
 
 export type ChatStatus = 'waiting_text' | 'waiting_choice' | 'ended';
