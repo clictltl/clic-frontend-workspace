@@ -105,6 +105,25 @@ describe('montagem dos lotes', () => {
   });
 });
 
+describe('versão do app no Frame Zero', () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('grava a versão e o commit do build no project_loaded', async () => {
+    vi.stubGlobal('__APP_VERSION__', '2.0.0');
+    vi.stubGlobal('__APP_COMMIT__', 'abc1234');
+    vi.stubGlobal('__APP_BUILD_DATE__', '2026-10-13T12:00:00.000Z');
+    const service = createService();
+    await flush(service);
+    expect(bodies()[0]!.events[0].payload).toMatchObject({ initial_state: { uuid: 'p1' }, app_version: '2.0.0', app_commit: 'abc1234' });
+  });
+
+  it('sem build com versão (ex.: testes), o payload fica como antes', async () => {
+    const service = createService();
+    await flush(service);
+    expect(Object.keys(bodies()[0]!.events[0].payload)).toEqual(['initial_state']);
+  });
+});
+
 describe('respostas do servidor', () => {
   it('mantém o lote na fila em falhas passageiras e reenvia depois', async () => {
     const service = createService();

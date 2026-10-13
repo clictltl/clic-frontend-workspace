@@ -1,6 +1,11 @@
 export {};
 
 declare global {
+  // Gravadas no build pelo helper appBuildInfo (vite.config.ts de cada app)
+  const __APP_VERSION__: string;
+  const __APP_COMMIT__: string;
+  const __APP_BUILD_DATE__: string;
+
   interface Window {
     CLIC_AUTH?: {
       rest_root: string;

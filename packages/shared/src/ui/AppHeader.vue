@@ -105,6 +105,8 @@
             <p class="about-footer-item"><Mail :size="18" /> <strong>{{ $t('header.contact') }}</strong> <a href="mailto:clic@tltlab.org">clic@tltlab.org</a></p>
             <p class="about-footer-item"><Globe :size="18" /> <strong>{{ $t('header.site') }}</strong> <a href="https://clic.tltlab.org/" target="_blank">https://clic.tltlab.org/</a></p>
           </div>
+          <!-- Versão do app: para relatos de problema e para saber o que está publicado -->
+          <p v-if="versionLine" class="about-version">{{ versionLine }}</p>
         </div>
       </div>
     </div>
@@ -119,8 +121,9 @@ import { useAuth } from '../auth/auth';
 import { useAppInstall } from '../composables/useAppInstall';
 import { useI18n } from 'vue-i18n';
 import LanguageSwitcher from './LanguageSwitcher.vue';
+import { getAppVersionInfo } from '../utils/appVersion';
 
-defineProps<{
+const props = defineProps<{
   title: string;
   appLogo?: string;
   guideUrl?: string;
@@ -132,6 +135,7 @@ defineEmits(['home-click']);
 const auth = useAuth();
 const isLoggedIn = computed(() => auth.state.ready && auth.state.loggedIn);
 const isInfoModalOpen = ref(false);
+
 const { isInstallable, promptInstall } = useAppInstall();
 
 const logoUrl = computed(() => {
@@ -142,7 +146,15 @@ const logoUrl = computed(() => {
 });
 
 // Lógica de i18n
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+// Rodapé do modal de Info: "Novelo 2.0.0 · build de 13/10/2026 (3326ca7)"
+const versionLine = computed(() => {
+  const app = getAppVersionInfo();
+  if (!app) return '';
+  const date = app.buildDate ? new Date(app.buildDate).toLocaleDateString(locale.value) : '';
+  return t('header.version', { app: props.title, version: app.version, date, commit: app.commit });
+});
 const isMobileMenuOpen = ref(false);
 </script>
 
@@ -346,6 +358,7 @@ const isMobileMenuOpen = ref(false);
 :global(.about-footer-info a:hover) {
   text-decoration: underline;
 }
+:global(.about-version) { margin: 16px 0 0; font-size: 12px; color: #6b7280; text-align: center; }
 :global(.about-footer-item) {
   display: flex;
   align-items: center;

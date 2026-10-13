@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { VitePWA } from 'vite-plugin-pwa'
+import { appBuildInfo } from '../../packages/shared/build/appBuildInfo.ts'
 
 export default defineConfig(({ mode }) => {
   const isGithub = mode === 'github'
@@ -14,10 +15,14 @@ export default defineConfig(({ mode }) => {
   }
 
   const pwaScope = getBasePath() || './'
+  // Versão, commit e data do build: modal de Info, telemetria e dist/version.json
+  const buildInfo = appBuildInfo(new URL('./package.json', import.meta.url))
 
   return {
+    define: buildInfo.define,
     plugins: [
       vue(),
+      buildInfo.plugin,
       ...(isOffline ? [viteSingleFile()] : [
         VitePWA({
           registerType: 'autoUpdate',

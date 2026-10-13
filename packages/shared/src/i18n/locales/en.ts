@@ -31,6 +31,7 @@ export default {
     bugs_desc: 'Your contribution is very important to the continuous evolution of this project. If you found any errors in the tool or want to send us feedback and improvement suggestions, do not hesitate to contact us.',
     contact: 'Contact:',
     site: 'Website:',
+    version: '{app} {version} · built {date} ({commit})',
     app_install: 'Install App',
     back_home: 'Back to Home'
   },

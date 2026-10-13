@@ -59,6 +59,14 @@ empacotados no plugin correspondente; nunca edite um `dist` diretamente.
 7. **Ícones:** na interface, use sempre `@lucide/vue` ou um SVG. Nunca coloque emojis
    direto no HTML/template, para garantir consistência entre navegadores.
 
+## Versões
+- **Versão do app** (`version` no `package.json` de cada app): sobe a cada publicação em produção, com
+  `npm version patch|minor|major -w apps/<app>` (correção / recurso novo / mudança de formato ou troca grande).
+  O build grava a versão, o commit (com `+` se havia alterações não commitadas) e a data no modal de Info,
+  no `dist/version.json` e no `project_loaded` da telemetria (`packages/shared/build/appBuildInfo.ts`).
+  Publique builds feitos de um commit limpo.
+- **Versão do projeto** (`meta.version` no JSON): só muda quando o formato do JSON muda, junto com uma migração.
+
 ## Git
 - Commits no padrão Conventional Commits (`feat(app): ...`, `fix(shared): ...`), em inglês.
   Título sempre; corpo com detalhes só quando for importante dar mais contexto.

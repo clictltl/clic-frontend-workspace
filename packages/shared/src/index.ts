@@ -25,6 +25,8 @@ export { exportClicFile, importClicFile } from './utils/projectIO';
 export { useSharedAssetStore } from './utils/useSharedAssetStore';
 export { createSharedProjects } from './utils/useSharedProjects';
 export * from './utils/id';
+export { getAppVersionInfo } from './utils/appVersion';
+export type { AppVersionInfo } from './utils/appVersion';
 
 // ui
 export { default as AppHeader } from './ui/AppHeader.vue';

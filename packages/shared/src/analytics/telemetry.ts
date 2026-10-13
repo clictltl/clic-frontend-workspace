@@ -1,4 +1,5 @@
 import { useAuth, getNonce, refreshNonce } from '../auth/auth';
+import { getAppVersionInfo } from '../utils/appVersion';
 
 export interface TelemetryEvent {
   event_type: 'mutation' | 'semantic' | 'system';
@@ -108,7 +109,13 @@ class TelemetryManager {
       getCurrentState
     };
 
-    this.addEvent('system', 'project_loaded', { initial_state: initialProjectData });
+    // Versão do app e commit do build: o replay e a pesquisa sabem com que código a sessão rodou.
+    // Campos aditivos: logs sem eles são anteriores a 2026-10.
+    const app = getAppVersionInfo();
+    this.addEvent('system', 'project_loaded', {
+      initial_state: initialProjectData,
+      ...(app && { app_version: app.version, app_commit: app.commit })
+    });
     this.scheduleNext(this.cycleDelay());
   }
 
