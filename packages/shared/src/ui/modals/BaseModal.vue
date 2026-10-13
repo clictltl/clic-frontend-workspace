@@ -300,7 +300,12 @@ onBeforeUnmount(() => {
   animation: base-modal-spin 0.8s linear infinite;
 }
 
-/* Botões (cores revistas na etapa dos botões) */
+/*
+ * Botões: uma cor por papel, e a ordem [destrutiva/alternativa] ……… [Cancelar/Fechar] [principal]
+ *   primary: ação principal (sempre à direita) · danger: destrutiva definitiva (Sim, excluir)
+ *   danger-outline: destrutiva isolada à esquerda (Descartar, Desativar link, Despublicar)
+ *   secondary: recusar (Cancelar, Fechar) ou alternativa à esquerda (Reativar link, Restaurar anterior)
+ */
 .base-modal .modal-btn {
   height: 40px;
   padding: 0 16px;
@@ -324,17 +329,20 @@ onBeforeUnmount(() => {
 .base-modal .modal-btn.primary:hover:not(:disabled) { background: #1d4ed8; }
 .base-modal .modal-btn.danger { background: #DC2626; color: #fff; }
 .base-modal .modal-btn.danger:hover:not(:disabled) { background: #B91C1C; }
-.base-modal .modal-btn.danger-soft { background: #FEF2F2; border-color: #FECACA; color: #B91C1C; }
-.base-modal .modal-btn.danger-soft:hover:not(:disabled) { background: #FEE2E2; }
 .base-modal .modal-btn.danger-outline { background: #fff; border-color: #FCA5A5; color: #B91C1C; }
 .base-modal .modal-btn.danger-outline:hover:not(:disabled) { background: #FEF2F2; }
-.base-modal .modal-btn.success-outline { background: #fff; border-color: #6EE7B7; color: #047857; }
-.base-modal .modal-btn.success-outline:hover:not(:disabled) { background: #ECFDF5; }
 .base-modal .modal-icon-btn { width: 40px; padding: 0; flex-shrink: 0; }
 
 @keyframes base-modal-spin { to { transform: rotate(360deg); } }
 @keyframes base-modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes base-modal-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Celular: botões empilhados na largura toda. column-reverse põe a principal em cima e a destrutiva por último */
+@media (max-width: 480px) {
+  .base-modal-foot { flex-direction: column-reverse; align-items: stretch; }
+  .base-modal-spacer { display: none; }
+  .base-modal .base-modal-foot .modal-btn { width: 100%; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .base-modal-backdrop, .base-modal { animation: none; }

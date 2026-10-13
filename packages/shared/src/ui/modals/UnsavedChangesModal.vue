@@ -7,10 +7,13 @@
     :description="isOffline ? $t('modals.unsaved.desc_export') : $t('modals.unsaved.desc_discard')"
     @close="$emit('cancel')"
   >
+    <!-- Descartar isolado à esquerda, longe do Salvar: um toque errado não apaga o trabalho -->
+    <template #footer-start>
+      <button class="modal-btn danger-outline" @click="$emit('discard')">{{ $t('modals.unsaved.btn_discard') }}</button>
+    </template>
+
     <template #footer>
-      <!-- A ordem dos botões importa para a UX -->
       <button class="modal-btn secondary" @click="$emit('cancel')">{{ $t('global.cancel') }}</button>
-      <button class="modal-btn danger-soft" @click="$emit('discard')">{{ $t('modals.unsaved.btn_discard') }}</button>
       <button class="modal-btn primary" @click="$emit('save')">
         {{ isOffline ? $t('modals.unsaved.btn_export') : $t('global.save') }}
       </button>

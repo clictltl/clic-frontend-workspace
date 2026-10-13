@@ -33,12 +33,12 @@
       </div>
     </template>
 
-    <!-- Destrutiva (ou reativar) isolada à esquerda -->
+    <!-- Botão que muda o estado do link: sempre à esquerda, nos dois estados (não "foge" depois do clique) -->
     <template #footer-start>
       <button v-if="!loading && isActive" class="modal-btn danger-outline" @click="handleUnshare">
         {{ $t('modals.share.btn_disable') }}
       </button>
-      <button v-else-if="!loading && exists" class="modal-btn success-outline" @click="handleReactivate">
+      <button v-else-if="!loading && exists" class="modal-btn secondary" @click="handleReactivate">
         {{ $t('modals.share.btn_reactivate') }}
       </button>
     </template>

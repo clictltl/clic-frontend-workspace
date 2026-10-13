@@ -39,7 +39,7 @@
       </p>
     </template>
 
-    <!-- Destrutiva (ou restaurar) isolada à esquerda -->
+    <!-- Botão que muda o estado da publicação: sempre à esquerda, nos dois estados -->
     <template #footer-start>
       <button
         v-if="!loading && isActive"
