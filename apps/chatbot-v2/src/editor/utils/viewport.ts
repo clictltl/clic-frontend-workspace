@@ -25,6 +25,20 @@ export function zoomToFit(bounds: Rect, view: { width: number; height: number },
   return Math.min(view.width / (bounds.width * scale), view.height / (bounds.height * scale));
 }
 
+/** Margens do fluxo pequeno ao abrir: à esquerda e logo abaixo da barra "Adicionar bloco". */
+export const SMALL_FLOW_MARGIN = { left: 80, top: 120 } as const;
+
+/**
+ * Fluxo que cabe inteiro em 100% (ex.: projeto novo): em vez de centralizar, abre em 100%
+ * encostado à esquerda e no alto, deixando espaço à direita para continuar construindo.
+ * Devolve null quando o fluxo não cabe em 100% (aí vale o enquadramento normal).
+ */
+export function smallFlowViewport(bounds: Rect, view: { width: number; height: number }) {
+  // Caber em 100% com a folga do enquadramento garante que a margem do topo não empurra o fluxo para fora
+  if (zoomToFit(bounds, view) < 1) return null;
+  return { x: SMALL_FLOW_MARGIN.left - bounds.x, y: SMALL_FLOW_MARGIN.top - bounds.y, zoom: 1 };
+}
+
 /** IDs dos blocos na ordem da conversa (busca em largura a partir do Início). */
 export function flowOrder(project: ChatbotProject): string[] {
   const start = Object.values(project.nodes).find(n => n.type === 'start');

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flowOrder, nodesToFrameOnOpen, zoomToFit, type Rect } from '../viewport';
+import { flowOrder, nodesToFrameOnOpen, smallFlowViewport, zoomToFit, type Rect } from '../viewport';
 import { connect } from '../../../shared/domain/graph';
 import { setup } from '../../../shared/domain/__tests__/helpers';
 
@@ -40,5 +40,15 @@ describe('viewport on open', () => {
     expect(subset[0]).toBe(start.id);
     expect(subset.length).toBeGreaterThan(1);
     expect(subset.length).toBeLessThan(Object.keys(rects).length);
+  });
+});
+
+describe('smallFlowViewport', () => {
+  const view = { width: 1000, height: 700 };
+  it('opens a small flow at 100%, at the left and near the top', () => {
+    expect(smallFlowViewport({ x: 250, y: 150, width: 600, height: 130 }, view)).toEqual({ x: 80 - 250, y: 120 - 150, zoom: 1 });
+  });
+  it('returns null when the flow does not fit at 100%', () => {
+    expect(smallFlowViewport({ x: 0, y: 0, width: 900, height: 100 }, view)).toBeNull();
   });
 });
