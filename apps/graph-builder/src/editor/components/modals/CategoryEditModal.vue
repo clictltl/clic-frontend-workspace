@@ -158,7 +158,7 @@ const handleDelete = () => {
       <h3>{{ isEditing ? t('graphBuilder.categoryModal.title_edit') : t('graphBuilder.categoryModal.title_new') }}</h3>
 
       <div class="form-group">
-        <label>Nome</label>
+        <label>{{ t('graphBuilder.categoryModal.label_name') }}</label>
         <input 
           ref="nameInput"
           v-model="categoryName" 

@@ -22,23 +22,23 @@ export default {
     made_by: 'by',
     language: 'Language',
     guide: 'Guide',
-    info_contact: 'Info and Contact',
+    info_contact: 'Info and contact',
     about_clic: 'About CLIC',
     about_desc: 'This tool is part of <strong>CLIC</strong>, an initiative by the Transformative Learning Technologies Lab (TLTL) at Columbia University.',
-    full_access: 'Full Access',
-    full_access_desc: 'You are using the tool in free mode. If you are an educator and wish to save your projects to the cloud, create classes, and access our Didactic Sequences, request your account via our contact email.',
-    bugs_suggestions: 'Bugs and Suggestions',
+    full_access: 'Full access',
+    full_access_desc: 'You are using the tool in free mode. If you are an educator and wish to save your projects to the cloud, create classes, and access our teaching sequences, request your account via our contact email.',
+    bugs_suggestions: 'Bugs and suggestions',
     bugs_desc: 'Your contribution is very important to the continuous evolution of this project. If you found any errors in the tool or want to send us feedback and improvement suggestions, do not hesitate to contact us.',
     contact: 'Contact:',
     site: 'Website:',
     version: '{app} {version} · built {date} ({commit})',
-    app_install: 'Install App',
-    back_home: 'Back to Home'
+    app_install: 'Install app',
+    back_home: 'Back to home'
   },
 
   runtime: {
     created_with: 'Created with',
-    open_in_editor: 'Open in Editor',
+    open_in_editor: 'Open in editor',
   },
 
   auth: {
@@ -46,7 +46,7 @@ export default {
     logout: 'Log out',
     welcome_back: 'Welcome back',
     login_prompt: 'Log in to save your projects to the cloud.',
-    user_or_email: 'Username or Email',
+    user_or_email: 'Username or email',
     type_user: 'Enter your username',
     password: 'Password',
     type_password: 'Enter your password',
@@ -55,7 +55,7 @@ export default {
     invalid_credentials: 'Incorrect username or password.',
     too_many_attempts: 'Too many attempts. Please wait a few minutes.',
     blocked_terms: 'Access blocked. Go to clic.tltlab.org on your browser to accept the Terms of Use.',
-    blocked_teacher: 'Access Blocked: Please contact your teacher to regularize your account.',
+    blocked_teacher: 'Access blocked: please contact your teacher to regularize your account.',
     login_error: 'Error logging in.',
     session_refresh_failed: 'You are logged in, but the session could not be updated. Download your project as a file and reload the page.'
   },
@@ -89,13 +89,13 @@ export default {
       confirm_named: 'Are you sure you want to delete the {itemName} <strong>"{projectName}"</strong>?',
       confirm_generic: 'Are you sure you want to delete this {itemName}?',
       warning: 'This action is irreversible and data cannot be recovered.',
-      btn_confirm: 'Yes, Delete',
+      btn_confirm: 'Yes, delete',
       no_selection: 'No project selected.',
       success: 'Project deleted successfully.',
       error: 'Error deleting project.'
     },
     invalid_link: {
-      title: 'Invalid or Expired Link',
+      title: 'Invalid or expired link',
       description: 'Could not load the shared {itemName}. <br> The link might be incorrect, revoked by the owner, or the {itemName} was deleted.',
       btn_create: 'Got it, create new {itemName}'
     },
@@ -113,22 +113,22 @@ export default {
     },
     publish: {
       title_publish: 'Publish {itemName}',
-      title_published: '{itemName} Published',
-      title_paused: 'Publishing Paused',
-      status_online: '{itemName} Online',
-      status_offline: '{itemName} Offline',
+      title_published: '{itemName} published',
+      title_paused: 'Publishing paused',
+      status_online: '{itemName} online',
+      status_offline: '{itemName} offline',
       version: 'Version from {date}',
       last_version: 'Latest version: {date}',
-      public_link: 'Public Link',
+      public_link: 'Public link',
       hint_update: 'If you made changes, click "Update" to save and sync.',
       hint_restore: 'Do you want to restore the old version or save and publish your new changes?',
       never_published: 'This {itemName} has never been published. Publish it to generate a unique access link.',
       desc_restore: 'Turns the bot back on as it was, without saving current changes',
       btn_disable: 'Disable {itemName}',
       btn_unpublish: 'Unpublish',
-      btn_restore: 'Restore Previous',
+      btn_restore: 'Restore previous',
       btn_update: 'Update',
-      btn_publish_new: 'Publish New Version',
+      btn_publish_new: 'Publish new version',
       checking: 'Checking status...',
       saving_publishing: 'Saving and publishing...',
       success_new: 'New version published!',
@@ -147,20 +147,20 @@ export default {
       desc_copy: 'Create a copy of this {itemName} with a new name.',
       placeholder_new: 'E.g.: My {itemName}',
       placeholder_copy: 'E.g.: {itemName} v2',
-      btn_copy: 'Create Copy',
+      btn_copy: 'Create copy',
       error_empty: 'Name cannot be empty.'
     },
     share: {
       title: 'Share {itemName}',
-      status_active: 'Sharing Active',
-      status_inactive: 'Sharing Disabled',
+      status_active: 'Sharing active',
+      status_inactive: 'Sharing disabled',
       desc_active: 'The link is active. Anyone with the URL below can access the {itemName}.',
       desc_inactive: 'The link is disabled. Reactivate to allow access again.',
       empty: 'No link generated previously. Generate a link to let others view this {itemName}.',
-      public_link: 'Public Link',
-      btn_disable: 'Disable Link',
-      btn_reactivate: 'Reactivate Link',
-      btn_generate: 'Generate Link',
+      public_link: 'Public link',
+      btn_disable: 'Disable link',
+      btn_reactivate: 'Reactivate link',
+      btn_generate: 'Generate link',
       checking: 'Checking...',
       success_generated: 'Link generated!',
       success_reactivated: 'Link reactivated successfully!',
@@ -193,7 +193,7 @@ export default {
     upload_failed: 'Upload failed: {error}',
     save_image_error: 'Error saving image {name}: {error}',
     preview_load_error: 'Error loading preview. Check permissions.',
-    student_project: 'Student Project',
+    student_project: 'Student project',
     share_load_error: 'Error loading share',
     form_load_error: 'Error loading form',
     submit_response_error: 'Error submitting response',
@@ -588,21 +588,21 @@ export default {
       preview: 'Preview'
     },
     board: {
-      title_placeholder: 'Your Project Title...',
-      new_category: 'New Category'
+      title_placeholder: 'Your project title...',
+      new_category: 'New category'
     },
     category: {
       form_powered: 'Form powered',
       check_answers: 'Check new answers',
-      edit_category: 'Edit Category',
+      edit_category: 'Edit category',
       new_answers: 'new answers',
       importing: 'Importing...',
       import: 'Import',
-      add_item: '+ Add Item'
+      add_item: '+ Add item'
     },
     categoryModal: {
-      title_edit: 'Edit Category',
-      title_new: 'New Category',
+      title_edit: 'Edit category',
+      title_new: 'New category',
       label_name: 'Name',
       placeholder_name: 'E.g.: Introduction, Examples...',
       label_color: 'Color',
@@ -614,18 +614,18 @@ export default {
       form_exists_tooltip: 'This category already has a linked form',
       form_lock_notice: 'Active form link. To remove it, delete the category.',
       form_default_question: 'What is your name?',
-      form_question_label: 'Form Question',
+      form_question_label: 'Form question',
       form_question_placeholder: 'E.g.: What is your name?',
-      form_connect_categories: 'Connect with Categories:',
-      link_warning_save: 'Warning: To generate the public link, save the category and project to the cloud.',
+      form_connect_categories: 'Connect with categories:',
+      link_warning_save: 'Warning: to generate the public link, save the category and project to the cloud.',
       link_checking: 'Checking link status...',
       link_hint: 'The configuration travels with the file. Activate the link to start receiving data from this class.',
       link_processing: 'Processing...',
-      link_activate: 'Activate Public Link',
-      link_active_label: 'Link Active and receiving responses',
+      link_activate: 'Activate public link',
+      link_active_label: 'Link active and receiving responses',
       link_copy: 'Copy link',
-      link_open_form: 'Open Form',
-      link_deactivate: 'Deactivate Link',
+      link_open_form: 'Open form',
+      link_deactivate: 'Deactivate link',
       link_copied: 'Link copied!',
       create_failed: 'Failed to create category.',
       server_error: 'Error connecting to the server.',
@@ -634,40 +634,40 @@ export default {
     },
     contentEditor: {
       editing: 'Editing:',
-      hide_preview: 'Hide Preview',
-      show_preview: 'Show Preview',
-      cancel_close: 'Cancel and Close',
+      hide_preview: 'Hide preview',
+      show_preview: 'Show preview',
+      cancel_close: 'Cancel and close',
       placeholder: '# Start writing here...',
       format_bold: 'Bold',
       format_italic: 'Italic',
       format_heading: 'Heading',
-      format_list: 'Bulleted List',
-      format_ordered: 'Numbered List',
+      format_list: 'Bulleted list',
+      format_ordered: 'Numbered list',
       format_link: 'Link',
       format_image: 'Image',
       format_quote: 'Quote'
     },
     properties: {
       empty_state: 'Select an item to edit',
-      title: 'Edit Item',
+      title: 'Edit item',
       delete_tooltip: 'Delete item',
       delete_confirm: 'Are you sure you want to delete this item?',
       label_title: 'Title',
       placeholder_title: 'Item name',
       label_content: 'Content',
       help_content: 'Content is edited in full screen for better focus.',
-      btn_edit_content: 'Edit Content',
+      btn_edit_content: 'Edit content',
       label_connections: 'Connections',
       hint_connections: 'No other items available to connect (create items in other categories).'
     },
     node: {
-      default_title: 'New Item',
+      default_title: 'New item',
       no_name: 'No name'
     },
     runtime: {
       navigation: {
         index_label: 'Index',
-        global_map: 'View Global Map',
+        global_map: 'View global map',
         empty_category: '(Empty)'
       },
       references: {
@@ -678,7 +678,7 @@ export default {
       form: {
         fallback_option: 'Option',
         error_submit: 'Error submitting response.',
-        success_title: 'Response Sent!',
+        success_title: 'Response sent!',
         success_message: 'Thank you, {name}. Your response has been recorded in the system.',
         btn_submit_another: 'Submit another response',
         survey_title: 'Survey',
@@ -687,11 +687,11 @@ export default {
         placeholder_name: 'Type your response...',
         choose_option: 'Choose an option from: {category}',
         btn_submitting: 'Submitting...',
-        btn_submit: 'Submit Response'
+        btn_submit: 'Submit response'
       },
       reader: {
         empty_project: 'The project is empty.',
-        global_map_title: 'Global Connections Map',
+        global_map_title: 'Global connections map',
         global_map_desc: 'Explore the map and click on an item to discover more.',
         connections_label: 'Connections:',
         level_label: 'Level',
@@ -711,26 +711,26 @@ export default {
       oops: 'Oops!'
     },
     history: {
-      updateTitle: 'Graph Title Update',
-      saveNodeContent: 'Content Edit',
-      addNode: 'Item Creation',
-      deleteNode: 'Item Deletion',
-      updateNode: 'Item Update',
-      reorderNodesInCategory: 'Item Reorder',
-      addCategory: 'Category Creation',
-      deleteCategory: 'Category Deletion',
-      updateCategory: 'Category Update',
-      reorderCategories: 'Category Reorder',
-      addEdge: 'Connection Creation',
-      removeEdge: 'Connection Removal',
-      updateCategoryFormConfig: 'Form Configuration'
+      updateTitle: 'Graph title update',
+      saveNodeContent: 'Content edit',
+      addNode: 'Item creation',
+      deleteNode: 'Item deletion',
+      updateNode: 'Item update',
+      reorderNodesInCategory: 'Item reorder',
+      addCategory: 'Category creation',
+      deleteCategory: 'Category deletion',
+      updateCategory: 'Category update',
+      reorderCategories: 'Category reorder',
+      addEdge: 'Connection creation',
+      removeEdge: 'Connection removal',
+      updateCategoryFormConfig: 'Form configuration'
     }
   },
 
   emojiCoder: {
     setup: {
       tutorials: {
-        title: 'How to Use the Tool',
+        title: 'How to use the tool',
         desc: 'Learn step by step how to program Caramelo, from basic to advanced.',
         abs_title: 'Absolute movements',
         abs_desc: 'Learn how to use the absolute movement blocks.',
@@ -755,22 +755,22 @@ export default {
         abs_title: 'Absolute movements',
         abs_desc: 'Create free drawings using the absolute movement blocks.',
         rel_title: 'Relative movements',
-        rel_desc: 'Create free drawings using the Move Forward, Move Back, and Turn blocks.',
+        rel_desc: 'Create free drawings using the Move forward, Move backward, and Turn blocks.',
         both_title: 'Absolute and relative movements',
         both_desc: 'Combine absolute and relative movements in the same project.'
       },
       
-      grid_fixed: 'Size: 8x8 (Fixed)',
-      grid_size: 'Board Size:',
-      grid_small: '6x6 (Small)',
-      grid_medium: '8x8 (Medium)',
-      grid_large: '12x12 (Large)',
-      grid_max: '16x16 (Max Challenge)',
+      grid_fixed: 'Size: 8x8 (fixed)',
+      grid_size: 'Board size:',
+      grid_small: '6x6 (small)',
+      grid_medium: '8x8 (medium)',
+      grid_large: '12x12 (large)',
+      grid_max: '16x16 (max challenge)',
       start_btn: 'Start'
     },
     messages: {
       unsaved_confirm: 'You have unsaved changes. Do you really want to go back to the start and lose your progress?',
-      loading_project: 'Loading Project...',
+      loading_project: 'Loading project...',
       oops: 'Oops!',
       invalid_token: 'Project not found or invalid link.',
       invalid_data: 'Project file is corrupted.',
@@ -778,9 +778,9 @@ export default {
       unknown_error: 'An unknown error occurred.'
     },
     workspace: {
-      loaded_title: 'Coding Environment Loaded!',
-      active_lib: 'Active Library:',
-      grid_size: 'Grid Size:',
+      loaded_title: 'Coding environment loaded!',
+      active_lib: 'Active library:',
+      grid_size: 'Grid size:',
       placeholder: '(Blockly and Canvas will be rendered here)',
       drag_resize: 'Drag to resize',
       actor_alt: 'Caramelo'
@@ -797,15 +797,15 @@ export default {
       defaultFuncName: 'my function',
       move_forward: 'Move forward',
       move_backward: 'Move backward',
-      turn_left: 'Turn Left',
-      turn_right: 'Turn Right',
+      turn_left: 'Turn left',
+      turn_right: 'Turn right',
       repeat: 'Repeat'
     },
     toolbox: {
       start: 'Start',
       movement: 'Movement',
-      movement_absolute: 'Absolute Movement',
-      movement_relative: 'Relative Movement',
+      movement_absolute: 'Absolute movement',
+      movement_relative: 'Relative movement',
       actions: 'Actions',
       loops: 'Loops',
       functions: 'Functions'
@@ -817,23 +817,23 @@ export default {
       need_hint: 'Need a hint?',
       hint: 'Hint:',
       success: 'Success!',
-      finish_tutorial: 'Finish Tutorial',
-      next_challenge: 'Next Challenge →',
-      tutorial_completed: 'Tutorial Completed!',
+      finish_tutorial: 'Finish tutorial',
+      next_challenge: 'Next challenge →',
+      tutorial_completed: 'Tutorial completed!',
       tutorial_completed_desc: 'You completed all challenges with excellence. You understood Caramelo and are ready to create your own personal projects!',
       save_tip: 'Remember to use the <strong>File > Save</strong> menu to save your solutions before leaving!',
-      back_home: 'Back to Home',
+      back_home: 'Back to home',
       step: 'Step',
       waiting_code: 'Waiting for code...',
       speed: 'Speed',
-      reset_world: 'Reset World',
-      run_code: 'Run Code',
-      resume: 'Resume Execution',
+      reset_world: 'Reset world',
+      run_code: 'Run code',
+      resume: 'Resume execution',
       pause: 'Pause',
-      step_by_step: 'Step by Step',
-      export_image: 'Export as Image',
-      editor_mode: 'Editor Mode',
-      full_screen: 'Full Screen',
+      step_by_step: 'Step by step',
+      export_image: 'Export as image',
+      editor_mode: 'Editor mode',
+      full_screen: 'Full screen',
       default_drawing_name: 'drawing'
     },
     tutorials: {
@@ -872,20 +872,20 @@ export default {
       grade5: {
         c1: {
           title: 'Reach the goal!',
-          desc: 'Caramelo needs to reach the green block at the end of the line. Use the Move Forward block to advance!',
-          tip: 'Each Move Forward advances 1 step. How many steps to the green block?',
+          desc: 'Caramelo needs to reach the green block at the end of the line. Use the Move forward block to advance!',
+          tip: 'Each Move forward advances 1 step. How many steps to the green block?',
           success: 'You reached the goal! You learned to move Caramelo with precision.'
         },
         c2: {
           title: 'Paint the line!',
-          desc: 'Paint all 8 blocks in the line. Use Paint and Move Forward.',
+          desc: 'Paint all 8 blocks in the line. Use Paint and Move forward.',
           tip: 'Paint the current cell, move forward, paint the next... repeat for all 8 blocks!',
           success: 'Incredible! You painted the entire line — but it was quite a lot of work, right? There is a better way...'
         },
         c3: {
           title: 'Use Repeat!',
           desc: 'Paint the line again — but this time use the Repeat block.',
-          tip: 'Put Paint + Move Forward inside the Repeat. How many times do you need to repeat?',
+          tip: 'Put Paint + Move forward inside the Repeat. How many times do you need to repeat?',
           success: 'Perfect! The Repeat block made the code much smaller and more elegant!'
         },
         c4: {
@@ -897,7 +897,7 @@ export default {
         c5: {
           title: 'Draw a square!',
           desc: 'Paint the perimeter of the square marked on the grid.',
-          tip: 'Try: Repeat 4 times — Repeat 2×(Paint + Move Forward), then Turn Right.',
+          tip: 'Try: Repeat 4 times — Repeat 2×(Paint + Move forward), then Turn right.',
           success: 'Fantastic! You drew a square using code. You are a programmer!'
         },
         c6: {
@@ -928,7 +928,7 @@ export default {
         },
         a2: {
           title: 'Challenge a classmate!',
-          desc: 'Swap drawings with a classmate and try to recreate their drawing using only relative commands: Move Forward, Move Back, and Turn.'
+          desc: 'Swap drawings with a classmate and try to recreate their drawing using only relative commands: Move forward, Move backward, and Turn.'
         }
       },
       sd1_class2 : {

@@ -22,23 +22,23 @@ export default {
     made_by: 'feito pelo',
     language: 'Idioma',
     guide: 'Guia',
-    info_contact: 'Informações e Contato',
+    info_contact: 'Informações e contato',
     about_clic: 'Sobre o CLIC',
     about_desc: 'Esta ferramenta faz parte do <strong>CLIC</strong>, uma iniciativa do Transformative Learning Technologies Lab (TLTL) da Universidade de Columbia.',
-    full_access: 'Acesso Completo',
-    full_access_desc: 'Você está utilizando a ferramenta no modo livre. Caso seja um educador e queira salvar seus projetos na nuvem, criar turmas e acessar nossas Sequências Didáticas, solicite a sua conta através do nosso e-mail de contato.',
-    bugs_suggestions: 'Bugs e Sugestões',
+    full_access: 'Acesso completo',
+    full_access_desc: 'Você está utilizando a ferramenta no modo livre. Caso seja um educador e queira salvar seus projetos na nuvem, criar turmas e acessar nossas sequências didáticas, solicite a sua conta através do nosso e-mail de contato.',
+    bugs_suggestions: 'Bugs e sugestões',
     bugs_desc: 'Sua contribuição é muito importante para a evolução contínua deste projeto. Se você encontrou algum erro na ferramenta ou quer nos enviar feedbacks e sugestões de melhoria, não hesite em nos contatar.',
     contact: 'Contato:',
     site: 'Site:',
     version: '{app} {version} · build de {date} ({commit})',
-    app_install: 'Instalar App',
+    app_install: 'Instalar app',
     back_home: 'Voltar ao início'
   },
 
   runtime: {
     created_with: 'Criado com',
-    open_in_editor: 'Abrir no Editor',
+    open_in_editor: 'Abrir no editor',
   },
 
   auth: {
@@ -46,7 +46,7 @@ export default {
     logout: 'Sair',
     welcome_back: 'Bem-vindo de volta',
     login_prompt: 'Faça login para salvar seus projetos na nuvem.',
-    user_or_email: 'Usuário ou E-mail',
+    user_or_email: 'Usuário ou e-mail',
     type_user: 'Digite seu usuário',
     password: 'Senha',
     type_password: 'Digite sua senha',
@@ -55,7 +55,7 @@ export default {
     invalid_credentials: 'Usuário ou senha incorretos.',
     too_many_attempts: 'Muitas tentativas. Aguarde alguns minutos.',
     blocked_terms: 'Acesso bloqueado. Acesse clic.tltlab.org pelo navegador para aceitar os Termos de Uso.',
-    blocked_teacher: 'Acesso Bloqueado: Procure seu professor para regularizar sua conta.',
+    blocked_teacher: 'Acesso bloqueado: procure seu professor para regularizar sua conta.',
     login_error: 'Erro ao fazer login.',
     session_refresh_failed: 'Você entrou, mas não foi possível atualizar a sessão. Baixe seu projeto em arquivo e recarregue a página.'
   },
@@ -89,13 +89,13 @@ export default {
       confirm_named: 'Tem certeza de que deseja excluir o {itemName} <strong>"{projectName}"</strong>?',
       confirm_generic: 'Tem certeza de que deseja excluir este {itemName}?',
       warning: 'Esta ação é irreversível e os dados não poderão ser recuperados.',
-      btn_confirm: 'Sim, Excluir',
+      btn_confirm: 'Sim, excluir',
       no_selection: 'Nenhum projeto selecionado.',
       success: 'Projeto excluído com sucesso.',
       error: 'Erro ao excluir o projeto.'
     },
     invalid_link: {
-      title: 'Link Inválido ou Expirado',
+      title: 'Link inválido ou expirado',
       description: 'Não foi possível carregar o {itemName} compartilhado. <br> O link pode estar incorreto, ter sido revogado pelo proprietário ou o {itemName} foi excluído.',
       btn_create: 'Entendi, criar novo {itemName}'
     },
@@ -113,13 +113,13 @@ export default {
     },
     publish: {
       title_publish: 'Publicar {itemName}',
-      title_published: '{itemName} Publicado',
-      title_paused: 'Publicação Pausada',
-      status_online: '{itemName} Online',
-      status_offline: '{itemName} Offline',
+      title_published: '{itemName} publicado',
+      title_paused: 'Publicação pausada',
+      status_online: '{itemName} online',
+      status_offline: '{itemName} offline',
       version: 'Versão de {date}',
       last_version: 'Última versão: {date}',
-      public_link: 'Link Público',
+      public_link: 'Link público',
       hint_update: 'Se fez alterações, clique em "Atualizar" para salvar e sincronizar.',
       hint_restore: 'Deseja restaurar a versão antiga ou salvar e publicar suas novas alterações?',
       never_published: 'Este {itemName} nunca foi publicado. Publique para gerar um link único de acesso.',
@@ -127,9 +127,9 @@ export default {
       desc_restore: 'Liga o bot como estava antes, sem salvar alterações atuais',
       btn_disable: 'Desativar {itemName}',
       btn_unpublish: 'Despublicar',
-      btn_restore: 'Restaurar Anterior',
+      btn_restore: 'Restaurar anterior',
       btn_update: 'Atualizar',
-      btn_publish_new: 'Publicar Nova Versão',
+      btn_publish_new: 'Publicar nova versão',
       checking: 'Verificando status...',
       saving_publishing: 'Salvando e publicando...',
       success_new: 'Nova versão publicada!',
@@ -148,20 +148,20 @@ export default {
       desc_copy: 'Crie uma cópia deste {itemName} com um novo nome.',
       placeholder_new: 'Ex: Meu {itemName}',
       placeholder_copy: 'Ex: {itemName} v2',
-      btn_copy: 'Criar Cópia',
+      btn_copy: 'Criar cópia',
       error_empty: 'O nome não pode estar vazio.'
     },
     share: {
       title: 'Compartilhar {itemName}',
-      status_active: 'Compartilhamento Ativo',
-      status_inactive: 'Compartilhamento Desativado',
+      status_active: 'Compartilhamento ativo',
+      status_inactive: 'Compartilhamento desativado',
       desc_active: 'O link está ativo. Qualquer pessoa com a URL abaixo pode acessar o {itemName}.',
       desc_inactive: 'O link está desativado. Reative para permitir o acesso novamente.',
       empty: 'Nenhum link gerado anteriormente. Gere um link para permitir que outros visualizem este {itemName}.',
-      public_link: 'Link Público',
-      btn_disable: 'Desativar Link',
-      btn_reactivate: 'Reativar Link',
-      btn_generate: 'Gerar Link',
+      public_link: 'Link público',
+      btn_disable: 'Desativar link',
+      btn_reactivate: 'Reativar link',
+      btn_generate: 'Gerar link',
       checking: 'Verificando...',
       success_generated: 'Link gerado!',
       success_reactivated: 'Link reativado com sucesso!',
@@ -194,7 +194,7 @@ export default {
     upload_failed: 'Upload falhou: {error}',
     save_image_error: 'Erro ao salvar imagem {name}: {error}',
     preview_load_error: 'Erro ao carregar preview. Verifique as permissões.',
-    student_project: 'Projeto do Aluno',
+    student_project: 'Projeto do aluno',
     share_load_error: 'Erro ao carregar compartilhamento',
     form_load_error: 'Erro ao carregar formulário',
     submit_response_error: 'Erro ao enviar resposta',
@@ -589,21 +589,21 @@ export default {
       preview: 'Visualizar'
     },
     board: {
-      title_placeholder: 'Título do seu Projeto...',
-      new_category: 'Nova Categoria'
+      title_placeholder: 'Título do seu projeto...',
+      new_category: 'Nova categoria'
     },
     category: {
       form_powered: 'Alimentada por formulário',
       check_answers: 'Verificar novas respostas',
-      edit_category: 'Editar Categoria',
+      edit_category: 'Editar categoria',
       new_answers: 'novas respostas',
       importing: 'Importando...',
       import: 'Importar',
-      add_item: '+ Adicionar Item'
+      add_item: '+ Adicionar item'
     },
     categoryModal: {
-      title_edit: 'Editar Categoria',
-      title_new: 'Nova Categoria',
+      title_edit: 'Editar categoria',
+      title_new: 'Nova categoria',
       label_name: 'Nome',
       placeholder_name: 'Ex: Introdução, Exemplos...',
       label_color: 'Cor',
@@ -615,18 +615,18 @@ export default {
       form_exists_tooltip: 'Esta categoria já possui um formulário vinculado',
       form_lock_notice: 'Vínculo com formulário ativo. Para remover, exclua a categoria.',
       form_default_question: 'Qual o seu nome?',
-      form_question_label: 'Pergunta do Formulário',
+      form_question_label: 'Pergunta do formulário',
       form_question_placeholder: 'Ex: Qual seu nome?',
-      form_connect_categories: 'Conectar com Categorias:',
-      link_warning_save: 'Atenção: Para gerar o link público, salve a categoria e o projeto na nuvem.',
+      form_connect_categories: 'Conectar com categorias:',
+      link_warning_save: 'Atenção: para gerar o link público, salve a categoria e o projeto na nuvem.',
       link_checking: 'Verificando status do link...',
       link_hint: 'A configuração viaja com o arquivo. Ative o link para começar a receber dados desta turma.',
       link_processing: 'Processando...',
-      link_activate: 'Ativar Link Público',
-      link_active_label: 'Link Ativo e recebendo respostas',
+      link_activate: 'Ativar link público',
+      link_active_label: 'Link ativo e recebendo respostas',
       link_copy: 'Copiar link',
-      link_open_form: 'Abrir Form',
-      link_deactivate: 'Desativar Link',
+      link_open_form: 'Abrir formulário',
+      link_deactivate: 'Desativar link',
       link_copied: 'Link copiado!',
       create_failed: 'Falha ao criar categoria.',
       server_error: 'Erro ao conectar com o servidor.',
@@ -635,9 +635,9 @@ export default {
     },
     contentEditor: {
       editing: 'Editando:',
-      hide_preview: 'Esconder Preview',
-      show_preview: 'Mostrar Preview',
-      cancel_close: 'Cancelar e Fechar',
+      hide_preview: 'Esconder pré-visualização',
+      show_preview: 'Mostrar pré-visualização',
+      cancel_close: 'Cancelar e fechar',
       placeholder: '# Comece a escrever aqui...',
       format_bold: 'Negrito',
       format_italic: 'Itálico',
@@ -650,25 +650,25 @@ export default {
     },
     properties: {
       empty_state: 'Selecione um item para editar',
-      title: 'Editar Item',
+      title: 'Editar item',
       delete_tooltip: 'Excluir item',
       delete_confirm: 'Tem certeza que deseja excluir este item?',
       label_title: 'Título',
       placeholder_title: 'Nome do item',
       label_content: 'Conteúdo',
       help_content: 'O conteúdo é editado em tela cheia para melhor foco.',
-      btn_edit_content: 'Editar Conteúdo',
+      btn_edit_content: 'Editar conteúdo',
       label_connections: 'Conexões',
       hint_connections: 'Nenhum outro item disponível para conectar (crie itens em outras categorias).'
     },
     node: {
-      default_title: 'Novo Item',
+      default_title: 'Novo item',
       no_name: 'Sem nome'
     },
     runtime: {
       navigation: {
         index_label: 'Índice',
-        global_map: 'Ver Mapa Global',
+        global_map: 'Ver mapa global',
         empty_category: '(Vazio)'
       },
       references: {
@@ -679,7 +679,7 @@ export default {
       form: {
         fallback_option: 'Opção',
         error_submit: 'Erro ao enviar resposta.',
-        success_title: 'Resposta Enviada!',
+        success_title: 'Resposta enviada!',
         success_message: 'Obrigado, {name}. Sua resposta foi registrada no sistema.',
         btn_submit_another: 'Enviar outra resposta',
         survey_title: 'Pesquisa',
@@ -688,11 +688,11 @@ export default {
         placeholder_name: 'Digite sua resposta...',
         choose_option: 'Escolha uma opção de: {category}',
         btn_submitting: 'Enviando...',
-        btn_submit: 'Enviar Resposta'
+        btn_submit: 'Enviar resposta'
       },
       reader: {
         empty_project: 'O projeto está vazio.',
-        global_map_title: 'Mapa Global de Conexões',
+        global_map_title: 'Mapa global de conexões',
         global_map_desc: 'Explore o mapa e clique em um item para descobrir mais.',
         connections_label: 'Conexões:',
         level_label: 'Nível',
@@ -724,26 +724,26 @@ export default {
       reorderCategories: 'Reordenação de categoria',
       addEdge: 'Conexão',
       removeEdge: 'Remoção de conexão',
-      updateCategoryFormConfig: 'Configuração de Formulário'
+      updateCategoryFormConfig: 'Configuração de formulário'
     }
   },
 
   emojiCoder: {
     setup: {
       tutorials: {
-        title: 'Como usar a Ferramenta',
+        title: 'Como usar a ferramenta',
         desc: 'Aprenda o passo a passo para programar o Caramelo, do básico ao avançado.',
         abs_title: 'Movimentos absolutos',
-        abs_desc: 'Aprenda a utlizar os blocos de movimentos absolutos.',
+        abs_desc: 'Aprenda a utilizar os blocos de movimentos absolutos.',
         rel_title: 'Movimentos relativos',
-        rel_desc: 'Aprenda a utlizar os blocos de movimentos relativos.'
+        rel_desc: 'Aprenda a utilizar os blocos de movimentos relativos.'
       },
 
       sd1: {
         title: 'Crie desenhos com o Caramelo',
         desc: 'Essa trilha segue o planejamento da sequência didática "Crie desenhos com o Caramelo". Para acessar o plano de aula completo, <a href="https://clic.tltlab.org/unidades/612/" target="_blank" style="color: #2563eb; text-decoration: underline;">clique aqui</a>',
         class1_title: 'Movimentos com o Caramelo',
-        class1_desc: 'Recrie um desenho seu na caixa de areia usando comando absolutos e relativos.',
+        class1_desc: 'Recrie um desenho seu na caixa de areia usando comandos absolutos e relativos.',
         class2_title: 'Repetindo padrões',
         class2_desc: 'Descubra o desafio da Escada e aprenda a usar o bloco de repetição para economizar comandos.',
         class3_title: 'Criando com o Caramelo',
@@ -761,17 +761,17 @@ export default {
         both_desc: 'Mescle movimentos absolutos e relativos no mesmo projeto.'
       },
       
-      grid_fixed: 'Tamanho: 8x8 (Fixo)',
-      grid_size: 'Tamanho do Tabuleiro:',
-      grid_small: '6x6 (Pequeno)',
-      grid_medium: '8x8 (Médio)',
-      grid_large: '12x12 (Grande)',
-      grid_max: '16x16 (Desafio Máximo)',
+      grid_fixed: 'Tamanho: 8x8 (fixo)',
+      grid_size: 'Tamanho do tabuleiro:',
+      grid_small: '6x6 (pequeno)',
+      grid_medium: '8x8 (médio)',
+      grid_large: '12x12 (grande)',
+      grid_max: '16x16 (desafio máximo)',
       start_btn: 'Começar'
     },
     messages: {
       unsaved_confirm: 'Você tem alterações não salvas. Deseja realmente voltar ao início e perder seu progresso?',
-      loading_project: 'Carregando Projeto...',
+      loading_project: 'Carregando projeto...',
       oops: 'Ops!',
       invalid_token: 'Projeto não encontrado ou link inválido.',
       invalid_data: 'O arquivo do projeto está corrompido.',
@@ -779,9 +779,9 @@ export default {
       unknown_error: 'Ocorreu um erro desconhecido.'
     },
     workspace: {
-      loaded_title: 'Ambiente de Código Carregado!',
-      active_lib: 'Biblioteca Ativa:',
-      grid_size: 'Tamanho do Grid:',
+      loaded_title: 'Ambiente de código carregado!',
+      active_lib: 'Biblioteca ativa:',
+      grid_size: 'Tamanho do grid:',
       placeholder: '(O Blockly e o Canvas serão renderizados aqui)',
       drag_resize: 'Arrastar para redimensionar',
       actor_alt: 'Caramelo'
@@ -798,15 +798,15 @@ export default {
       defaultFuncName: 'minha função',
       move_forward: 'Avançar',
       move_backward: 'Recuar',
-      turn_left: 'Girar à Esquerda',
-      turn_right: 'Girar à Direita',
+      turn_left: 'Girar à esquerda',
+      turn_right: 'Girar à direita',
       repeat: 'Repita'
     },
     toolbox: {
       start: 'Início',
       movement: 'Movimento',
-      movement_absolute: 'Movimento Absoluto',
-      movement_relative: 'Movimento Relativo',
+      movement_absolute: 'Movimento absoluto',
+      movement_relative: 'Movimento relativo',
       actions: 'Ações',
       loops: 'Repetição',
       functions: 'Funções'
@@ -818,23 +818,23 @@ export default {
       need_hint: 'Precisa de uma dica?',
       hint: 'Dica:',
       success: 'Sucesso!',
-      finish_tutorial: 'Finalizar Tutorial',
-      next_challenge: 'Próximo Desafio →',
-      tutorial_completed: 'Tutorial Concluído!',
+      finish_tutorial: 'Finalizar tutorial',
+      next_challenge: 'Próximo desafio →',
+      tutorial_completed: 'Tutorial concluído!',
       tutorial_completed_desc: 'Você completou todos os desafios com excelência. Você já entendeu o Caramelo e está pronto(a) para criar seus próprios projetos livres!',
       save_tip: 'Lembre-se de usar o menu <strong>Arquivo > Salvar</strong> para guardar suas soluções antes de sair!',
-      back_home: 'Voltar ao Início',
+      back_home: 'Voltar ao início',
       step: 'Passo',
       waiting_code: 'Aguardando código...',
       speed: 'Velocidade',
-      reset_world: 'Reiniciar Mundo',
-      run_code: 'Executar Código',
-      resume: 'Continuar Execução',
+      reset_world: 'Reiniciar mundo',
+      run_code: 'Executar código',
+      resume: 'Continuar execução',
       pause: 'Pausar',
-      step_by_step: 'Passo a Passo',
-      export_image: 'Exportar como Imagem',
-      editor_mode: 'Modo Editor',
-      full_screen: 'Tela Cheia',
+      step_by_step: 'Passo a passo',
+      export_image: 'Exportar como imagem',
+      editor_mode: 'Modo editor',
+      full_screen: 'Tela cheia',
       default_drawing_name: 'desenho'
     },
     tutorials: {
@@ -898,7 +898,7 @@ export default {
         c5: {
           title: 'Desenhe um quadrado!',
           desc: 'Pinte o perímetro do quadrado marcado na malha.',
-          tip: 'Tente: Repita 4 vezes — Repita 2×(Pintar + Avançar), depois Girar à Direita.',
+          tip: 'Tente: Repita 4 vezes — Repita 2×(Pintar + Avançar), depois Girar à direita.',
           success: 'Fantástico! Você desenhou um quadrado usando código. Você é um(a) programador(a)!'
         },
         c6: {
@@ -944,7 +944,7 @@ export default {
       }
     },
     history: {
-      updateConfig: 'Alteração na Grade',
+      updateConfig: 'Alteração na grade',
     }
   }
 };

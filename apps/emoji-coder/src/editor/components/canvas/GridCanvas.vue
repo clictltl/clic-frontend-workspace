@@ -37,7 +37,7 @@
             transform: `translate(calc(${engine.state.turtleX} * 100%), calc(${engine.state.turtleY} * 100%)) rotate(${engine.state.turtleRotation}deg)` 
           }"
         >
-          <img :src="turtleSvg" class="actor-icon" alt="Tartaruga" draggable="false" />
+          <img :src="turtleSvg" class="actor-icon" :alt="$t('emojiCoder.workspace.actor_alt')" draggable="false" />
         </div>
       
       </div>

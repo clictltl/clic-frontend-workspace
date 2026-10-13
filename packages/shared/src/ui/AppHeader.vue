@@ -47,7 +47,7 @@
         </a>
 
         <!-- 2.5 Instalar App -->
-        <button v-if="isInstallable" class="guide-btn drawer-item" @click="promptInstall" style="--mobile-order: 5" title="Instalar Aplicativo">
+        <button v-if="isInstallable" class="guide-btn drawer-item" @click="promptInstall" style="--mobile-order: 5" :title="t('header.app_install')">
           <Download :size="16" />
           <span class="btn-text show-mobile">{{ $t('header.app_install') }}</span>
           <span class="hide-mobile">{{ $t('header.app_install') }}</span>

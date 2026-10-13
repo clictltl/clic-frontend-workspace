@@ -14,7 +14,7 @@
 
         <div class="action-group center">
           <button class="btn icon-btn play-btn" v-if="engine.state.status === 'IDLE'" :title="t('emojiCoder.player.run_code')" @click="handlePlay" :disabled="showSuccess">
-            <img :src="iconStart" alt="Start" class="svg-icon" />
+            <img :src="iconStart" alt="" class="svg-icon" />
           </button>
           
           <button class="btn icon-btn resume-btn" v-else-if="engine.state.status === 'PAUSED'" :title="t('emojiCoder.player.resume')" @click="handlePlay" :disabled="showSuccess">
