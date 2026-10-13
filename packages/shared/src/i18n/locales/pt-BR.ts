@@ -44,6 +44,8 @@ export default {
   auth: {
     login: 'Entrar',
     logout: 'Sair',
+    account: 'Conta',
+    signed_in_as: 'Conectado como',
     welcome_back: 'Bem-vindo de volta',
     login_prompt: 'Faça login para salvar seus projetos na nuvem.',
     user_or_email: 'Usuário ou e-mail',

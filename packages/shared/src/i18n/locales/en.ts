@@ -44,6 +44,8 @@ export default {
   auth: {
     login: 'Log in',
     logout: 'Log out',
+    account: 'Account',
+    signed_in_as: 'Signed in as',
     welcome_back: 'Welcome back',
     login_prompt: 'Log in to save your projects to the cloud.',
     user_or_email: 'Username or email',

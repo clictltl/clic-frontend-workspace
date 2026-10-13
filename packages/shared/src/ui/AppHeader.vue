@@ -16,10 +16,11 @@
     <!-- AÇÕES GLOBAIS (Desktop e Mobile) -->
     <div class="toolbar-actions">
       
-      <!-- BOTÃO VOLTAR (Home) -->
-      <button v-if="showHome" class="home-btn" @click="$emit('home-click')" :title="t('header.back_home')">
+      <!-- BOTÃO VOLTAR (Home): só em alguns apps (emoji-coder), sempre o primeiro, com separador -->
+      <button v-if="showHome" class="home-btn" @click="$emit('home-click')" :title="t('header.back_home')" :aria-label="t('header.back_home')">
         <Home :size="20" />
       </button>
+      <span v-if="showHome" class="toolbar-sep hide-mobile" aria-hidden="true"></span>
 
       <!-- BOTÃO HAMBURGER (Apenas Mobile) -->
       <button class="hamburger-btn show-mobile" @click="isMobileMenuOpen = true">
@@ -29,48 +30,55 @@
       <!-- OVERLAY DO MENU MOBILE -->
       <div v-if="isMobileMenuOpen" class="drawer-overlay show-mobile" @click="isMobileMenuOpen = false"></div>
 
-      <!-- DIREITA (Desktop) / DRAWER (Mobile) -->
+      <!--
+        DIREITA (Desktop) / DRAWER (Mobile)
+        Desktop, na ordem do HTML: [Arquivo | projeto] │ [Guia, Instalar, Idioma, Info] │ [conta].
+        Mobile (menu lateral), via --mobile-order: conta no topo │ [Arquivo | projeto] │ [ajuda] │ "feito pelo CLIC".
+      -->
       <div class="toolbar-right" :class="{ 'drawer-open': isMobileMenuOpen }">
         
         <button class="drawer-close-btn show-mobile" @click="isMobileMenuOpen = false">
           <X :size="24" />
         </button>
 
-        <!-- 1. Menu de Idiomas -->
-        <LanguageSwitcher class="drawer-item" style="--mobile-order: 3" mobile-drawer />
+        <!-- 1. File Menu (Slot): o trabalho vem primeiro -->
+        <div class="drawer-slot" style="--mobile-order: 3">
+          <slot name="file-menu"></slot>
+        </div>
 
-        <!-- 2. Guia -->
-        <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 4" rel="noopener noreferrer">
+        <span class="toolbar-sep" style="--mobile-order: 4" aria-hidden="true"></span>
+
+        <!-- 2. Ajuda: Guia e Instalar com texto; abaixo de 1200px, só o ícone (com dica) -->
+        <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 5" rel="noopener noreferrer" :title="t('header.guide')" :aria-label="t('header.guide')">
           <BookOpen :size="16" />
           <span class="btn-text show-mobile">{{ $t('header.guide') }}</span>
-          <span class="hide-mobile">{{ $t('header.guide') }}</span>
+          <span class="btn-label hide-mobile">{{ $t('header.guide') }}</span>
         </a>
 
-        <!-- 2.5 Instalar App -->
-        <button v-if="isInstallable" class="guide-btn drawer-item" @click="promptInstall" style="--mobile-order: 5" :title="t('header.app_install')">
+        <!-- Instalar App: some depois de instalado -->
+        <button v-if="isInstallable" class="guide-btn drawer-item" @click="promptInstall" style="--mobile-order: 6" :title="t('header.app_install')" :aria-label="t('header.app_install')">
           <Download :size="16" />
           <span class="btn-text show-mobile">{{ $t('header.app_install') }}</span>
-          <span class="hide-mobile">{{ $t('header.app_install') }}</span>
+          <span class="btn-label hide-mobile">{{ $t('header.app_install') }}</span>
         </button>
-        
-        <!-- 3. Info -->
-        <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 5" :title="t('header.info_contact')">
+
+        <LanguageSwitcher class="drawer-item" style="--mobile-order: 7" mobile-drawer />
+
+        <button class="info-btn drawer-item" @click="isInfoModalOpen = true" style="--mobile-order: 8" :title="t('header.info_contact')">
           <Info :size="20" />
           <span class="btn-text show-mobile">{{ $t('header.info_contact') }}</span>
         </button>
 
-        <!-- 4. File Menu (Slot) -->
-        <div class="drawer-slot" style="--mobile-order: 1">
-          <slot name="file-menu"></slot>
-        </div>
+        <!-- O separador some quando não há conta (fora do WordPress o slot fica vazio) -->
+        <span class="toolbar-sep" style="--mobile-order: 2" aria-hidden="true"></span>
 
-        <!-- 5. Auth Menu (Slot) -->
-        <div class="drawer-slot" style="--mobile-order: 2">
+        <!-- 3. Auth Menu (Slot): no menu do celular vem primeiro -->
+        <div class="drawer-slot" style="--mobile-order: 1">
           <slot name="auth-menu"></slot>
         </div>
 
         <!-- Créditos no rodapé do Menu (Apenas Mobile) -->
-        <div class="drawer-footer show-mobile" style="--mobile-order: 6">
+        <div class="drawer-footer show-mobile" style="--mobile-order: 9">
           <span class="made-by-text">{{ $t('header.made_by') }}</span>
           <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
             <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
@@ -218,8 +226,21 @@ const isMobileMenuOpen = ref(false);
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
+
+/* Separa os grupos do lado direito: [Arquivo | projeto] │ [ajuda] │ [conta] */
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  margin: 0 8px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+/* Sem conta (fora do WordPress) o slot fica vazio: o separador antes dele some */
+.toolbar-sep:has(+ .drawer-slot:empty) { display: none; }
+/* O separador do botão início fica em .toolbar-actions, que tem gap maior */
+.toolbar-actions > .toolbar-sep { margin: 0 4px; }
 
 .toolbar-actions {
   display: flex;
@@ -247,37 +268,42 @@ const isMobileMenuOpen = ref(false);
 }
 
 /* --- Novos Estilos: Botões e Modal --- */
+/* Ajuda (Guia, Instalar): discretos, no mesmo estilo dos botões de ícone */
 .guide-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  height: 36px;
   background: transparent;
-  color: #6b7280; /* Mesma cor do ícone de info */
-  border: 1px solid #9ca3af; /* Borda sutil (um pouco mais clara que o texto) */
-  font-weight: 600;
+  color: #4b5563;
+  border: none;
+  font-weight: 500;
   font-size: 14px;
-  padding: 5px 12px; /* Reduzido 1px para compensar a borda */
-  border-radius: 9999px;
+  padding: 0 10px;
+  border-radius: 8px;
+  white-space: nowrap;
   text-decoration: none;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .guide-btn:hover {
-  background: #f3f4f6; /* Mesma cor de fundo do hover do botão Info */
+  background: #f3f4f6;
   color: #111827;
-  border-color: #6b7280; /* Borda escurece no hover */
 }
 
 .info-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
   background: transparent;
-  color: #6b7280;
+  color: #4b5563;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
+  padding: 0;
+  border-radius: 8px;
   transition: color 0.2s, background 0.2s;
 }
 .info-btn:hover {
@@ -381,6 +407,12 @@ const isMobileMenuOpen = ref(false);
   border-left: 1px solid #d1d5db;
 }
 
+/* Tablet: Guia e Instalar só com o ícone (a dica e o aria-label dizem o nome); nada quebra linha */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .btn-label { display: none !important; }
+  .guide-btn { width: 36px; padding: 0; justify-content: center; }
+}
+
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
   .show-mobile { display: flex !important; }
@@ -429,9 +461,15 @@ const isMobileMenuOpen = ref(false);
     width: 100%; display: flex; order: var(--mobile-order);
   }
 
+  /* No menu lateral os separadores ficam na horizontal */
+  .toolbar-right > .toolbar-sep {
+    order: var(--mobile-order);
+    width: 100%; height: 1px; margin: 4px 0;
+  }
+
   .guide-btn, .info-btn {
-    width: 100%; justify-content: flex-start; gap: 12px;
-    padding: 12px; font-size: 15px; border-radius: 8px;
+    width: 100%; height: auto; justify-content: flex-start; gap: 12px;
+    padding: 12px; font-size: 15px; font-weight: 500; border-radius: 8px;
     background: #f9fafb; color: #374151; border: none;
   }
   

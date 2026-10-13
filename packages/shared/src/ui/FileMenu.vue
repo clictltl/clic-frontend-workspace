@@ -474,8 +474,8 @@ async function saveToComputer() {
 .menu-trigger {
   display: flex; align-items: center; gap: 6px;
   background: transparent; border: 1px solid transparent;
-  padding: 6px 12px; border-radius: 6px; cursor: pointer;
-  color: #374151; font-weight: 500; font-size: 14px;
+  height: 36px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+  color: #1f2937; font-weight: 500; font-size: 14px;
   transition: all 0.2s ease;
 }
 .menu-trigger:hover, .menu-trigger.active { background-color: #f3f4f6; color: #111827; }
@@ -494,11 +494,12 @@ async function saveToComputer() {
 
 .project-info {
   display: flex; align-items: center; gap: 8px;
-  font-size: 13px; color: #6b7280; white-space: nowrap;
+  font-size: 14px; color: #4b5563; white-space: nowrap;
 }
 .separator-vertical { width: 1px; height: 16px; background-color: #e5e7eb; }
-.project-info .name { font-weight: 500; max-width: 150px; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
-.unsaved-dot { width: 8px; height: 8px; background-color: #f59e0b; border-radius: 50%; flex-shrink: 0; }
+.project-info .name { font-weight: 400; max-width: 200px; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+/* Laranja do site, como os outros destaques do header */
+.unsaved-dot { width: 10px; height: 10px; background-color: #C64F28; border-radius: 50%; flex-shrink: 0; }
 
 .dropdown-menu {
   position: absolute; top: calc(100% + 6px); left: 0; right: auto;

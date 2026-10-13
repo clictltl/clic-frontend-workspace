@@ -15,16 +15,24 @@
     <!-- Estado: Usuário LOGADO -->
     <div v-else class="user-profile-wrapper" ref="userMenuContainer">
       <!-- Botão do Perfil -->
-      <button class="user-trigger" :class="{ 'active': showUserMenu }" @click="toggleUserMenu">
+      <!-- Ícone em vez de iniciais: as contas de aluno são anônimas (TURMA-01), e as iniciais não diriam nada -->
+      <button class="user-trigger" :class="{ 'active': showUserMenu }" @click="toggleUserMenu" :title="t('auth.account')" :aria-label="t('auth.account')">
         <div class="avatar-circle">
-          {{ getUserInitials(auth.state.name) }}
+          <User :size="16" />
         </div>
+        <!-- Só no menu do celular: lá a linha da conta ficaria só com o ícone -->
+        <span v-if="accountLabel" class="user-trigger-label">{{ accountLabel }}</span>
         <ChevronDown :size="16" class="chevron" />
       </button>
 
       <!-- Dropdown Menu (Logout) -->
       <transition name="fade-slide">
         <div v-if="showUserMenu" class="user-dropdown">
+          <!-- Em computador compartilhado, o aluno confere em qual conta entrou -->
+          <div v-if="accountLabel" class="user-info">
+            <span class="user-info-caption">{{ $t('auth.signed_in_as') }}</span>
+            <span class="user-info-name">{{ accountLabel }}</span>
+          </div>
           <div class="menu-item danger" @click="logout">
             <LogOut :size="16" class="icon" /> {{ $t('auth.logout') }}
           </div>
@@ -75,7 +83,7 @@
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../styles/ui.css';
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth, applyLoginResponse } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
 import { telemetryService } from '../analytics/telemetry';
@@ -130,23 +138,8 @@ function closeModal() {
   error.value = '';
 }
 
-function getUserInitials(name: string = '') {
-  const parts = name.trim().split(' ').filter(Boolean); 
-  
-  if (parts.length === 0) return 'US'; // Fallback (US de Usuário)
-
-  const first = parts[0];
-  if (parts.length === 1 && first) {
-    return first.substring(0, 2).toUpperCase();
-  }
-
-  const last = parts[parts.length - 1];
-  if (first && last) {
-    return (first.charAt(0) + last.charAt(0)).toUpperCase();
-  }
-
-  return 'US';
-}
+// Login (ex.: TURMA7B-01) quando o clic-auth enviar; até lá, o nome de exibição
+const accountLabel = computed(() => decodeHtml(auth.state.login || auth.state.name || ''));
 
 // --- Lógica de Auth ---
 const ERROR_MESSAGES: Record<string, string> = {
@@ -216,25 +209,25 @@ function logout() {
 }
 
 /* --- Botão Login (Unlogged) --- */
+/* Laranja do site (brand-orange): a única cor forte do header, igual em todos os apps */
 .btn-login {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
-  border: 1px solid #d1d5db;
-  color: #374151;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-weight: 500;
+  background: #C64F28;
+  border: 1px solid #C64F28;
+  color: #fff;
+  padding: 7px 18px;
+  border-radius: 9999px;
+  font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-login:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-  color: #111827;
+  background: #9B3C1E;
+  border-color: #9B3C1E;
 }
 
 /* --- Usuário Logado (Logged) --- */
@@ -261,12 +254,13 @@ function logout() {
 /* Avatar Circle */
 .avatar-circle {
   width: 28px; height: 28px;
-  background: #2563eb;
+  background: #C64F28;
   color: white;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
 }
+
+.user-trigger-label { display: none; }
 
 .chevron { color: #9ca3af; transition: transform 0.2s; }
 .user-trigger.active .chevron { transform: rotate(180deg); }
@@ -276,7 +270,7 @@ function logout() {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 160px;
+  min-width: 180px;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -284,6 +278,15 @@ function logout() {
   padding: 4px;
   z-index: 50;
 }
+
+.user-info {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 12px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.user-info-caption { font-size: 12px; color: #6b7280; }
+.user-info-name { font-size: 14px; font-weight: 600; color: #1f2937; white-space: nowrap; }
 
 .menu-item {
   display: flex; align-items: center; gap: 8px;
@@ -382,12 +385,13 @@ function logout() {
 
   .btn-login, .user-trigger {
     width: 100%;
-    justify-content: flex-start;
     padding: 12px;
-    background-color: #f3f4f6;
     border-radius: 8px;
     font-size: 15px;
   }
+  .btn-login { justify-content: center; }
+  .user-trigger { justify-content: flex-start; background-color: #f3f4f6; }
+  .user-trigger-label { display: inline; font-size: 15px; font-weight: 500; color: #374151; margin-right: auto; }
 
   .user-dropdown {
     position: static;

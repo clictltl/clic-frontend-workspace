@@ -52,16 +52,19 @@ function changeLanguage(code: SupportedLocales) {
   position: relative;
 }
 
+/* Mesmo tamanho e cor do botão de informações do header */
 .lang-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
   background: transparent;
-  color: #6b7280;
+  color: #4b5563;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
+  padding: 0;
+  border-radius: 8px;
   transition: color 0.2s, background 0.2s;
 }
 
@@ -120,7 +123,7 @@ function changeLanguage(code: SupportedLocales) {
   .show-mobile { display: flex !important; }
   
   .lang-btn.in-drawer {
-    width: 100%; 
+    width: 100%; height: auto; font-weight: 500; 
     justify-content: flex-start; 
     gap: 12px;
     padding: 12px; 

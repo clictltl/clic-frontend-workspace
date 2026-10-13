@@ -4,6 +4,8 @@ type MeResponse = {
   logged_in: boolean;
   id?: number;
   name?: string;
+  /** user_login (ex.: "TURMA7B-01"). Ainda não vem do clic-auth; enquanto não vier, usa-se o name. */
+  login?: string;
   email?: string;
   // campos extras podem existir no futuro
   [key: string]: any;
@@ -15,6 +17,7 @@ const state = reactive({
   showLoginModal: false,
   id: 0,
   name: '',
+  login: '',
   email: '',
   error: '' as string | null,
 });
@@ -130,6 +133,7 @@ function applyUser(data: MeResponse) {
   state.loggedIn = !!data.logged_in;
   state.id = data.logged_in ? data.id ?? 0 : 0;
   state.name = data.logged_in ? data.name ?? '' : '';
+  state.login = data.logged_in ? data.login ?? '' : '';
   state.email = data.logged_in ? data.email ?? '' : '';
   state.ready = true;
   state.error = null;
