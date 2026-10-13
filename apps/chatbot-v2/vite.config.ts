@@ -23,17 +23,16 @@ export default defineConfig(({ mode }) => {
           registerType: 'autoUpdate',
           injectRegister: false,
           manifest: {
-            name: 'CLIC Chatbot',
-            short_name: 'Chatbot',
-            description: 'Crie chatbots interativos com o CLIC',
-            theme_color: '#3b82f6',
+            name: 'CLIC Novelo',
+            short_name: 'Novelo',
+            description: 'Crie chatbots no CLIC Novelo',
+            theme_color: '#FFCC00',
             background_color: '#ffffff',
             display: 'standalone',
-            id: 'clic-chatbot-v2',
+            id: 'clic-chatbot', // O mesmo da v1: o app já instalado se atualiza, em vez de virar outro app
             start_url: pwaScope === './' ? './editor' : pwaScope, 
             scope: pwaScope,
             icons: [
-              // Você precisará copiar as imagens do chatbot antigo para public/ depois
               { src: 'pwa-192x192.png?v=2', sizes: '192x192', type: 'image/png', purpose: 'any' },
               { src: 'pwa-512x512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'any' },
               { src: 'pwa-maskable-512x512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
