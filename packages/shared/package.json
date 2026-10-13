@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
+  "sideEffects": ["**/*.css"],
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run"
