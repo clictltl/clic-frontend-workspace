@@ -21,6 +21,8 @@
 </template>
 
 <script setup lang="ts">
+// Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
+import '../../styles/ui.css';
 import { computed } from 'vue';
 import { Save } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';

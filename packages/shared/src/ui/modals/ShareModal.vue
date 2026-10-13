@@ -105,6 +105,8 @@
 </template>
 
 <script setup lang="ts">
+// Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
+import '../../styles/ui.css';
 import { ref, onMounted, computed } from 'vue';
 import { Link, AlertTriangle, Copy } from '@lucide/vue';
 import { useToast } from '@clic/shared';

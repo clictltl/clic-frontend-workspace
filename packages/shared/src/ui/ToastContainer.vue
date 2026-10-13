@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+// Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
+import '../styles/ui.css';
 import { useToast } from './useToast';
 import { CheckCircle, XCircle, Info } from '@lucide/vue';
 

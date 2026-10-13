@@ -1,6 +1,3 @@
-// Fonte das peças compartilhadas (.clic-ui); independe do base.css de cada app
-import './styles/ui.css';
-
 // assets
 export { default as logoClic } from './assets/logo-clic.svg';
 

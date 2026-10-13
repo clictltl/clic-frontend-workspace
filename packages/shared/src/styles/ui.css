@@ -1,9 +1,10 @@
 /*
  * FONTE DAS PEÇAS DO @clic/shared (header, menus, modais, toasts, login)
  *
- * Importado pelo index.ts do pacote: vale em todo app que usa os componentes,
- * mesmo nos que ainda não importam o base.css. O interior de cada app ainda usa a fonte do sistema.
- * Cada componente marca a sua raiz com a classe .clic-ui.
+ * Cada componente marca a sua raiz com a classe .clic-ui e importa este arquivo: assim vale em todo app
+ * que usa os componentes, mesmo nos que ainda não importam o base.css. Não importe pelo index.ts:
+ * com "sideEffects" no package.json, o build de produção pula o index e descarta o import (só o dev funcionaria).
+ * O interior de cada app ainda usa a fonte do sistema.
  */
 
 /*

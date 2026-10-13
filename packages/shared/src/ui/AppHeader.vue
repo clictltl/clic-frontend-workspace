@@ -114,6 +114,8 @@
 </template>
 
 <script setup lang="ts">
+// Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
+import '../styles/ui.css';
 import { ref, computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
 import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Menu, Home, Download } from '@lucide/vue';
@@ -188,7 +190,7 @@ const isMobileMenuOpen = ref(false);
 .made-by-text {
   font-size: 14px;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 400;
   margin: 0 0 1px 0;
   line-height: 1;
 }

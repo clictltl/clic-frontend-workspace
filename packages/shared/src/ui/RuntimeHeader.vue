@@ -38,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+// Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
+import '../styles/ui.css';
 import { computed } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
 import { ExternalLink } from '@lucide/vue';
@@ -103,7 +105,7 @@ const appBaseUrl = computed(() => {
 .prefix-text {
   font-size: 14px;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 400;
   margin: 0; 
   line-height: 1;
 }
@@ -126,7 +128,7 @@ const appBaseUrl = computed(() => {
 .made-by-text {
   font-size: 14px;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 400;
   margin: 0 0 1px 0;
   line-height: 1;
 }
