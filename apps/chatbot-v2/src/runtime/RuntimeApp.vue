@@ -6,7 +6,7 @@ import { RuntimeHeader } from '@clic/shared';
 import type { ChatbotProject } from '../shared/types/chatbot';
 import { parseProject } from '../shared/domain/project';
 import { appDomainDeps } from '../shared/appDeps';
-import appLogo from '../assets/logo_novelo.svg';
+import appLogo from '../assets/logo_novelo.webp'; // Imagem 2x da altura exibida: o SVG original tinha 85 KB
 import { provideMediaResolver } from '../shared/media/resolver';
 import { useChatSession } from '../shared/chat/useChatSession';
 import ChatInterface from '../shared/chat/ChatInterface.vue';

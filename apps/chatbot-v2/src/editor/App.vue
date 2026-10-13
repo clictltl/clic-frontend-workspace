@@ -6,7 +6,7 @@ import {
   AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer,
   useEditorBootstrap, useHistoryShortcuts
 } from '@clic/shared';
-import appLogo from '../assets/logo_novelo.svg';
+import appLogo from '../assets/logo_novelo.webp'; // Imagem 2x da altura exibida: o SVG original tinha 85 KB
 import { useProjectStore } from '../shared/stores/projectStore';
 import { assetStore } from '../shared/stores/assetStore';
 import { provideMediaResolver } from '../shared/media/resolver';
