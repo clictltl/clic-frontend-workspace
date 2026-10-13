@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { computed, defineAsyncComponent, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import {
@@ -20,6 +20,7 @@ import { connectTargetNodeId } from '../../utils/connectTarget';
 import { clearHighlight, highlightedNodeIds } from '../../utils/highlight';
 import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
 import { requestTestFrom, testActiveNodeId } from '../../utils/testRun';
+import { showMinimap } from '../../utils/minimap';
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
@@ -30,6 +31,8 @@ const projectStore = useProjectStore();
 
 // Extraímos as funções nativas e o estado de clique
 const { screenToFlowCoordinate, connectionClickStartHandle, connectionStartHandle, fitView, getNodes, viewport, setViewport } = useVueFlow();
+// Carregado só quando alguém abre o mapa (ver CanvasMinimap.vue)
+const CanvasMinimap = defineAsyncComponent(() => import('./CanvasMinimap.vue'));
 const { t } = useI18n();
 const toast = useToast();
 
@@ -541,6 +544,8 @@ function onPaneClick(event: MouseEvent) {
       @node-context-menu="onNodeContextMenu"
     >
       <Background pattern-color="#aaa" :gap="16" />
+      <!-- Minimapa: começa escondido; o botão do mapa fica junto ao zoom -->
+      <CanvasMinimap v-if="showMinimap" />
       
       <template #node-custom="props">
         <CustomNode :id="props.id" />

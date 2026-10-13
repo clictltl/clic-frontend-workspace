@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { Maximize, Minus, Plus } from '@lucide/vue';
+import { Map as MapIcon, Maximize, Minus, Plus } from '@lucide/vue';
 import { useVueFlow } from '@vue-flow/core';
 import { FIT_VIEW_OPTIONS } from '../../utils/viewport';
+import { showMinimap, toggleMinimap } from '../../utils/minimap';
 
-/** Zoom no canto inferior direito, como no Scratch: aproximar, afastar e enquadrar todos os blocos. */
+/** Zoom no canto inferior direito, como no Scratch: aproximar, afastar, enquadrar todos os blocos e o minimapa. */
 const { t } = useI18n();
 const { zoomIn, zoomOut, fitView } = useVueFlow();
 const DURATION = { duration: 200 };
@@ -20,6 +21,16 @@ const DURATION = { duration: 200 };
     </button>
     <button type="button" :title="t('chatbot.editor.fit_view')" :aria-label="t('chatbot.editor.fit_view')" @click="fitView({ ...FIT_VIEW_OPTIONS, ...DURATION })">
       <Maximize :size="16" />
+    </button>
+    <button
+      type="button"
+      :class="{ active: showMinimap }"
+      :aria-pressed="showMinimap"
+      :title="t(showMinimap ? 'chatbot.editor.minimap_hide' : 'chatbot.editor.minimap_show')"
+      :aria-label="t('chatbot.editor.minimap_label')"
+      @click="toggleMinimap"
+    >
+      <MapIcon :size="16" />
     </button>
   </div>
 </template>
@@ -37,5 +48,6 @@ const DURATION = { duration: 200 };
 }
 .zoom-controls button + button { border-top: 1px solid #e5e7eb; }
 .zoom-controls button:hover { background: #f3f4f6; }
+.zoom-controls button.active { background: #eff6ff; color: #1d4ed8; }
 .zoom-controls button:focus-visible { outline: 3px solid #93c5fd; outline-offset: -3px; }
 </style>
