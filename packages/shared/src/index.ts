@@ -48,6 +48,8 @@ export { default as PublishModal } from './ui/modals/PublishModal.vue';
 export { default as UnsavedChangesModal } from './ui/modals/UnsavedChangesModal.vue';
 export { default as NeedSaveModal } from './ui/modals/NeedSaveModal.vue';
 export { default as InvalidShareLinkModal } from './ui/modals/InvalidShareLinkModal.vue';
+export { default as BaseModal } from './ui/modals/BaseModal.vue';
+export { default as ConfirmModal } from './ui/modals/ConfirmModal.vue';
 
 // analytics
 export * from './analytics/matomo';

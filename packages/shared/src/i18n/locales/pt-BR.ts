@@ -141,7 +141,8 @@ export default {
       success_published: 'Publicado!',
       restoring: 'Restaurando versão...',
       success_restored: 'Versão anterior restaurada e online!',
-      warning_unpublish: 'O link parará de funcionar. Continuar?',
+      confirm_unpublish_title: 'Despublicar o {itemName}?',
+      warning_unpublish: 'O link vai parar de funcionar. Você poderá publicar de novo depois.',
       unpublishing: 'Desativando...',
       success_unpublished: 'Despublicado.'
     },
@@ -171,6 +172,7 @@ export default {
       success_generated: 'Link gerado!',
       success_reactivated: 'Link reativado com sucesso!',
       processing: 'Processando...',
+      confirm_disable_title: 'Desativar o link?',
       warning_disable: 'O link ficará inacessível. Você poderá reativá-lo depois.',
       disabling: 'Desativando...',
       success_disabled: 'Link desativado.'

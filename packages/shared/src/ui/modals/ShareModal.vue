@@ -35,7 +35,7 @@
 
     <!-- Botão que muda o estado do link: sempre à esquerda, nos dois estados (não "foge" depois do clique) -->
     <template #footer-start>
-      <button v-if="!loading && isActive" class="modal-btn danger-outline" @click="handleUnshare">
+      <button v-if="!loading && isActive" class="modal-btn danger-outline" @click="confirmingUnshare = true">
         {{ $t('modals.share.btn_disable') }}
       </button>
       <button v-else-if="!loading && exists" class="modal-btn secondary" @click="handleReactivate">
@@ -51,14 +51,26 @@
       <button v-else class="modal-btn secondary" @click="$emit('close')">{{ $t('global.close') }}</button>
     </template>
   </BaseModal>
+
+  <!-- Confirmação por cima deste modal (no lugar do confirm() do navegador) -->
+  <ConfirmModal
+    v-if="confirmingUnshare"
+    :title="$t('modals.share.confirm_disable_title')"
+    :description="$t('modals.share.warning_disable')"
+    :confirm-label="$t('modals.share.btn_disable')"
+    :icon="Unlink"
+    @cancel="confirmingUnshare = false"
+    @confirm="confirmingUnshare = false; handleUnshare()"
+  />
 </template>
 
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../../styles/ui.css';
 import { ref, onMounted, computed, useId } from 'vue';
-import { Link, AlertTriangle, Copy } from '@lucide/vue';
+import { Link, Unlink, AlertTriangle, Copy } from '@lucide/vue';
 import BaseModal from './BaseModal.vue';
+import ConfirmModal from './ConfirmModal.vue';
 import { copyText } from '../../utils/clipboard';
 import { useToast } from '../useToast';
 import { useI18n } from 'vue-i18n';
@@ -85,6 +97,7 @@ const loading = ref(true);
 const loadingKey = ref('modals.share.checking');
 const inputRef = ref<HTMLInputElement | null>(null);
 const inputId = useId();
+const confirmingUnshare = ref(false);
 
 const titleText = computed(() => {
   if (isActive.value) return t('modals.share.status_active');
@@ -139,7 +152,6 @@ async function executeShare(successMsg: string) {
 }
 
 async function handleUnshare() {
-  if (!confirm(t('modals.share.warning_disable'))) return;
 
   loadingKey.value = 'modals.share.disabling';
   loading.value = true;

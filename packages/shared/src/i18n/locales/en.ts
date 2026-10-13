@@ -141,7 +141,8 @@ export default {
       success_published: 'Published!',
       restoring: 'Restoring version...',
       success_restored: 'Previous version restored and online!',
-      warning_unpublish: 'The link will stop working. Continue?',
+      confirm_unpublish_title: 'Unpublish the {itemName}?',
+      warning_unpublish: 'The link will stop working. You can publish again later.',
       unpublishing: 'Disabling...',
       success_unpublished: 'Unpublished.'
     },
@@ -171,6 +172,7 @@ export default {
       success_generated: 'Link generated!',
       success_reactivated: 'Link reactivated successfully!',
       processing: 'Processing...',
+      confirm_disable_title: 'Disable the link?',
       warning_disable: 'The link will become inaccessible. You can reactivate it later.',
       disabling: 'Disabling...',
       success_disabled: 'Link disabled.'

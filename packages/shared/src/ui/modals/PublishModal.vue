@@ -44,7 +44,7 @@
       <button
         v-if="!loading && isActive"
         class="modal-btn danger-outline"
-        @click="handleUnpublish"
+        @click="confirmingUnpublish = true"
         :title="$t('modals.publish.btn_disable', { itemName: itemName.toLowerCase() })"
       >
         {{ $t('modals.publish.btn_unpublish') }}
@@ -67,14 +67,26 @@
       </template>
     </template>
   </BaseModal>
+
+  <!-- Confirmação por cima deste modal (no lugar do confirm() do navegador) -->
+  <ConfirmModal
+    v-if="confirmingUnpublish"
+    :title="$t('modals.publish.confirm_unpublish_title', { itemName: itemName.toLowerCase() })"
+    :description="$t('modals.publish.warning_unpublish')"
+    :confirm-label="$t('modals.publish.btn_unpublish')"
+    :icon="PowerOff"
+    @cancel="confirmingUnpublish = false"
+    @confirm="confirmingUnpublish = false; handleUnpublish()"
+  />
 </template>
 
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../../styles/ui.css';
 import { ref, onMounted, computed, useId } from 'vue';
-import { Rocket, Moon, AlertTriangle, Copy } from '@lucide/vue';
+import { Rocket, Moon, PowerOff, AlertTriangle, Copy } from '@lucide/vue';
 import BaseModal from './BaseModal.vue';
+import ConfirmModal from './ConfirmModal.vue';
 import { copyText } from '../../utils/clipboard';
 import { useToast } from '../../ui/useToast';
 import { useI18n } from 'vue-i18n';
@@ -101,6 +113,7 @@ const isActive = ref(false);
 const exists = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
 const inputId = useId();
+const confirmingUnpublish = ref(false);
 
 const titleText = computed(() => {
   if (isActive.value) return t('modals.publish.title_published', { itemName: itemName.value });
@@ -162,7 +175,6 @@ async function handleReactivateOnly() {
 }
 
 async function handleUnpublish() {
-  if (!confirm(t('modals.publish.warning_unpublish'))) return;
   loadingKey.value = 'modals.publish.unpublishing';
   loading.value = true;
   try {
