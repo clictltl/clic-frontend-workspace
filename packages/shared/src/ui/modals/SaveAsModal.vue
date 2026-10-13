@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-backdrop">
+  <div class="modal-backdrop clic-ui">
     <div class="modal-overlay" @click="$emit('close')"></div>
     
     <div class="modal-card">
@@ -121,7 +121,6 @@ async function handleConfirm() {
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 10000;
   display: flex; align-items: center; justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .modal-overlay {

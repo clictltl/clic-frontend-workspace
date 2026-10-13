@@ -1,6 +1,6 @@
 <template>
   <!-- Só renderiza se estiver no WordPress e o sistema de auth estiver carregado -->
-  <div v-if="isWordPress" class="auth-menu-container">
+  <div v-if="isWordPress" class="auth-menu-container clic-ui">
     
     <!-- Estado: Verificando -->
     <span v-if="!auth.state.ready" class="loading-state">
@@ -34,7 +34,7 @@
 
     <!-- Modal de Login -->
     <transition name="fade">
-      <div v-if="auth.state.showLoginModal" class="modal-backdrop">
+      <div v-if="auth.state.showLoginModal" class="modal-backdrop clic-ui">
         <div class="modal-overlay" @click="closeModal"></div>
         <div class="modal-card">
           <div class="modal-header">
@@ -203,7 +203,6 @@ function logout() {
 .auth-menu-container {
   display: flex;
   align-items: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* --- Estado Loading --- */

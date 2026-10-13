@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-backdrop">
+  <div class="modal-backdrop clic-ui">
     <div class="modal-overlay" @click="$emit('close')"></div>
     <div class="modal-card">
       <div class="icon-container">
@@ -39,7 +39,7 @@ defineEmits(['close', 'save']);
 </script>
 
 <style scoped>
-.modal-backdrop { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
 .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); }
 .modal-card { position: relative; background: white; width: 100%; max-width: 380px; padding: 1.5rem; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; text-align: center; }
 

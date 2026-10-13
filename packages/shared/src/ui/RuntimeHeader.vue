@@ -1,5 +1,5 @@
 <template>
-  <header class="toolbar">
+  <header class="toolbar clic-ui">
     <!-- ESQUERDA (Desktop e Mobile) -->
     <div class="toolbar-left">
       
@@ -90,8 +90,8 @@ const appBaseUrl = computed(() => {
 
 .toolbar-left {
   display: flex;
-  align-items: flex-end;
-  gap: 12px;
+  align-items: center;
+  gap: 20px;
 }
 
 .app-brand-container {
@@ -108,10 +108,14 @@ const appBaseUrl = computed(() => {
   line-height: 1;
 }
 
+/* Assinatura "feito pelo CLIC", igual à do AppHeader */
 .made-by-container {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 6px;
+  height: 32px;
+  padding-left: 20px;
+  border-left: 1px solid #d1d5db;
 }
 
 .app-logo {
@@ -123,7 +127,7 @@ const appBaseUrl = computed(() => {
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
-  margin: 0 4px 4px 4px;
+  margin: 0 0 1px 0;
   line-height: 1;
 }
 
@@ -134,7 +138,7 @@ const appBaseUrl = computed(() => {
 }
 
 .toolbar-logo-small {
-  height: 24px;
+  height: 28px;
   width: auto;
 }
 

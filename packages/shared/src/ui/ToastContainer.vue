@@ -1,5 +1,5 @@
 <template>
-  <div class="toast-container">
+  <div class="toast-container clic-ui">
     <transition-group name="toast">
       <div 
         v-for="item in toasts" 
@@ -46,7 +46,6 @@ const { toasts, remove } = useToast();
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: -apple-system, sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: #374151;

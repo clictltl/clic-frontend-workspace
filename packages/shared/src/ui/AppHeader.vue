@@ -1,5 +1,5 @@
 <template>
-  <header class="toolbar">
+  <header class="toolbar clic-ui">
     <!-- ESQUERDA (Desktop e Mobile) -->
     <div class="toolbar-left">
       <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
@@ -83,7 +83,7 @@
 
   <!-- Modal de Info/Contato -->
   <teleport to="body">
-    <div v-if="isInfoModalOpen" class="about-modal-overlay" @click.self="isInfoModalOpen = false">
+    <div v-if="isInfoModalOpen" class="about-modal-overlay clic-ui" @click.self="isInfoModalOpen = false">
       <div class="about-modal-content">
         <div class="about-modal-header">
           <h2>{{ $t('header.about_clic') }}</h2>
@@ -172,10 +172,11 @@ const isMobileMenuOpen = ref(false);
 
 .drawer-slot { display: flex; align-items: center; }
 
+/* Centralizado: funciona com qualquer desenho de logo (cada app tem o seu) */
 .toolbar-left {
   display: flex;
-  align-items: flex-end;
-  gap: 12px;
+  align-items: center;
+  gap: 20px;
 }
 
 .app-logo {
@@ -183,11 +184,12 @@ const isMobileMenuOpen = ref(false);
   width: auto;
 }
 
+/* Margem mínima: a base do texto fica na base das letras do logo do CLIC (as bolinhas ficam abaixo) */
 .made-by-text {
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
-  margin: 0 4px 4px 4px; /* Adicionado 4px de margin-bottom para compensar o "desconto" visual da fonte */
+  margin: 0 0 1px 0;
   line-height: 1;
 }
 
@@ -198,7 +200,7 @@ const isMobileMenuOpen = ref(false);
 }
 
 .toolbar-logo-small {
-  height: 24px; /* Logo do CLIC proporcionalmente menor */
+  height: 28px; /* Logo do CLIC menor que o do app, mas com as letras legíveis */
   width: auto;
 }
 
@@ -300,7 +302,6 @@ const isMobileMenuOpen = ref(false);
   width: 90%;
   max-width: 500px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  font-family: inherit;
 }
 :global(.about-modal-header) {
   display: flex;
@@ -368,11 +369,14 @@ const isMobileMenuOpen = ref(false);
 
 .show-mobile { display: none !important; }
 
-/* Wrapper dos botões de crédito na versão Desktop */
+/* Assinatura "feito pelo CLIC" (desktop), separada do logo do app por uma linha fina */
 .made-by-container {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 6px;
+  height: 32px;
+  padding-left: 20px;
+  border-left: 1px solid #d1d5db;
 }
 
 @media (max-width: 768px) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-backdrop">
+  <div class="modal-backdrop clic-ui">
     <div class="modal-overlay" @click="$emit('cancel')"></div>
     
     <div class="modal-card">
@@ -43,7 +43,6 @@ defineEmits(['cancel', 'discard', 'save']);
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 11000; /* Acima de tudo */
   display: flex; align-items: center; justify-content: center;
-  font-family: -apple-system, sans-serif;
 }
 .modal-overlay {
   position: absolute; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);

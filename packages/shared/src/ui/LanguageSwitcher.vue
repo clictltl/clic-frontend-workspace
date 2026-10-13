@@ -1,5 +1,5 @@
 <template>
-  <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper">
+  <div v-if="ENABLE_LANGUAGE_SWITCHER" class="lang-dropdown-wrapper clic-ui">
     <button 
       class="lang-btn" 
       :class="{ 'in-drawer': mobileDrawer }"

@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-backdrop">
+  <div class="modal-backdrop clic-ui">
     <div class="modal-card">
       <div class="icon-container">
         <Unlink :size="32" color="#dc2626" />
@@ -43,7 +43,6 @@ defineEmits(['close']);
   position: fixed; inset: 0; z-index: 20000; /* Z-index alto para ficar sobre tudo */
   display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  font-family: sans-serif;
 }
 
 .modal-card { 

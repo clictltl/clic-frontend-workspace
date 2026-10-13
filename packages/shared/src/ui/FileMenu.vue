@@ -1,5 +1,5 @@
 <template>
-  <div class="filemenu-container" ref="fileMenuContainer">
+  <div class="filemenu-container clic-ui" ref="fileMenuContainer">
 
     <!-- Grupo: Botão + Nome do Projeto -->
     <div class="trigger-group">
@@ -465,7 +465,6 @@ async function saveToComputer() {
 .filemenu-container {
   position: relative;
   display: inline-block;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .trigger-group { display: flex; align-items: center; gap: 8px; }
