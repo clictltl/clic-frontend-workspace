@@ -99,14 +99,20 @@ export const useProjectStore = defineStore('chatbot-project', {
   },
 
   actions: {
-    /** JSON portável para salvar/exportar (regra 1): cópia sem arquivos que nenhum nó usa. */
+    /**
+     * JSON portável para salvar/exportar (regra 1): cópia sem arquivos que nenhum nó usa.
+     * A data de atualização é carimbada só na cópia: salvar não altera o projeto aberto
+     * (senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo").
+     */
     getProjectData(): ChatbotProject {
-      return withoutUnusedAssets(this.project);
+      const data = withoutUnusedAssets(this.project);
+      data.meta.updatedAt = now();
+      return data;
     },
 
     // --- SESSÃO (iniciam o Frame Zero da telemetria) ---
+    /** Só registra o estado salvo: não muda o projeto (ver getProjectData). */
     markAsSaved() {
-      this.project.meta.updatedAt = now();
       this.lastSavedState = JSON.stringify(this.project);
     },
 

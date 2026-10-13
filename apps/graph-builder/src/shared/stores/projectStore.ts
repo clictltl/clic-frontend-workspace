@@ -50,7 +50,7 @@ export const useProjectStore = defineStore('project', {
   history: {
     stateKey: 'project',
     telemetry: { appSlug: 'graph-builder', sessionActions: ['createNew', 'loadProject'] },
-    ignoreActions: ['markAsSaved', 'updateNodeSilent', 'updateTitleSilent'],
+    ignoreActions: ['markAsSaved', 'getProjectData', 'updateNodeSilent', 'updateTitleSilent'],
     clearHistoryActions: ['createNew', 'loadProject', 'processFormAnswers'],
     actionLabels: {
       updateTitle: 'graphBuilder.history.updateTitle',
@@ -96,9 +96,15 @@ export const useProjectStore = defineStore('project', {
 
   actions: {
     // --- FUNÇÕES DE CONTROLE DE SALVAMENTO ---
+    // Salvar não altera o projeto aberto: a data vai só na cópia (getProjectData).
+    // Senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo".
     markAsSaved() {
-      this.project.meta.updatedAt = now();
       this.lastSavedState = JSON.stringify(this.project);
+    },
+
+    /** Cópia para salvar/exportar, com a data de atualização. */
+    getProjectData(): GraphProject {
+      return { ...this.project, meta: { ...this.project.meta, updatedAt: now() } };
     },
 
     // --- AÇÕES DO PROJETO ---

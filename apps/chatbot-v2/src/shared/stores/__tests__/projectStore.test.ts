@@ -133,6 +133,22 @@ describe('projectStore: sessions (Frame Zero) and saving', () => {
     expect(loggedActions()).toEqual([]); // salvar não é gesto de edição
   });
 
+  it('saving does not change the open project: undo after save goes back to "saved"', () => {
+    const store = freshStore();
+    store.renameProject('Antes');
+    const data = store.getProjectData();
+    store.markAsSaved();
+    expect(data.meta.updatedAt).not.toBe(''); // a data vai na cópia salva
+
+    store.renameProject('Depois');
+    const lastCall = addMutation.mock.calls[addMutation.mock.calls.length - 1]!;
+    expect((lastCall[1] as { mutations: { path: string }[] }).mutations.map((m: { path: string }) => m.path)).toEqual(['/title']);
+    expect(store.hasUnsavedChanges).toBe(true);
+    store.undo();
+    expect(store.project.title).toBe('Antes');
+    expect(store.hasUnsavedChanges).toBe(false);
+  });
+
   it('the saved JSON drops unused uploads without touching the open project', () => {
     const store = freshStore();
     store.project.assets.sobra = { id: 'sobra', type: 'image/png', originalName: 'x.png', size: 1, hash: 'h', source: 'local' } as never;

@@ -41,7 +41,7 @@ const { showInvalidShareModal } = useEditorBootstrap({
           :projectsStore="projects"
           :assetStore="assetStore"
           :has-unsaved-changes="store.hasUnsavedChanges"
-          :getProjectData="() => store.project"
+          :getProjectData="() => store.getProjectData()"
           @new-project="store.createNew"
           @import-project="store.loadProject"
         />

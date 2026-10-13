@@ -124,7 +124,7 @@ onUnmounted(() => {
           :projectsStore="projects"
           :assetStore="assetStore"
           :has-unsaved-changes="store.hasUnsavedChanges"
-          :getProjectData="() => store.project"
+          :getProjectData="() => store.getProjectData()"
           @new-project="store.restartProject"
           @import-project="store.loadProject"
         />

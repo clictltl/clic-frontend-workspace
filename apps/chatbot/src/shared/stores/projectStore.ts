@@ -124,12 +124,17 @@ export const useProjectStore = defineStore('chatbot-project', {
 
   actions: {
     // --- FUNÇÕES DE INFRAESTRUTURA ---
-    markAsSaved() { 
-      this.document.meta.updatedAt = new Date().toISOString();
-      this.meta.lastSavedState = JSON.stringify(this.document); 
+    // Salvar não altera o documento aberto: a data vai só na cópia (getProjectData).
+    // Senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo".
+    markAsSaved() {
+      this.meta.lastSavedState = JSON.stringify(this.document);
     },
 
-    getProjectData(): ProjectData { return JSON.parse(JSON.stringify(this.document)); },
+    getProjectData(): ProjectData {
+      const data: ProjectData = JSON.parse(JSON.stringify(this.document));
+      data.meta.updatedAt = new Date().toISOString();
+      return data;
+    },
 
     setProjectData(data: ProjectData, markAsUnsaved: boolean = false) {
       const now = new Date().toISOString();

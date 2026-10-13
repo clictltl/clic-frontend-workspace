@@ -4,7 +4,7 @@ import { assetStore } from '@/shared/stores/assetStore';
 
 const sharedProjectsInstance = createSharedProjects({
   appSlug: 'emoji-coder',
-  getProjectData: () => useProjectStore().project,
+  getProjectData: () => useProjectStore().getProjectData(),
   setProjectData: (data: any, markAsUnsaved?: boolean) => useProjectStore().loadProject(data, markAsUnsaved),
   markAsSaved: () => useProjectStore().markAsSaved(),
   assetStore

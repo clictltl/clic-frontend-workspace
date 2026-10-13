@@ -36,7 +36,7 @@ export const useProjectStore = defineStore('emoji-coder-project', {
   history: {
     stateKey: 'project',
     telemetry: { appSlug: 'emoji-coder', sessionActions: ['loadProject', 'setupEnvironment', 'restartProject'] },
-    ignoreActions: ['markAsSaved', 'updateWorkspaceSilent', 'setupEnvironment'],
+    ignoreActions: ['markAsSaved', 'getProjectData', 'updateWorkspaceSilent', 'setupEnvironment'],
     clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
       updateConfig: 'emojiCoder.history.updateConfig',
@@ -75,9 +75,15 @@ export const useProjectStore = defineStore('emoji-coder-project', {
 
   actions: {
     // --- FUNÇÕES DE CONTROLE DE SALVAMENTO ---
+    // Salvar não altera o projeto aberto: a data vai só na cópia (getProjectData).
+    // Senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo".
     markAsSaved() {
-      this.project.meta.updatedAt = now();
       this.lastSavedState = JSON.stringify(this.project);
+    },
+
+    /** Cópia para salvar/exportar, com a data de atualização. */
+    getProjectData(): EmojiProject {
+      return { ...this.project, meta: { ...this.project.meta, updatedAt: now() } };
     },
 
     createNew(preserveConfig: boolean = false) {
