@@ -182,6 +182,22 @@ export default {
     }
   },
 
+  errors: {
+    unknown: 'Algo deu errado. Tente de novo em instantes.',
+    network: 'Sem conexão com o servidor. Verifique a internet e tente de novo.',
+    not_found: 'Este projeto não existe mais ou foi excluído.',
+    forbidden: 'Você não tem permissão para abrir este projeto.',
+    not_saved: 'Salve o projeto na nuvem primeiro.',
+    name_exists: 'Você já tem um projeto com esse nome. Escolha outro nome.',
+    name_too_long: 'O nome está muito longo. Use até 255 letras.',
+    too_large: 'O projeto ficou grande demais para salvar. Tente usar imagens menores.',
+    corrupted: 'Não foi possível abrir: os dados do projeto estão danificados.',
+    invalid_link: 'Este link não é válido. Confira se ele foi copiado inteiro.',
+    answer_too_large: 'Sua resposta ficou grande demais. Escreva um texto menor.',
+    upload: 'Não foi possível enviar a imagem. Tente de novo.',
+    request: 'Algo deu errado ao enviar os dados. Recarregue a página e tente de novo.'
+  },
+
   messages: {
     export_asset_error: 'Erro ao processar asset {id} para exportação:',
     missing_project_json: 'Arquivo project.json não encontrado no pacote.',
@@ -944,6 +960,9 @@ export default {
           desc: 'Use blocos de repetição e descubra quantos blocos você consegue diminuir.'
         }
       }
+    },
+    replay: {
+      limit_reached: 'Muitos resultados: só as sessões mais recentes estão sendo exibidas.'
     },
     history: {
       updateConfig: 'Alteração na grade',

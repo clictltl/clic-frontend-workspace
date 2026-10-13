@@ -181,6 +181,22 @@ export default {
     }
   },
 
+  errors: {
+    unknown: 'Something went wrong. Please try again in a moment.',
+    network: 'No connection to the server. Check your internet and try again.',
+    not_found: 'This project no longer exists or was deleted.',
+    forbidden: 'You do not have permission to open this project.',
+    not_saved: 'Save the project to the cloud first.',
+    name_exists: 'You already have a project with this name. Choose another name.',
+    name_too_long: 'The name is too long. Use up to 255 characters.',
+    too_large: 'The project is too large to save. Try using smaller images.',
+    corrupted: 'Could not open: the project data is damaged.',
+    invalid_link: 'This link is not valid. Check that it was copied in full.',
+    answer_too_large: 'Your answer is too long. Write a shorter text.',
+    upload: 'Could not upload the image. Please try again.',
+    request: 'Something went wrong while sending the data. Reload the page and try again.'
+  },
+
   messages: {
     export_asset_error: 'Error processing asset {id} for export:',
     missing_project_json: 'project.json file not found in the package.',
@@ -943,6 +959,9 @@ export default {
           desc: 'Use repeat blocks and find out how many blocks you can reduce.'
         }
       }
+    },
+    replay: {
+      limit_reached: 'Too many results: only the most recent sessions are shown.'
     },
     history: {
       updateConfig: 'Grid change',

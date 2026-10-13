@@ -86,6 +86,7 @@ import '../styles/ui.css';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth, applyLoginResponse } from './auth';
 import { decodeHtml } from '../utils/decodeHtml';
+import { apiErrorMessage, requestErrorMessage } from '../utils/apiErrors';
 import { telemetryService } from '../analytics/telemetry';
 import { User, LogOut, ChevronDown, AlertTriangle } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
@@ -142,14 +143,6 @@ function closeModal() {
 const accountLabel = computed(() => decodeHtml(auth.state.login || auth.state.name || ''));
 
 // --- Lógica de Auth ---
-const ERROR_MESSAGES: Record<string, string> = {
-  'MISSING_CREDENTIALS': 'auth.fill_fields',
-  'LOGIN_FAILED': 'auth.invalid_credentials',
-  'TOO_MANY_ATTEMPTS': 'auth.too_many_attempts',
-  'LGPD_REQUIRED': 'auth.blocked_terms',
-  'ACCOUNT_BLOCKED': 'auth.blocked_teacher'
-}
-
 async function submitLogin() {
   error.value = '';
   loading.value = true;
@@ -178,10 +171,11 @@ async function submitLogin() {
       return;
     }
 
-    const errorKey = ERROR_MESSAGES[data.error];
-    error.value = errorKey ? t(errorKey) : t('auth.login_error');
+    // Códigos do clic-auth (LOGIN_FAILED, TOO_MANY_ATTEMPTS, LGPD_REQUIRED...) no mapa central
+    error.value = apiErrorMessage(data.error, 'auth.login_error');
   } catch (err: any) {
-    error.value = err?.message || t('global.unexpected_error');
+    // fetch direto (sem clicFetch): rejeição é falha de rede
+    error.value = err instanceof TypeError ? t('errors.network') : requestErrorMessage(err);
   } finally {
     loading.value = false;
   }

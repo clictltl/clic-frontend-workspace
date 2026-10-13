@@ -4,6 +4,7 @@ import { i18n } from '../i18n';
 import { telemetryService } from '../analytics/telemetry';
 import type { ClicBaseProject } from '../types/project';
 import { clicFetch } from './api';
+import { apiErrorMessage, requestErrorMessage } from './apiErrors';
 import { getNonce } from '../auth/auth';
 
 export interface UseProjectsConfig {
@@ -103,7 +104,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
           const data = await res.json();
 
           if (!res.ok || !data.success) {
-            throw new Error(i18n.global.t('messages.upload_failed', { error: data.error || res.statusText }));
+            throw new Error(apiErrorMessage(data.error, 'errors.upload'));
           }
 
           wpMedia = data;
@@ -145,7 +146,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return [];
       }
 
@@ -153,7 +154,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       return data.projects;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return [];
     } finally {
       loading.value = false;
@@ -197,7 +198,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return null;
       }
 
@@ -213,7 +214,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       return data;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     } finally {
       loading.value = false;
@@ -260,7 +261,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return null;
       }
 
@@ -275,7 +276,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       return data.project;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     } finally {
       loading.value = false;
@@ -303,7 +304,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return false;
       }
 
@@ -315,7 +316,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       return true;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     } finally {
       loading.value = false;
@@ -342,7 +343,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || i18n.global.t('messages.preview_load_error');
+        error.value = apiErrorMessage(data.error, 'messages.preview_load_error');
         return false;
       }
 
@@ -359,7 +360,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
     } catch (err: any) {
       console.error("Erro no loadPreviewProject:", err);
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     } finally {
       loading.value = false;
@@ -376,7 +377,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
     // não faz sentido compartilhar sem projeto salvo
     if (!currentProjectId.value) {
-      error.value = "PROJECT_NOT_SAVED";
+      error.value = apiErrorMessage('PROJECT_NOT_SAVED');
       return null;
     }
 
@@ -398,7 +399,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || "UNKNOWN_ERROR";
+        error.value = apiErrorMessage(data.error);
         return null;
       }
 
@@ -411,7 +412,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       };
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     }
   }
@@ -425,7 +426,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || fallbackErrorMsg;
+        error.value = data.error ? apiErrorMessage(data.error) : fallbackErrorMsg;
         return false;
       }
 
@@ -440,7 +441,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
 
     } catch (err: any) {
       console.error(`Erro ao carregar projeto externo (${endpoint}):`, err);
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     } finally {
       loading.value = false;
@@ -480,14 +481,14 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || "UNKNOWN_ERROR";
+        error.value = apiErrorMessage(data.error);
         return false;
       }
 
       return true;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     }
   }
@@ -528,7 +529,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
     error.value = null;
 
     if (!currentProjectId.value) {
-      error.value = 'PROJECT_NOT_SAVED';
+      error.value = apiErrorMessage('PROJECT_NOT_SAVED');
       return null;
     }
 
@@ -551,7 +552,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return null;
       }
 
@@ -564,7 +565,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
       };
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     }
   }
@@ -593,14 +594,14 @@ export function createSharedProjects(config: UseProjectsConfig) {
       const data = await res.json();
 
       if (!data.success) {
-        error.value = data.error || 'UNKNOWN_ERROR';
+        error.value = apiErrorMessage(data.error);
         return false;
       }
       
       return true;
 
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     }
   }
@@ -645,7 +646,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
   async function setupForm(referenceId: string, formConfig: any, isActive: boolean = true) {
     error.value = null;
     if (!currentProjectId.value) {
-      error.value = 'PROJECT_NOT_SAVED';
+      error.value = apiErrorMessage('PROJECT_NOT_SAVED');
       return null;
     }
 
@@ -663,10 +664,10 @@ export function createSharedProjects(config: UseProjectsConfig) {
       });
 
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'UNKNOWN_ERROR');
+      if (!data.success) throw new Error(apiErrorMessage(data.error));
       return data; // Retorna { success, token, form_url, is_active }
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     }
   }
@@ -677,10 +678,10 @@ export function createSharedProjects(config: UseProjectsConfig) {
     try {
       const res = await clicFetch(`${pluginRestRoot}forms/${token}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || i18n.global.t('messages.form_load_error'));
+      if (!data.success) throw new Error(apiErrorMessage(data.error, 'messages.form_load_error'));
       return data; // Retorna { form: { reference_id, config }, project: { data } }
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return null;
     } finally {
       loading.value = false;
@@ -697,10 +698,10 @@ export function createSharedProjects(config: UseProjectsConfig) {
         body: JSON.stringify({ data: answerData })
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || i18n.global.t('messages.submit_response_error'));
+      if (!data.success) throw new Error(apiErrorMessage(data.error, 'messages.submit_response_error'));
       return true;
     } catch (err: any) {
-      error.value = err.message;
+      error.value = requestErrorMessage(err);
       return false;
     } finally {
       loading.value = false;
@@ -717,7 +718,7 @@ export function createSharedProjects(config: UseProjectsConfig) {
         headers: { 'X-WP-Nonce': getNonce() }
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || i18n.global.t('messages.fetch_responses_error'));
+      if (!data.success) throw new Error(apiErrorMessage(data.error, 'messages.fetch_responses_error'));
       return data.answers || []; // [{ id, data, created_at, reference_id }, ...]
     } catch (err: any) {
       console.error(err);

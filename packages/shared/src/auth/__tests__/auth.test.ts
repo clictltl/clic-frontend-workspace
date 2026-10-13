@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { applyLoginResponse, getNonce, refreshNonce, useAuth } from '../auth';
 import { clicFetch } from '../../utils/api';
+import { NetworkError } from '../../utils/apiErrors';
+import { i18n } from '../../i18n';
 
 const fetchMock = vi.fn();
 const json = (status: number, body: any) =>
@@ -106,11 +108,29 @@ describe('clicFetch', () => {
     expect(useAuth().state.showLoginModal).toBe(true);
   });
 
-  it('mantém o erro de permissão (403 sem ser de nonce) sem renovar nem abrir o login', async () => {
-    fetchMock.mockResolvedValue(json(403, { code: 'rest_forbidden', message: 'Sem permissão' }));
+  it('403 do WordPress (sem ser de nonce): lança a mensagem traduzida, sem renovar nem abrir o login', async () => {
+    fetchMock.mockResolvedValue(json(403, { code: 'rest_forbidden', message: 'Sorry, you are not allowed' }));
 
-    await expect(request()).rejects.toThrow('Sem permissão');
+    await expect(request()).rejects.toThrow(i18n.global.t('errors.forbidden'));
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(useAuth().state.showLoginModal).toBe(false);
+  });
+
+  it('403 do CLIC (FORBIDDEN): devolve a resposta para quem chamou traduzir o código', async () => {
+    fetchMock.mockResolvedValue(json(403, { success: false, error: 'FORBIDDEN' }));
+
+    const res = await request();
+
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toBe('FORBIDDEN');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(useAuth().state.showLoginModal).toBe(false);
+  });
+
+  it('falha de rede vira NetworkError com mensagem traduzida', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(request()).rejects.toBeInstanceOf(NetworkError);
+    await expect(request()).rejects.toThrow(i18n.global.t('errors.network'));
   });
 });

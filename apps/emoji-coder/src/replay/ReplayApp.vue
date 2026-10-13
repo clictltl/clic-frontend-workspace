@@ -23,7 +23,7 @@
         </section>
 
         <div v-if="limitReached" class="alert-warning">
-          Muitos resultados encontrados. Apenas as últimas 250 sessões estão sendo exibidas.
+          {{ t('emojiCoder.replay.limit_reached') }}
         </div>
         <div v-if="error" class="alert-error">{{ error }}</div>
 

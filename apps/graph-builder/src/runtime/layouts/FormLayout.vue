@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { GraphProject } from '@/shared/types';
 import { Send, CheckCircle } from '@lucide/vue';
+import { apiErrorMessage, requestErrorMessage } from '@clic/shared';
 
 const props = defineProps<{
   formConfig: any;      // { reference_id, config: { nameFieldLabel, targetCategories } }
@@ -71,11 +72,12 @@ const submitForm = async () => {
     });
 
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || t('graphBuilder.runtime.form.error_submit'));
+    if (!data.success) throw new Error(apiErrorMessage(data.error, 'graphBuilder.runtime.form.error_submit'));
 
     isSuccess.value = true;
   } catch (err: any) {
-    errorMsg.value = err.message;
+    // fetch direto (rota pública): rejeição é falha de rede
+    errorMsg.value = err instanceof TypeError ? t('errors.network') : requestErrorMessage(err);
   } finally {
     isLoading.value = false;
   }
