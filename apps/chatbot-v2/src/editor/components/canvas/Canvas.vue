@@ -19,7 +19,7 @@ import { assignBackEdgeLanes, NODE_WIDTH, type EdgeEmphasis, type FlowEdgeData }
 import { connectTargetNodeId } from '../../utils/connectTarget';
 import { clearHighlight, highlightedNodeIds } from '../../utils/highlight';
 import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
-import { requestTestFrom } from '../../utils/testRun';
+import { requestTestFrom, testActiveNodeId } from '../../utils/testRun';
 import { useToast } from '@clic/shared';
 import NodeContextMenu from './NodeContextMenu.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
@@ -66,6 +66,25 @@ function fitOnOpen() {
 watch(highlightedNodeIds, ids => {
   if (ids.length) fitView({ nodes: ids, padding: 0.3, maxZoom: 1, duration: 300 });
 });
+
+// Teste em andamento: se o bloco que está falando estiver fora da área visível (ex.: atrás do
+// painel Testar), o canvas desliza até ele, sem mudar o zoom. Bloco já visível não move nada.
+const REVEAL_MARGIN = 24;
+watch(testActiveNodeId, id => { if (id) nextTick(() => revealNode(id)); });
+function revealNode(id: string) {
+  const view = wrapper.value?.getBoundingClientRect();
+  const el = wrapper.value?.querySelector(`.vue-flow__node[data-id="${CSS.escape(id)}"]`);
+  if (!view || !el) return;
+  const r = el.getBoundingClientRect();
+  const inside = r.left >= view.left + REVEAL_MARGIN && r.right <= view.right - REVEAL_MARGIN
+    && r.top >= view.top + REVEAL_MARGIN && r.bottom <= view.bottom - REVEAL_MARGIN;
+  if (inside) return;
+  const { x, y, zoom } = viewport.value;
+  const dx = view.left + view.width / 2 - (r.left + r.width / 2);
+  const dy = view.top + view.height / 2 - (r.top + r.height / 2);
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  setViewport({ x: x + dx, y: y + dy, zoom }, { duration: reduceMotion ? 0 : 400 });
+}
 
 // --- ZOOM COM A RODA E A PINÇA ---
 // A roda dá zoom mantendo o ponto sob o cursor, também em cima dos blocos (mover o canvas é
