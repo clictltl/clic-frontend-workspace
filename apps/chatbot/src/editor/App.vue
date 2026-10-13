@@ -1,37 +1,30 @@
 <script setup lang="ts">
-/**
- * EDITOR DE CHATBOT PEDAGÓGICO
- *
- * Este é o componente principal que gerencia todo o editor de chatbot.
- * Ele mantém o estado de:
- * - blocks: Array com todos os blocos do fluxo
- * - connections: Array com as conexões visuais entre blocos
- * - variables: Objeto com as variáveis disponíveis no chatbot
- */
-
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import type { Block, BlockType } from '@/shared/types/chatbot';
-import { useProjectStore } from '@/shared/stores/projectStore';
-import { useProjects } from '@/editor/composables/useProjects';
-import { useAssetStore } from '@/editor/composables/useAssetStore';
-import Canvas from '@/editor/components/canvas/Canvas.vue';
-import PropertiesPanel from '@/editor/components/panels/PropertiesPanel.vue';
-import VariablesPanel from '@/editor/components/panels/VariablesPanel.vue';
-import PreviewPanel from '@/editor/components/panels/PreviewPanel.vue';
-import { AppHeader, AuthMenu, FileMenu, ToastContainer, InvalidShareLinkModal, useEditorBootstrap, useHistoryShortcuts } from '@clic/shared';
-import appLogo from '@/assets/logo_novelo.svg'
-import { CREATABLE_BLOCKS } from '@/editor/utils/blockConfig';
-import { ClipboardPaste, Zap, Copy, Trash2, Wrench, Box, Eye } from '@lucide/vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useBlockUI } from '@/editor/composables/useBlockUI';
+import { Play } from '@lucide/vue';
+import {
+  AppHeader, AuthMenu, FileMenu, InvalidShareLinkModal, ToastContainer,
+  useEditorBootstrap, useHistoryShortcuts
+} from '@clic/shared';
+import appLogo from '../assets/logo_novelo.webp'; // Imagem 2x da altura exibida: o SVG original tinha 85 KB
+import { useProjectStore } from '../shared/stores/projectStore';
+import { assetStore } from '../shared/stores/assetStore';
+import { provideMediaResolver } from '../shared/media/resolver';
+import { importProjectFile, useProjects } from './utils/useProjects';
+import { resolveMediaSource } from './utils/mediaSource';
+import { testFromRequest } from './utils/testRun';
+import Canvas from './components/canvas/Canvas.vue';
+import Sidebar from './components/panels/Sidebar.vue';
+import TestPanel from './components/test/TestPanel.vue';
 
+const { t } = useI18n();
 const store = useProjectStore();
 const projects = useProjects();
-const assetStore = useAssetStore();
-const { t } = useI18n();
-const { getBlockTitle, getBlockColor, getBlockIcon } = useBlockUI();
 
-// Ativa os atalhos globais de Undo/Redo (Ctrl+Z) para o Chatbot
+// Mídias enviadas são resolvidas pelo assetStore (blob local ou URL pública)
+provideMediaResolver(resolveMediaSource);
+
+// Ativa o Ctrl+Z (Undo) e Ctrl+Shift+Z (Redo) de forma global para este projeto!
 useHistoryShortcuts(store);
 
 // Links de share/remix/preview e aviso ao fechar a aba.
@@ -39,244 +32,33 @@ useHistoryShortcuts(store);
 const { showInvalidShareModal } = useEditorBootstrap({
   projects,
   hasUnsavedChanges: () => store.hasUnsavedChanges,
-  onFreshStart: () => store.resetProjectData()
+  onFreshStart: () => store.createNew()
 });
 
-const zoom = ref(100);
-const activeTab = ref<'properties' | 'variables' | 'preview'>('properties');
-const showNewBlockMenu = ref(false);
-const showContextMenu = ref(false);
-const contextMenuPosition = ref<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
-const isPreviewFullscreen = ref(false);
-const sidePanelWidth = ref(350);
-const isResizing = ref(false);
-const showBlockContextMenu = ref(false);
-const blockContextMenuPosition = ref<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
-const contextMenuBlockId = ref<string | null>(null);
-const hasCopiedBlock = ref(false);
-const propertiesPanelRef = ref<InstanceType<typeof PropertiesPanel> | null>(null);
-
-// Retorna o bloco atualmente selecionado
-const selectedBlock = computed(() => {
-  if (!store.ui.selectedBlockId) return null;
-  return store.document.blocks.find(b => b.id === store.ui.selectedBlockId) || null;
-});
-
-onMounted(() => {
-  // Lógica local da UI do Chatbot
-  hasCopiedBlock.value = !!localStorage.getItem('copiedBlock');
-  document.addEventListener('click', handleDocumentClick);
-});
-
-// Remove listener ao desmontar
-onUnmounted(() => {
-  document.removeEventListener('click', handleDocumentClick);
-});
-
-function handleCloseInvalidShareModal() {
-  showInvalidShareModal.value = false;
-  
-  // Reseta para um projeto novo limpo
-  store.resetProjectData();
-  
-  // Remove query params da URL (caso ainda tenha sobrado algo)
-  const cleanUrl = window.location.pathname;
-  window.history.replaceState({}, document.title, cleanUrl);
-}
-
-// Cria um novo bloco no canvas
-function createBlock(type: BlockType, position?: { x: number; y: number }) {
-  if (type === 'start') return; 
-
-  const finalPosition = position
-    ? position
-    : contextMenuPosition.value
-      ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
-      : { x: 100 + store.document.blocks.length * 50, y: 100 + store.document.blocks.length * 30 };
-
-  // Delega a criação para a Store
-  store.createBlock(type, finalPosition);
-
-  showNewBlockMenu.value = false;
-  showContextMenu.value = false;
-  contextMenuPosition.value = null;
-}
-
-function handleCreateBlockFromCanvas(payload: { type: BlockType; position?: { x: number; y: number } }) {
-  createBlock(payload.type, payload.position);
-}
-
-// Handler de clique no documento para fechar menus
-function handleDocumentClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-
-  // Verifica se o clique foi fora do menu de novo bloco
-  if (!target.closest('.new-block-wrapper')) {
-    showNewBlockMenu.value = false;
-  }
-}
-
-// Atualiza um bloco existente
-function updateBlock(updatedBlock: Block) {
-  store.updateBlock(updatedBlock.id, updatedBlock);
-}
-
-function updateBlockSilent(updatedBlock: Block) {
-  store.updateBlockSilent(updatedBlock.id, updatedBlock);
-}
-
-// Adiciona uma nova variável
-function addVariable(name: string, type: 'string' | 'number') {
-  store.addVariable(name, type);
-}
-
-async function handleFocusBlockEditor() {
-  activeTab.value = 'properties';
-
-  // espera a aba renderizar + textarea existir
-  await nextTick();
-  await nextTick();
-
-  propertiesPanelRef.value?.focusContent?.();
-}
-
-
-// Remove uma variável do chatbot
-function removeVariable(name: string) {
-  store.removeVariable(name);
-}
-
-// Alterna o modo tela cheia do preview
-function togglePreviewFullscreen() {
-  isPreviewFullscreen.value = !isPreviewFullscreen.value;
-  if (isPreviewFullscreen.value) {
-    activeTab.value = 'preview';
-  }
-}
-
-// Abre o menu de contexto com botão direito
-function handleCanvasContextMenu(position: { x: number; y: number; screenX: number; screenY: number }) {
-  contextMenuPosition.value = position;
-  showContextMenu.value = true;
-}
-
-// Fecha o menu de contexto
-function closeContextMenu() {
-  showContextMenu.value = false;
-  contextMenuPosition.value = null;
-  showBlockContextMenu.value = false;
-  blockContextMenuPosition.value = null;
-  contextMenuBlockId.value = null;
-}
-
-// Abre o menu de contexto do bloco
-function handleBlockContextMenu(blockId: string, position: { x: number; y: number; screenX: number; screenY: number }) {
-  showContextMenu.value = false;
-  contextMenuBlockId.value = blockId;
-  blockContextMenuPosition.value = position;
-  showBlockContextMenu.value = true;
-}
-
-// Duplica um bloco
-function duplicateBlock() {
-  if (!contextMenuBlockId.value || contextMenuBlockId.value === 'start') {
-    closeContextMenu();
-    return;
-  }
-
-  const blockToDuplicate = store.document.blocks.find(b => b.id === contextMenuBlockId.value);
-  if (!blockToDuplicate) return;
-
-  const newPosition = {
-    x: blockToDuplicate.position.x + 50,
-    y: blockToDuplicate.position.y + 50
-  };
-
-  store.duplicateBlock(contextMenuBlockId.value, newPosition);
-  closeContextMenu();
-}
-
-// Copia um bloco (salva no localStorage)
-function copyBlock() {
-   if (!contextMenuBlockId.value) return;
-
-  // nunca copiar o start
-  if (contextMenuBlockId.value === 'start') {
-    closeContextMenu();
-    return;
-  }
-
-  const blockToCopy = store.document.blocks.find(b => b.id === contextMenuBlockId.value);
-  if (!blockToCopy) return;
-
-  localStorage.setItem('copiedBlock', JSON.stringify(blockToCopy));
-  hasCopiedBlock.value = true;
-  closeContextMenu();
-}
-
-// Cola um bloco copiado
-function pasteBlock() {
-  const copiedBlockJson = localStorage.getItem('copiedBlock');
-  if (!copiedBlockJson) return;
-
-  const copiedBlock = JSON.parse(copiedBlockJson);
-  const newPosition = contextMenuPosition.value
-    ? { x: contextMenuPosition.value.x, y: contextMenuPosition.value.y }
-    : { x: copiedBlock.position.x + 50, y: copiedBlock.position.y + 50 };
-
-  store.pasteBlock(copiedBlock, newPosition);
-  closeContextMenu();
-}
-
-// Deleta um bloco do menu de contexto
-function deleteBlockFromMenu() {
-  if (!contextMenuBlockId.value || contextMenuBlockId.value === 'start') {
-    closeContextMenu();
-    return;
-  }
-
-  store.deleteBlock(contextMenuBlockId.value);
-  closeContextMenu();
-}
-
-// Inicia o redimensionamento do painel lateral
-function startResize(event: MouseEvent) {
-  isResizing.value = true;
-  event.preventDefault();
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing.value) return;
-    const newWidth = window.innerWidth - e.clientX;
-    sidePanelWidth.value = Math.max(300, Math.min(800, newWidth));
-  };
-
-  const handleMouseUp = () => {
-    isResizing.value = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
-}
-
+// Painel "Testar" ao lado do canvas: editar e testar ao mesmo tempo
+const isTesting = ref(false);
+// "Testar a partir daqui" (menu do bloco) abre o painel; o painel consome o pedido e começa no bloco
+watch(testFromRequest, nodeId => { if (nodeId) isTesting.value = true; });
 </script>
 
 <template>
-  <div class="app">
-    <!-- Toolbar superior com controles principais -->
-    <AppHeader title="Novelo" :app-logo="appLogo" guide-url="https://docs.google.com/presentation/d/12zqJqZYmpS43mbEpfiKqOnS-Pu9QiwUcCj9ydMrnBJ8/edit?usp=sharing">
+  <div class="editor-layout">
+    <AppHeader
+      title="Novelo"
+      :app-logo="appLogo"
+      guide-url="https://docs.google.com/presentation/d/12zqJqZYmpS43mbEpfiKqOnS-Pu9QiwUcCj9ydMrnBJ8/edit?usp=sharing"
+    >
       <template #file-menu>
-        <FileMenu 
+        <FileMenu
           :item-name="t('global.project')"
           file-extension=".cnv"
           file-accept=".cnv"
-          :projectsStore="projects"
-          :assetStore="assetStore"
-          :hasUnsavedChanges="store.hasUnsavedChanges"
-          :getProjectData="store.getProjectData"
-          @new-project="store.resetProjectData"
-          @import-project="store.setProjectData"
+          :projects-store="projects"
+          :asset-store="assetStore"
+          :has-unsaved-changes="store.hasUnsavedChanges"
+          :get-project-data="() => store.getProjectData()"
+          :import-project="importProjectFile"
+          @new-project="store.createNew()"
         />
       </template>
       <template #auth-menu>
@@ -284,389 +66,36 @@ function startResize(event: MouseEvent) {
       </template>
     </AppHeader>
 
-    <!-- Área principal com canvas e painel lateral -->
-    <div class="main-content">
-      <!-- Canvas onde os blocos são desenhados e conectados -->
-      <div class="canvas-area" v-show="!isPreviewFullscreen" @click="closeContextMenu">
-        <Canvas
-          :blocks="store.document.blocks"
-          :connections="store.document.connections"
-          :selected-block-id="store.ui.selectedBlockId"
-          :zoom="zoom"
-          @update:selected-block-id="store.selectBlock($event)"
-          @focus-block-editor="handleFocusBlockEditor"
-          @update:zoom="zoom = $event"
-          @context-menu="handleCanvasContextMenu"
-          @block-context-menu="handleBlockContextMenu"
-          @create-block="handleCreateBlockFromCanvas"
-        />
-
-        <!-- Menu de contexto (botão direito) -->
-        <div
-          v-if="showContextMenu && contextMenuPosition"
-          class="context-menu"
-          :style="{
-            left: contextMenuPosition.screenX + 'px',
-            top: contextMenuPosition.screenY + 'px'
-          }"
-          @click.stop
-        >
-          <button 
-            v-for="type in CREATABLE_BLOCKS" 
-            :key="type"
-            @click="createBlock(type)" 
-            class="block-menu-item"
-          >
-            <span class="block-icon" :style="{ background: getBlockColor(type) }">
-              <component :is="getBlockIcon(type)" :size="14" color="#ffffff" />
-            </span>
-            {{ getBlockTitle(type) }}
-          </button>
-
-          <button v-if="hasCopiedBlock" @click="pasteBlock" class="block-menu-item paste-item">
-            <span class="block-icon" style="background: #6366f1;">
-              <ClipboardPaste :size="14" color="#ffffff" />
-            </span>
-            {{ t('chatbot.editor.context_menu.paste') }}
-          </button>
-        </div>
+    <main class="editor-main">
+      <h1 class="sr-only">{{ t('chatbot.editor.page_title') }}</h1>
+      <div class="canvas-area">
+        <Canvas />
+        <button v-if="!isTesting" class="btn-test" @click="isTesting = true">
+          <Play :size="16" fill="currentColor" /> {{ t('chatbot.editor.test.button') }}
+        </button>
       </div>
-
-      <!-- Menu de contexto do bloco (botão direito no bloco) -->
-    <div
-      v-if="showBlockContextMenu && blockContextMenuPosition"
-      class="context-menu block-context-menu"
-      :style="{
-        left: blockContextMenuPosition.screenX + 'px',
-        top: blockContextMenuPosition.screenY + 'px'
-      }"
-      @click.stop
-    >
-      <template v-if="contextMenuBlockId !== 'start'">
-        <button @click="duplicateBlock" class="context-menu-item">
-          <Zap :size="16" />
-          {{ t('chatbot.editor.context_menu.duplicate') }}
-        </button>
-        <button @click="copyBlock" class="context-menu-item">
-          <Copy :size="16" />
-          {{ t('chatbot.editor.context_menu.copy') }}
-        </button>
-        <button @click="deleteBlockFromMenu" class="context-menu-item delete">
-          <Trash2 :size="16" />
-          {{ t('chatbot.editor.context_menu.delete') }}
-        </button>
-      </template>
-
-      <div v-else class="context-menu-empty">
-        {{ t('chatbot.editor.context_menu.no_actions') }}
-      </div>
-    </div>
-
-      <!-- Painel lateral com propriedades, variáveis e preview -->
-      <aside class="side-panel" :class="{ 'fullscreen': isPreviewFullscreen }" :style="{ width: isPreviewFullscreen ? '100%' : `${sidePanelWidth}px` }">
-        <!-- Resize handle -->
-        <div v-if="!isPreviewFullscreen" class="resize-handle" @mousedown="startResize"></div>
-
-        <div class="tabs">
-          <button
-            :class="['tab', { active: activeTab === 'properties' }]"
-            @click="activeTab = 'properties'"
-          >
-            <Wrench :size="16" /> {{ t('chatbot.editor.tabs.block') }}
-          </button>
-          <button
-            :class="['tab', { active: activeTab === 'variables' }]"
-            @click="activeTab = 'variables'"
-          >
-            <Box :size="16" /> {{ t('chatbot.editor.tabs.variables') }}
-          </button>
-          <button
-            :class="['tab', { active: activeTab === 'preview' }]"
-            @click="activeTab = 'preview'"
-          >
-            <Eye :size="16" /> {{ t('chatbot.editor.tabs.preview') }}
-          </button>
-        </div>
-
-        <div class="tab-content">
-          <PropertiesPanel
-            ref="propertiesPanelRef"
-            v-show="activeTab === 'properties'"
-            :block="selectedBlock"
-            :variables="store.document.variables"
-            @update:block="updateBlock"
-            @update:block-silent="updateBlockSilent"
-          />
-
-          <VariablesPanel
-            v-show="activeTab === 'variables'"
-            :variables="store.document.variables"
-            @add-variable="addVariable"
-            @remove-variable="removeVariable"
-          />
-
-          <PreviewPanel
-            v-show="activeTab === 'preview'"
-            :blocks="store.document.blocks"
-            :variables="store.document.variables"
-            @toggle-fullscreen="togglePreviewFullscreen"
-          />
-        </div>
-      </aside>
-    </div>
+      <TestPanel v-if="isTesting" @close="isTesting = false" />
+      <Sidebar />
+    </main>
 
     <ToastContainer />
-
-    <InvalidShareLinkModal v-if="showInvalidShareModal" :item-name="t('global.project')" @close="handleCloseInvalidShareModal" />
-
+    <InvalidShareLinkModal v-if="showInvalidShareModal" :item-name="t('global.project')" @close="showInvalidShareModal = false" />
   </div>
 </template>
 
 <style>
-* {
-  box-sizing: border-box;
+/* Reset e fonte vêm do base.css do @clic/shared (main-editor.ts) */
+body { overflow: hidden; background: #f3f4f6; }
+.editor-layout { display: flex; flex-direction: column; height: 100vh; }
+.editor-main { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.canvas-area { flex: 1; position: relative; min-width: 0; }
+.btn-test {
+  position: absolute; top: 16px; right: 16px; z-index: 10;
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 15px; border: 2px solid #047857; border-radius: 8px; cursor: pointer;
+  /* Contornado: diferente do bloco Início (verde preenchido), contraste 5,5 */
+  background: white; color: #047857; font-size: 14px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #f3f4f6;
-}
-
-.app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.new-block-wrapper {
-  position: relative;
-}
-
-.btn-primary {
-  padding: 8px 16px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  padding: 8px 16px;
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-/* Menu de novos blocos */
-.block-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  min-width: 220px;
-  padding: 8px;
-}
-
-.block-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  background: white;
-  border: none;
-  border-radius: 6px;
-  text-align: left;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.block-menu-item:hover {
-  background: #f3f4f6;
-}
-
-.block-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Menu de contexto do bloco */
-.block-context-menu {
-  min-width: 160px;
-}
-
-.context-menu-item {
-  width: 100%;
-  padding: 10px 16px;
-  background: white;
-  border: none;
-  text-align: left;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.context-menu-item:hover {
-  background: #f3f4f6;
-}
-
-.context-menu-item.delete {
-  color: #ef4444;
-}
-
-.context-menu-item.delete:hover {
-  background: #fee2e2;
-}
-
-.context-menu-item span {
-  font-size: 16px;
-}
-
-.paste-item {
-  border-top: 1px solid #e5e7eb;
-  margin-top: 4px;
-  padding-top: 12px;
-}
-
-/* Layout principal */
-.main-content {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.canvas-area {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Painel lateral */
-.side-panel {
-  min-width: 300px;
-  max-width: 800px;
-  background: white;
-  border-left: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.side-panel.fullscreen {
-  width: 100%;
-  border-left: none;
-}
-
-/* Handle de redimensionamento */
-.resize-handle {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  cursor: ew-resize;
-  z-index: 1000;
-  transition: background 0.2s;
-}
-
-.resize-handle:hover {
-  background: #3b82f6;
-}
-
-.resize-handle:active {
-  background: #2563eb;
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.tab {
-  flex: 1;
-  padding: 12px;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.tab:hover {
-  color: #374151;
-  background: #f9fafb;
-}
-
-.tab.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-}
-
-.tab-content {
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Menu de contexto */
-.context-menu {
-  position: fixed;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  min-width: 220px;
-  padding: 8px;
-}
-
-.context-menu-empty {
-  padding: 12px 14px;
-  font-size: 13px;
-  color: #6b7280;
-  text-align: center;
-  user-select: none;
-}
-
+.btn-test:hover { background: #ecfdf5; }
 </style>

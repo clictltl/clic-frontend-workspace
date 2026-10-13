@@ -3,20 +3,24 @@ import { createPinia, setActivePinia } from 'pinia';
 import App from './App.vue';
 import { checkLogin, initMatomo, piniaInteractionHistoryPlugin, i18n } from '@clic/shared';
 
+import '@clic/shared/src/styles/base.css';
+// Já importamos o CSS base do Vue Flow aqui para garantir que o motor gráfico funcione depois
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
+import '../shared/richText/richText.css';
+import './styles/properties.css';
+
 async function init() {
-  // 1. Inicializa o Pinia globalmente ANTES de tudo (Evita crash de Lazy Evaluation)
   const pinia = createPinia();
   pinia.use(piniaInteractionHistoryPlugin);
   setActivePinia(pinia);
 
-  // 2. Verifica login no WordPress normalmente
   await checkLogin();
 
-  // 3. Monta app somente depois de todos os dados estarem resolvidos
   const app = createApp(App);
-
-  initMatomo({ app: 'Chatbot', context: 'Editor' });
   
+  initMatomo({ app: 'Chatbot', context: 'Editor' });
+
   app.use(pinia);
   app.use(i18n);
   app.mount('#app');

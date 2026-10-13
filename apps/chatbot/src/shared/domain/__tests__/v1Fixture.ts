@@ -1,5 +1,5 @@
 /**
- * Projeto salvo pelo editor v1 (formato de `apps/chatbot/src/shared/types`).
+ * Projeto salvo pelo editor v1 (formato da v1, tag `chatbot-v1-final`, em `apps/chatbot/src/shared/types`).
  * Cobre todos os tipos de bloco e as conversões com regras especiais.
  */
 export function v1Project() {

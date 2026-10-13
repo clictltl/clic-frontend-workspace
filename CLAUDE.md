@@ -12,7 +12,7 @@ Headless CMS híbrido: WordPress (PHP/MySQL) no back-end + Vue 3, TypeScript, Vi
 
 ### Front-end: `clic-frontend-workspace` (monorepo, npm workspaces)
 - `@clic/shared`: componentes globais, motor de i18n, utilitários de API e telemetria.
-- `apps/`: SPAs `chatbot`, `chatbot-v2` (reescrita do `chatbot`, em desenvolvimento),
+- `apps/`: SPAs `chatbot` (Novelo; a v1 foi substituída e está na tag `chatbot-v1-final`),
   `graph-builder` e `emoji-coder`. Todas multi-idioma, com múltiplos entrypoints no Vite
   (`editor`, `runtime`, `replay`). O modo `form` (`/app/{slug}/form/{token}`) não tem
   entrypoint próprio: o core carrega o `runtime`, que detecta a rota.

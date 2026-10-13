@@ -1,104 +1,180 @@
-/**
- * TIPOS E INTERFACES DO CHATBOT
- *
- * Este arquivo define toda a estrutura de dados usada no editor de chatbot.
- * Ele é o "esqueleto" que mantém tudo organizado e facilita futuras extensões.
- */
-
-// Tipos de blocos disponíveis no chatbot
-export type BlockType = "start" |"message" | "openQuestion" | "choiceQuestion" | "condition" | "setVariable" | "math" | "image" | "end";
-
-
+import type { JSONContent } from '@tiptap/core';
+import type { ClicAsset, ClicBaseProject } from '@clic/shared';
 
 /**
- * BLOCO - Unidade básica do fluxo do chatbot
+ * MODELO DE DADOS DO CHATBOT v2
  *
- * Cada bloco representa uma etapa da conversa e pode ser:
- * - message: Exibe uma mensagem do bot
- * - openQuestion: Faz uma pergunta e espera texto livre
- * - choiceQuestion: Apresenta botões com opções
- * - condition: Avalia uma condição e decide o próximo passo
- * - setVariable: Define o valor de uma variável sem interação do usuário
- * - math: Realiza operações matemáticas com variáveis numéricas
- * - image: Exibe uma imagem (URL ou upload)
- * - end: Finaliza a conversa
+ * Este é o formato do JSON do projeto (fonte da verdade, regra 1 do CLAUDE.md).
+ * Tudo aqui precisa ser portável e serializável: nada de URLs de infraestrutura,
+ * tokens ou IDs de banco. Referências entre entidades são sempre por ID.
  */
-export interface Block {
-  id: string;                             // Identificador único do bloco
-  type: BlockType;                        // Tipo do bloco (define seu comportamento)
-  position: { x: number; y: number };     // Posição no canvas para desenho
-  content: string;                        // Texto exibido pelo bloco
-  choices?: Choice[];                     // Opções (apenas para choiceQuestion)
-  variableName?: string;                  // Nome da variável a salvar (para openQuestion e setVariable)
-  variableValue?: string;                 // Valor a atribuir à variável (apenas para setVariable)
-  conditions?: Condition[];               // Condições a avaliar (apenas para condition)
-  mathOperation?: "+" | "-" | "*" | "/";  // Operação matemática (para math)
-  mathValue?: string;                     // Valor ou variável para operação (para math)
-  imageUrl?: string;                      // Para URLs externas (http://...)
-  assetId?: string;                       // ID para assets gerenciados (upload local)
-  nextBlockId?: string;                   // ID do próximo bloco (quando aplicável)
-}
+
+export const PROJECT_VERSION = '2.0.0';
+
+// --- TEXTO RICO ---
 
 /**
- * ESCOLHA - Opção em uma pergunta de múltipla escolha
- *
- * Cada escolha tem um rótulo visível e aponta para um próximo bloco
+ * Documento do Tiptap (ProseMirror JSON). Nós customizados:
+ * - clicVariable: { variableId }  → referência a uma variável (resolvida no runtime)
+ * - clicEmoji:    { emoji }       → emoji como nó atômico
+ * Imagens e outras mídias não entram no texto: ficam em `data.media` do nó.
  */
-export interface Choice {
-  id: string;                             // Identificador único da escolha
-  label: string;                          // Texto exibido no botão
-  nextBlockId?: string;                   // ID do bloco para onde a escolha leva
-}
+export type RichText = JSONContent;
 
-/**
- * CONDIÇÃO - Regra lógica em um bloco condicional
- *
- * Compara o valor de uma variável com um valor esperado
- * Exemplo: se idade >= 18, vai para bloco_adulto
- */
-export interface Condition {
-  id: string;                             // Identificador único da condição
-  variableName: string;                   // Nome da variável a comparar
-  operator: "==" | "!=" | ">" | "<" | ">=" | "<=";  // Operador de comparação
-  value: string | number;                 // Valor a comparar
-  nextBlockId?: string;                   // ID do bloco se condição for verdadeira
-}
+// --- VARIÁVEIS E VALORES ---
 
-/**
- * CONEXÃO - Linha visual entre dois blocos no canvas
- *
- * Representa a ligação entre um bloco de origem e um de destino.
- * Pode sair do handle principal ou de uma escolha/condição específica.
- */
-export interface Connection {
-  id: string;                             // Identificador único da conexão
-  fromBlockId: string;                    // ID do bloco de origem
-  fromOutputId?: string;                  // ID da escolha/condição de origem (se houver)
-  toBlockId: string;                      // ID do bloco de destino
-  waypoints?: { x: number; y: number }[]; // Pontos intermediários para personalizar o caminho
-}
+export type VariableType = 'text' | 'number';
 
-/**
- * VARIÁVEL - Armazena informação coletada durante a conversa
- *
- * Variáveis podem ser usadas para:
- * - Guardar respostas do usuário
- * - Fazer decisões condicionais
- * - Personalizar mensagens com {{nome}} por exemplo
- */
 export interface Variable {
-  name: string;                           // Nome da variável (ex: "nome", "idade")
-  type: "string" | "number";              // Tipo de dado armazenado
-  value: string | number | null;          // Valor atual da variável
+  id: string;
+  name: string;
+  type: VariableType;
+  defaultValue: string | number;
 }
 
+/** Valor usado em comparações e atribuições: fixo ou lido de uma variável. */
+export type Value =
+  | { kind: 'literal'; value: string | number }
+  | { kind: 'variable'; variableId: string };
+
+/** Uma das opções é sorteada a cada passagem pelo bloco (opções vazias são ignoradas). */
+export type RandomValue = { kind: 'random'; options: string[] };
+
+/** Valor atribuído pelo bloco "Definir variável": além de `Value`, aceita sorteio. */
+export type AssignmentValue = Value | RandomValue;
+
+export type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=';
+export type MathOperator = '+' | '-' | '*' | '/';
+
+// --- ESTRUTURAS INTERNAS DOS NÓS ---
+
+// --- MÍDIA ---
+
+/** Origem de um arquivo: enviado pelo aluno (asset do projeto) ou link externo. */
+export type MediaSource =
+  | { kind: 'upload'; assetId: string }
+  | { kind: 'url'; url: string };
+
 /**
- * MENSAGEM DO CHAT - Representa uma linha no preview do chat
- *
- * Usada apenas durante o teste do chatbot no painel de preview
+ * Mídia exibida junto ao texto de um nó. Novos tipos entram como novos casos deste
+ * union, sem mudar o formato do JSON. Hoje o editor cria apenas 'image' (inclui GIF);
+ * 'video' (link do YouTube/Vimeo) e 'audio' estão reservados para o futuro.
  */
-export interface ChatMessage {
-  id: string;                             // Identificador único da mensagem
-  type: "bot" | "user" | "image";         // Quem enviou: bot, usuário ou imagem
-  content: string;                        // Texto da mensagem ou URL da imagem
+export type Media =
+  | { type: 'image'; source: MediaSource }
+  | { type: 'video'; url: string }
+  | { type: 'audio'; source: MediaSource };
+
+export interface NodeMedia {
+  media: Media;
+  position: 'before' | 'after'; // Antes ou depois do texto
+}
+
+/** Emoji ou imagem exibidos no botão da opção (com ou sem rótulo). */
+export type ChoiceMedia =
+  | { kind: 'emoji'; emoji: string }
+  | { kind: 'image'; source: MediaSource };
+
+export interface Choice {
+  id: string; // Também é o ID da saída (handle) da opção
+  label: string; // Pode ficar vazio quando há mídia
+  media: ChoiceMedia | null;
+}
+
+/** Limites da espera após uma mensagem (segundos). */
+export const MESSAGE_DELAY_MAX = 10;
+
+export interface Condition {
+  id: string;
+  variableId: string | null;
+  operator: ComparisonOperator;
+  value: Value;
+}
+
+export interface Rule {
+  id: string; // Também é o ID da saída (handle) da regra
+  match: 'all' | 'any'; // 'all' = todas as condições (E) | 'any' = qualquer uma (OU)
+  conditions: Condition[];
+}
+
+// --- NÓS ---
+
+export interface NodeDataMap {
+  start: Record<string, never>;
+  message: { content: RichText; media: NodeMedia | null; delay: number }; // delay: segundos antes do próximo nó
+  open_question: { content: RichText; media: NodeMedia | null; variableId: string | null };
+  choice_question: { content: RichText; media: NodeMedia | null; choices: Choice[] };
+  condition: { rules: Rule[] };
+  set_variable: { variableId: string | null; value: AssignmentValue };
+  math: { variableId: string | null; operator: MathOperator; operand: Value };
+  end: { content: RichText; media: NodeMedia | null };
+}
+
+export type NodeType = keyof NodeDataMap;
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+/** Distributivo: `ChatNodeOf<'a' | 'b'>` vira `ChatNodeOf<'a'> | ChatNodeOf<'b'>`. */
+export type ChatNodeOf<T extends NodeType> = T extends NodeType
+  ? { id: string; type: T; position: Position; data: NodeDataMap[T] }
+  : never;
+
+/** Union discriminado: `node.type` estreita o tipo de `node.data`. */
+export type ChatNode = ChatNodeOf<NodeType>;
+
+// --- CONEXÕES ---
+
+/** Saída padrão dos nós com um único caminho. */
+export const HANDLE_OUT = 'out';
+/** Saída "caso contrário" do nó de condição. */
+export const HANDLE_ELSE = 'else';
+
+/**
+ * Cada saída tem no máximo uma conexão: o ID é derivado da saída
+ * (`${sourceNode}:${sourceHandle}`), então reconectar substitui a anterior.
+ * Todo nó tem uma única entrada, por isso não há `targetHandle`.
+ */
+export interface ChatEdge {
+  id: string;
+  sourceNode: string;
+  sourceHandle: string;
+  targetNode: string;
+  color?: string;
+}
+
+// --- PROJETO ---
+
+// --- APARÊNCIA (runtime e painel Testar) ---
+
+/** Temas do chat (chaves, não hex: as cores podem ser ajustadas sem mudar o JSON). */
+export const THEMES = [
+  'classic', 'ocean', 'forest', 'sunset', 'cotton_candy', 'notebook', 'night', 'space', 'high_contrast'
+] as const;
+export type ThemeKey = (typeof THEMES)[number];
+
+/** Fontes do chat ('system' não baixa nada; as outras vêm no build, sem CDN). */
+export const CHAT_FONTS = ['system', 'andika', 'nunito', 'atkinson', 'comic'] as const;
+export type ChatFont = (typeof CHAT_FONTS)[number];
+
+export const FONT_SIZES = ['small', 'medium', 'large'] as const;
+export type FontSize = (typeof FONT_SIZES)[number];
+
+export interface Appearance {
+  avatar: ChoiceMedia | null; // Emoji ou imagem ao lado do título (null = ícone padrão)
+  theme: ThemeKey;
+  font: ChatFont;
+  fontSize: FontSize;
+  welcomeTitle: string; // Título da tela inicial ('' = texto padrão no idioma de quem abre)
+}
+
+export interface ChatbotProject extends ClicBaseProject {
+  title: string; // Título exibido no cabeçalho do chat
+  appearance: Appearance;
+  nodes: Record<string, ChatNode>;
+  edges: Record<string, ChatEdge>;
+  variables: Record<string, Variable>;
+  assets: Record<string, ClicAsset>;
 }

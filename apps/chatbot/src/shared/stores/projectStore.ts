@@ -1,334 +1,340 @@
 import { defineStore } from 'pinia';
-import type { Block, Connection, BlockType } from '@/shared/types/chatbot';
-import type { ProjectData } from '@/shared/types/project';
-import { i18n, generateUUID } from '@clic/shared';
+import type {
+  Appearance,
+  AssignmentValue,
+  ChatbotProject,
+  ChatNode,
+  ChatNodeOf,
+  ChoiceMedia,
+  MathOperator,
+  Media,
+  NodeMedia,
+  NodeType,
+  Position,
+  RichText,
+  Rule,
+  Value,
+  VariableType
+} from '../types/chatbot';
+import { appDomainDeps } from '../appDeps';
+import * as graph from '../domain/graph';
+import { ProjectLoadError, createChoice, createCondition, createNode, createProject, createRule, parseProject } from '../domain/project';
+import { checkVariableName, coerceVariableValue } from '../domain/variables';
+import { withoutUnusedAssets } from '../domain/usages';
+import { cloneNode } from '../domain/clone';
 
-// IDs fixos para o fluxo inicial
-const START_ID = 'start';
-const FIRST_MESSAGE_ID = 'block_message_1';
+const now = () => new Date().toISOString();
 
-// Posições iniciais (lado a lado)
-const START_POSITION = { x: 100, y: 120 };
-const GAP_X = 320;
-const GAP_Y = 60;
+const deps = appDomainDeps;
 
-// Helper: Retorna o conteúdo padrão baseado no tipo do bloco
-function getDefaultContent(type: BlockType): string {
-  const t = i18n.global.t;
+/** Distância da cópia em relação ao original ao duplicar. */
+const DUPLICATE_OFFSET = 40;
 
-  switch (type) {
-    case 'start': return '';
-    case 'message': return t('chatbot.blocks.default_content.message');
-    case 'openQuestion': return t('chatbot.blocks.default_content.openQuestion');
-    case 'choiceQuestion': return t('chatbot.blocks.default_content.choiceQuestion');
-    case 'condition': return t('chatbot.blocks.default_content.condition');
-    case 'setVariable': return t('chatbot.blocks.default_content.setVariable');
-    case 'math': return t('chatbot.blocks.default_content.math');
-    case 'image': return t('chatbot.blocks.default_content.image');
-    case 'end': return t('chatbot.blocks.default_content.end');
-    default: return '';
-  }
-}
-
-// Bloco START (inteiro verde, sem conteúdo)
-const startBlock: Block = {
-  id: START_ID,
-  type: 'start',
-  position: START_POSITION,
-  content: '',  
-  nextBlockId: FIRST_MESSAGE_ID
-};
-
-// Primeiro bloco de mensagem
-const firstMessageBlock: Block = {
-  id: FIRST_MESSAGE_ID,
-  type: 'message',
-  position: { x: START_POSITION.x + GAP_X, y: START_POSITION.y + GAP_Y },
-  content: getDefaultContent('message'),
-  nextBlockId: undefined
-};
-
-// Conexão visual entre start → mensagem
-const initialConnection: Connection = {
-  id: `conn_${Date.now()}`,
-  fromBlockId: START_ID,
-  fromOutputId: undefined,
-  toBlockId: FIRST_MESSAGE_ID,
-};
-
+/**
+ * STORE DO PROJETO
+ *
+ * Cada action tracked é um gesto do aluno: gera uma entrada de undo e um evento
+ * de telemetria com o nome da action (regra 6 do CLAUDE.md). Por isso:
+ * - uma action nunca chama outra action tracked (seleção e markAsSaved são ignoradas);
+ * - textos só chegam aqui confirmados (blur/Enter), nunca a cada tecla;
+ * - a regra de negócio fica em `domain/`; aqui só se encaminha.
+ */
 export const useProjectStore = defineStore('chatbot-project', {
-  // --- CONFIGURAÇÃO DO HISTÓRICO (UNDO/REDO) ---
   history: {
-    stateKey: 'document',
-    telemetry: { appSlug: 'chatbot', sessionActions: ['setProjectData', 'resetProjectData'] },
-    ignoreActions:[
-      'markAsSaved', 
-      'getProjectData', 
-      'updateBlockPositionSilent', // 60 FPS Fix (Blocos)
-      'updateConnectionSilent',    // 60 FPS Fix (Waypoints)
-      'selectBlock',               // UI State não entra no Undo
-      'updateBlockSilent'          // Ignora a digitação em tempo real
-    ],
-    clearHistoryActions:['setProjectData', 'resetProjectData'],
+    stateKey: 'project',
+    telemetry: { appSlug: 'chatbot', sessionActions: ['createNew', 'loadProject'] },
+    ignoreActions: ['markAsSaved', 'getProjectData', 'selectNode', 'selectEdge', 'clearSelection'],
+    clearHistoryActions: ['createNew', 'loadProject'],
     actionLabels: {
-      createBlock: 'chatbot.history.createBlock',
-      updateBlock: 'chatbot.history.updateBlock',
-      deleteBlock: 'chatbot.history.deleteBlock',
-      duplicateBlock: 'chatbot.history.duplicateBlock',
-      pasteBlock: 'chatbot.history.pasteBlock',
-      updateBlockPosition: 'chatbot.history.updateBlockPosition',
+      renameProject: 'chatbot.history.renameProject',
+      setAppearance: 'chatbot.history.setAppearance',
+      addNode: 'chatbot.history.addNode',
+      addConnectedNode: 'chatbot.history.addConnectedNode',
+      duplicateNode: 'chatbot.history.duplicateNode',
+      pasteNode: 'chatbot.history.pasteNode',
+      moveNodes: 'chatbot.history.moveNodes',
+      deleteNode: 'chatbot.history.deleteNode',
+      setNodeContent: 'chatbot.history.setNodeContent',
+      setNodeMedia: 'chatbot.history.setNodeMedia',
+      setMediaPosition: 'chatbot.history.setMediaPosition',
+      setMessageDelay: 'chatbot.history.setMessageDelay',
+      connect: 'chatbot.history.connect',
+      disconnect: 'chatbot.history.disconnect',
+      setEdgeColor: 'chatbot.history.setEdgeColor',
+      addChoice: 'chatbot.history.addChoice',
+      renameChoice: 'chatbot.history.renameChoice',
+      setChoiceMedia: 'chatbot.history.setChoiceMedia',
+      removeChoice: 'chatbot.history.removeChoice',
+      addRule: 'chatbot.history.addRule',
+      removeRule: 'chatbot.history.removeRule',
+      setRuleMatch: 'chatbot.history.setRuleMatch',
+      addCondition: 'chatbot.history.addCondition',
+      updateCondition: 'chatbot.history.updateCondition',
+      removeCondition: 'chatbot.history.removeCondition',
+      setAnswerVariable: 'chatbot.history.setAnswerVariable',
+      setAssignment: 'chatbot.history.setAssignment',
+      setMathOperation: 'chatbot.history.setMathOperation',
       addVariable: 'chatbot.history.addVariable',
-      updateVariableValue: 'chatbot.history.updateVariableValue',
-      removeVariable: 'chatbot.history.removeVariable',
-      createConnection: 'chatbot.history.createConnection',
-      deleteConnection: 'chatbot.history.deleteConnection',
-      updateConnection: 'chatbot.history.updateConnection'
+      renameVariable: 'chatbot.history.renameVariable',
+      setVariableDefault: 'chatbot.history.setVariableDefault',
+      deleteVariable: 'chatbot.history.deleteVariable'
     }
   },
 
   state: () => {
-    const now = new Date().toISOString();
-
-    const initialDocument: ProjectData = {
-      uuid: generateUUID(),
-      meta: {
-        version: '1.0.0',
-        createdAt: now,
-        updatedAt: now,
-      },
-      blocks:[
-        { ...startBlock, position: { ...startBlock.position } },
-        { ...firstMessageBlock, position: { ...firstMessageBlock.position } }
-      ],
-      connections:[
-        { ...initialConnection, id: `conn_${Date.now()}` }
-      ],
-      variables: {},
-      assets: {},
-    };
-
+    const initialProject = createProject(deps, now());
     return {
-      document: initialDocument,
-      ui: {
-        selectedBlockId: null as string | null,
-      },
-      meta: {
-        lastSavedState: JSON.stringify(initialDocument),
-      }
+      project: initialProject as ChatbotProject,
+      lastSavedState: JSON.stringify(initialProject),
+      // Estado volátil de UI (fora do JSON)
+      selectedNodeId: null as string | null,
+      selectedEdgeId: null as string | null
     };
   },
 
   getters: {
-    hasUnsavedChanges: (state) => JSON.stringify(state.document) !== state.meta.lastSavedState
+    hasUnsavedChanges: (state) => JSON.stringify(state.project) !== state.lastSavedState,
+    activeNode: (state) => (state.selectedNodeId ? state.project.nodes[state.selectedNodeId] ?? null : null),
+    activeEdge: (state) => (state.selectedEdgeId ? state.project.edges[state.selectedEdgeId] ?? null : null)
   },
 
   actions: {
-    // --- FUNÇÕES DE INFRAESTRUTURA ---
-    // Salvar não altera o documento aberto: a data vai só na cópia (getProjectData).
-    // Senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo".
-    markAsSaved() {
-      this.meta.lastSavedState = JSON.stringify(this.document);
-    },
-
-    getProjectData(): ProjectData {
-      const data: ProjectData = JSON.parse(JSON.stringify(this.document));
-      data.meta.updatedAt = new Date().toISOString();
+    /**
+     * JSON portável para salvar/exportar (regra 1): cópia sem arquivos que nenhum nó usa.
+     * A data de atualização é carimbada só na cópia: salvar não altera o projeto aberto
+     * (senão o desfazer depois de salvar voltaria a data e o projeto pareceria "não salvo").
+     */
+    getProjectData(): ChatbotProject {
+      const data = withoutUnusedAssets(this.project);
+      data.meta.updatedAt = now();
       return data;
     },
 
-    setProjectData(data: ProjectData, markAsUnsaved: boolean = false) {
-      const now = new Date().toISOString();
-
-      this.document = {
-        uuid: data.uuid || generateUUID(),
-        meta: data.meta || { version: '1.0.0', createdAt: now, updatedAt: now },
-        blocks: Array.isArray(data.blocks) ? data.blocks :[],
-        connections: Array.isArray(data.connections) ? data.connections :[],
-        variables: typeof data.variables === 'object' ? data.variables : {},
-        assets: typeof data.assets === 'object' ? data.assets : {},
-      };
-      this.ui.selectedBlockId = null;
-      
-      if (markAsUnsaved) {
-        this.meta.lastSavedState = 'FORCED_UNSAVED'; }
-      else {
-        this.meta.lastSavedState = JSON.stringify(this.document);
-      }
+    // --- SESSÃO (iniciam o Frame Zero da telemetria) ---
+    /** Só registra o estado salvo: não muda o projeto (ver getProjectData). */
+    markAsSaved() {
+      this.lastSavedState = JSON.stringify(this.project);
     },
 
-    resetProjectData() {
-      const now = new Date().toISOString();
-      
-      this.document = {
-        uuid: generateUUID(), // Renova a alma ao criar projeto novo
-        meta: { version: '1.0.0', createdAt: now, updatedAt: now },
-        blocks:[ { ...startBlock, position: { ...startBlock.position } }, { ...firstMessageBlock, position: { ...firstMessageBlock.position } } ],
-        connections:[ { ...initialConnection, id: `conn_${Date.now()}` } ],
-        variables: {}, assets: {},
-      };
-      this.ui.selectedBlockId = null;
-      this.meta.lastSavedState = JSON.stringify(this.document);
+    createNew() {
+      this.project = createProject(deps, now());
+      this.selectedNodeId = null;
+      this.selectedEdgeId = null;
+      this.lastSavedState = JSON.stringify(this.project);
     },
 
-    // --- AÇÕES DE SELEÇÃO E UI ---
-    selectBlock(id: string | null) {
-      this.ui.selectedBlockId = id;
+    /**
+     * Lança `ProjectLoadError` (sem trocar o projeto atual) se o JSON for inválido ou de outra versão.
+     * Lançar, e não retornar o erro, evita que o plugin de histórico inicie uma sessão de telemetria.
+     */
+    loadProject(json: unknown, markAsUnsaved = false) {
+      const result = parseProject(json, deps, now());
+      if (!result.ok) throw new ProjectLoadError(result.error);
+
+      this.project = result.project;
+      this.selectedNodeId = null;
+      this.selectedEdgeId = null;
+      // Projeto convertido do v1 abre como alterado: salvar grava o formato novo no mesmo registro
+      const unsaved = markAsUnsaved || !!result.migration;
+      this.lastSavedState = unsaved ? 'FORCED_UNSAVED' : JSON.stringify(this.project);
+      return result.migration ?? null;
     },
 
-    // --- AÇÕES DE BLOCOS ---
-    createBlock(type: BlockType, position: { x: number; y: number }) {
-      if (type === 'start') return;
-      const newBlock: Block = {
-        id: `block_${Date.now()}`,
-        type,
-        position,
-        content: getDefaultContent(type),
-        choices: type === 'choiceQuestion' ?[] : undefined,
-        conditions: type === 'condition' ?[] : undefined,
-        nextBlockId: undefined
-      };
-      this.document.blocks.push(newBlock);
-      this.selectBlock(newBlock.id);
+    // --- SELEÇÃO (ignoradas pelo histórico) ---
+    selectNode(id: string | null) {
+      this.selectedNodeId = id;
+      if (id) this.selectedEdgeId = null;
     },
 
-    updateBlockSilent(id: string, updates: Partial<Block>) {
-      const index = this.document.blocks.findIndex(b => b.id === id);
-      if (index !== -1) {
-        this.document.blocks[index] = { ...this.document.blocks[index], ...updates };
-      }
+    selectEdge(id: string | null) {
+      this.selectedEdgeId = id;
+      if (id) this.selectedNodeId = null;
     },
 
-    updateBlock(id: string, updates: Partial<Block>) {
-      this.updateBlockSilent(id, updates);
+    clearSelection() {
+      this.selectedNodeId = null;
+      this.selectedEdgeId = null;
     },
 
-
-    deleteBlock(id: string) {
-      if (id === 'start') return;
-
-      // 1. Apaga conexões atreladas a este bloco (como origem ou destino)
-      const connectionsToRemove = this.document.connections.filter(c => c.fromBlockId === id || c.toBlockId === id);
-      connectionsToRemove.forEach(c => this.deleteConnection(c.id));
-
-      // 2. Apaga o bloco
-      this.document.blocks = this.document.blocks.filter(b => b.id !== id);
-      if (this.ui.selectedBlockId === id) this.selectBlock(null);
+    renameProject(title: string) {
+      this.project.title = title;
     },
 
-    duplicateBlock(id: string, newPosition: { x: number; y: number }) {
-      if (id === 'start') return;
-      const blockToDuplicate = this.document.blocks.find(b => b.id === id);
-      if (!blockToDuplicate) return;
-
-      const newBlock: Block = {
-        ...JSON.parse(JSON.stringify(blockToDuplicate)),
-        id: `block_${Date.now()}`,
-        position: newPosition
-      };
-      this.document.blocks.push(newBlock);
-      this.selectBlock(newBlock.id);
+    setAppearance(changes: Partial<Appearance>) {
+      Object.assign(this.project.appearance, changes);
     },
 
-    pasteBlock(copiedBlock: Block, position: { x: number; y: number }) {
-      const newBlock: Block = {
-        ...JSON.parse(JSON.stringify(copiedBlock)), // Clone profundo para segurança
-        id: `block_${Date.now()}`,
-        position
-      };
-      this.document.blocks.push(newBlock);
-      this.selectBlock(newBlock.id);
+    // --- NÓS ---
+    addNode(type: NodeType, position: Position) {
+      const node = createNode(type, position, deps);
+      graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
     },
 
-    // --- AÇÕES DE MOVIMENTAÇÃO (60 FPS FIX - BLOCOS) ---
-    updateBlockPositionSilent(id: string, x: number, y: number) {
-      const block = this.document.blocks.find(b => b.id === id);
-      if (block) {
-        block.position.x = x;
-        block.position.y = y;
-      }
+    /** Cria o bloco já ligado a uma saída (conexão solta no vazio): um gesto, um desfazer. */
+    addConnectedNode(type: NodeType, position: Position, sourceNode: string, sourceHandle: string) {
+      const node = createNode(type, position, deps);
+      graph.addNode(this.project, node);
+      graph.connect(this.project, sourceNode, sourceHandle, node.id);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
     },
 
-    updateBlockPosition(id: string, x: number, y: number) {
-      // Esta ação é registrada pelo Histórico ao soltar o mouse.
-      this.updateBlockPositionSilent(id, x, y);
+    /** Cópia ao lado do original, já selecionada (sem as conexões). */
+    duplicateNode(id: string) {
+      const source = this.project.nodes[id];
+      if (!source) return null;
+      const position = { x: source.position.x + DUPLICATE_OFFSET, y: source.position.y + DUPLICATE_OFFSET };
+      const node = cloneNode(source, this.project, position, deps);
+      if (!node) return null;
+      graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
     },
 
-    // --- AÇÕES DE MOVIMENTAÇÃO (60 FPS FIX - WAYPOINTS/CONEXÕES) ---
-    updateConnectionSilent(updatedConnections: Connection[]) {
-      // Substitui o array inteiro silenciosamente durante o arraste
-      this.document.connections = updatedConnections;
+    /** Cola um bloco copiado (talvez de outro projeto): o que não existe aqui é removido. */
+    pasteNode(copied: ChatNode, position: Position) {
+      const node = cloneNode(copied, this.project, position, deps);
+      if (!node) return null;
+      graph.addNode(this.project, node);
+      this.selectedNodeId = node.id;
+      this.selectedEdgeId = null;
+      return node.id;
     },
 
-    updateConnection(updatedConnections: Connection[]) {
-      // Registrada pelo Histórico ao soltar o mouse do waypoint
-      this.updateConnectionSilent(updatedConnections);
+    moveNodes(moves: { id: string; position: Position }[]) {
+      graph.moveNodes(this.project, moves);
     },
 
-    // --- AÇÕES DE VARIÁVEIS ---
-    addVariable(name: string, type: 'string' | 'number') {
-      this.document.variables[name] = { name, type, value: type === 'number' ? 0 : '' };
+    deleteNode(id: string) {
+      if (!graph.deleteNode(this.project, id)) return false;
+      if (this.selectedNodeId === id) this.selectedNodeId = null;
+      if (this.selectedEdgeId && !this.project.edges[this.selectedEdgeId]) this.selectedEdgeId = null;
+      return true;
     },
 
-    updateVariableValue(name: string, value: string | number) {
-      if (this.document.variables[name]) {
-        this.document.variables[name].value = value;
-      }
+    setNodeContent(id: string, content: RichText) {
+      const node = this.project.nodes[id];
+      if (node && 'content' in node.data) node.data.content = content;
     },
 
-    removeVariable(name: string) {
-      delete this.document.variables[name];
+    /** Um arquivo enviado já está em `project.assets` (assetStore); entra no diff desta action. */
+    setNodeMedia(id: string, media: Media | null) {
+      return graph.setNodeMedia(this.project, id, media);
     },
 
-    // --- AÇÕES DE CONEXÕES ---
-    createConnection(fromBlockId: string, fromOutputId: string | undefined, toBlockId: string) {
-      const fromBlock = this.document.blocks.find(b => b.id === fromBlockId);
-      const toBlock = this.document.blocks.find(b => b.id === toBlockId);
-
-      if (!fromBlock || !toBlock || fromBlock.type === 'end') return;
-
-      // Impede duplicata exata
-      if (this.document.connections.some(c => c.fromBlockId === fromBlockId && c.fromOutputId === fromOutputId && c.toBlockId === toBlockId)) return;
-
-      // 1. Remove qualquer conexão antiga que saía DESSA MESMA "porta" (Substituição)
-      this.document.connections = this.document.connections.filter(c => !(c.fromBlockId === fromBlockId && c.fromOutputId === fromOutputId));
-
-      // 2. Cria a conexão visual
-      const newConnection: Connection = {
-        id: `conn_${Date.now()}`,
-        fromBlockId,
-        fromOutputId,
-        toBlockId
-      };
-      this.document.connections.push(newConnection);
-
-      // 3. Atualiza a propriedade nextBlockId atômica no bloco de origem
-      if (fromOutputId && fromBlock.choices) {
-        fromBlock.choices = fromBlock.choices.map(c => c.id === fromOutputId ? { ...c, nextBlockId: toBlockId } : c);
-      } else if (fromOutputId && fromBlock.conditions) {
-        fromBlock.conditions = fromBlock.conditions.map(c => c.id === fromOutputId ? { ...c, nextBlockId: toBlockId } : c);
-      } else {
-        fromBlock.nextBlockId = toBlockId;
-      }
+    setMediaPosition(id: string, position: NodeMedia['position']) {
+      graph.setMediaPosition(this.project, id, position);
     },
 
-    deleteConnection(connectionId: string) {
-      const connection = this.document.connections.find(c => c.id === connectionId);
-      if (!connection) return;
+    setMessageDelay(id: string, seconds: number) {
+      graph.setMessageDelay(this.project, id, seconds);
+    },
 
-      // 1. Remove a conexão visual
-      this.document.connections = this.document.connections.filter(c => c.id !== connectionId);
+    // --- CONEXÕES ---
+    connect(sourceNode: string, sourceHandle: string, targetNode: string) {
+      return graph.connect(this.project, sourceNode, sourceHandle, targetNode);
+    },
 
-      // 2. Remove o nextBlockId do bloco de origem
-      const fromBlock = this.document.blocks.find(b => b.id === connection.fromBlockId);
-      if (fromBlock) {
-        if (connection.fromOutputId && fromBlock.choices) {
-          fromBlock.choices = fromBlock.choices.map(c => c.id === connection.fromOutputId ? { ...c, nextBlockId: undefined } : c);
-        } else if (connection.fromOutputId && fromBlock.conditions) {
-          fromBlock.conditions = fromBlock.conditions.map(c => c.id === connection.fromOutputId ? { ...c, nextBlockId: undefined } : c);
-        } else {
-          fromBlock.nextBlockId = undefined;
-        }
-      }
+    disconnect(id: string) {
+      if (!graph.disconnect(this.project, id)) return false;
+      if (this.selectedEdgeId === id) this.selectedEdgeId = null;
+      return true;
+    },
+
+    setEdgeColor(id: string, color: string) {
+      graph.setEdgeColor(this.project, id, color);
+    },
+
+    // --- MÚLTIPLA ESCOLHA ---
+    addChoice(nodeId: string) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'choice_question');
+      if (!node) return;
+      graph.addChoice(this.project, nodeId, createChoice(deps, node.data.choices.length + 1));
+    },
+
+    renameChoice(nodeId: string, choiceId: string, label: string) {
+      graph.renameChoice(this.project, nodeId, choiceId, label);
+    },
+
+    /** Um arquivo enviado já está em `project.assets` (assetStore); entra no diff desta action. */
+    setChoiceMedia(nodeId: string, choiceId: string, media: ChoiceMedia | null) {
+      return graph.setChoiceMedia(this.project, nodeId, choiceId, media);
+    },
+
+    removeChoice(nodeId: string, choiceId: string) {
+      return graph.removeChoice(this.project, nodeId, choiceId);
+    },
+
+    // --- CONDIÇÃO ---
+    addRule(nodeId: string) {
+      graph.addRule(this.project, nodeId, createRule(deps));
+    },
+
+    removeRule(nodeId: string, ruleId: string) {
+      return graph.removeRule(this.project, nodeId, ruleId);
+    },
+
+    setRuleMatch(nodeId: string, ruleId: string, match: Rule['match']) {
+      graph.setRuleMatch(this.project, nodeId, ruleId, match);
+    },
+
+    addCondition(nodeId: string, ruleId: string) {
+      graph.addCondition(this.project, nodeId, ruleId, createCondition(deps));
+    },
+
+    updateCondition(nodeId: string, ruleId: string, conditionId: string, changes: Parameters<typeof graph.updateCondition>[4]) {
+      graph.updateCondition(this.project, nodeId, ruleId, conditionId, changes);
+    },
+
+    removeCondition(nodeId: string, ruleId: string, conditionId: string) {
+      return graph.removeCondition(this.project, nodeId, ruleId, conditionId);
+    },
+
+    // --- DEMAIS NÓS ---
+    setAnswerVariable(nodeId: string, variableId: string | null) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'open_question');
+      if (node) node.data.variableId = variableId;
+    },
+
+    setAssignment(nodeId: string, changes: Partial<{ variableId: string | null; value: AssignmentValue }>) {
+      const node = graph.getNodeOfType(this.project, nodeId, 'set_variable');
+      if (node) Object.assign(node.data, changes);
+    },
+
+    setMathOperation(nodeId: string, changes: Partial<{ variableId: string | null; operator: MathOperator; operand: Value }>) {
+      const node: ChatNodeOf<'math'> | null = graph.getNodeOfType(this.project, nodeId, 'math');
+      if (node) Object.assign(node.data, changes);
+    },
+
+    // --- VARIÁVEIS ---
+    /** Retorna o ID criado, ou null se o nome for vazio/repetido. */
+    addVariable(name: string, type: VariableType = 'text') {
+      if (checkVariableName(this.project, name)) return null;
+      const id = deps.newId();
+      this.project.variables[id] = { id, name: name.trim(), type, defaultValue: type === 'number' ? 0 : '' };
+      return id;
+    },
+
+    renameVariable(id: string, name: string) {
+      const variable = this.project.variables[id];
+      if (!variable || checkVariableName(this.project, name, id)) return false;
+      variable.name = name.trim();
+      return true;
+    },
+
+    setVariableDefault(id: string, raw: string) {
+      const variable = this.project.variables[id];
+      if (variable) variable.defaultValue = coerceVariableValue(variable.type, raw);
+    },
+
+    /** As referências continuam nos nós; a validação do fluxo aponta onde corrigir. */
+    deleteVariable(id: string) {
+      delete this.project.variables[id];
     }
   }
 });

@@ -1,573 +1,642 @@
 <script setup lang="ts">
-/**
- * CANVAS - Área de trabalho onde os blocos são desenhados e conectados
- */
-
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, toRef } from 'vue';
+import { computed, defineAsyncComponent, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { Link, Trash2 } from '@lucide/vue';
-import type { Block, Connection, BlockType } from '@/shared/types/chatbot';
-import BlockNode from './BlockNode.vue';
-import CanvasToolbar from './components/CanvasToolbar.vue';
-import ConnectionsLayer from './components/ConnectionsLayer.vue';
-import { useCanvasTransform } from './composables/useCanvasTransform';
-import { useConnectionGeometry } from './composables/useConnectionGeometry';
-import { useConnectionManager } from './composables/useConnectionManager';
-import { useWaypointEditor } from './composables/useWaypointEditor';
-import { useCanvasInteractions } from './composables/useCanvasInteractions';
-import { useProjectStore } from '@/shared/stores/projectStore';
+import {
+  VueFlow, useVueFlow, MarkerType,
+  type Connection, type NodeDragEvent, type NodeMouseEvent, type OnConnectStartParams, type XYPosition
+} from '@vue-flow/core';
+import { Background } from '@vue-flow/background';
+import { useProjectStore } from '../../../shared/stores/projectStore';
+import CustomNode from './nodes/CustomNode.vue';
+import CustomEdge from './edges/CustomEdge.vue';
+import GhostPath from './edges/GhostPath.vue';
+import ClickConnectionLine from './edges/ClickConnectionLine.vue';
+import ContextMenu from './ContextMenu.vue';
+import EdgeContextMenu from './edges/EdgeContextMenu.vue';
+import type { ChatEdge, NodeType } from '../../../shared/types/chatbot';
+import { assignBackEdgeLanes, NODE_WIDTH, type EdgeEmphasis, type FlowEdgeData } from '../../utils/edgePath';
+import { connectTargetNodeId } from '../../utils/connectTarget';
+import { clearHighlight, highlightedNodeIds } from '../../utils/highlight';
+import { copyNode, hasCopiedNode, readCopiedNode } from '../../utils/nodeClipboard';
+import { requestTestFrom, testActiveNodeId } from '../../utils/testRun';
+import { showMinimap } from '../../utils/minimap';
+import { useToast } from '@clic/shared';
+import NodeContextMenu from './NodeContextMenu.vue';
+import CanvasToolbar from './CanvasToolbar.vue';
+import ZoomControls from './ZoomControls.vue';
+import { FIT_VIEW_OPTIONS, OPEN_MIN_ZOOM, OPEN_SUBSET_MAX_ZOOM, boundsOf, nodesToFrameOnOpen, smallFlowViewport } from '../../utils/viewport';
 
-const props = defineProps<{
-  blocks: Block[];
-  connections: Connection[];
-  selectedBlockId: string | null;
-  zoom: number;
-}>();
+const projectStore = useProjectStore();
 
-const emit = defineEmits<{
-  'update:selectedBlockId': [id: string | null];
-  'focus-block-editor': [];
-  'update:zoom': [zoom: number];
-  'context-menu': [position: { x: number; y: number; screenX: number; screenY: number }];
-  'block-context-menu': [blockId: string, position: { x: number; y: number; screenX: number; screenY: number }];
-  'create-block': [payload: { type: BlockType; position?: { x: number; y: number } }];
-}>();
-
+// Extraímos as funções nativas e o estado de clique
+const { screenToFlowCoordinate, connectionClickStartHandle, connectionStartHandle, fitView, getNodes, viewport, setViewport } = useVueFlow();
+// Carregado só quando alguém abre o mapa (ver CanvasMinimap.vue)
+const CanvasMinimap = defineAsyncComponent(() => import('./CanvasMinimap.vue'));
 const { t } = useI18n();
-const store = useProjectStore();
+const toast = useToast();
 
-// Refs
-const canvasRef = ref<HTMLDivElement | null>(null);
-const renderKey = ref(0);
+// --- ENQUADRAMENTO AO ABRIR ---
+// Projeto aberto, importado ou novo (uuid diferente): enquadra todos os blocos assim que o
+// Vue Flow tiver medido cada um. Editar o projeto não muda o uuid, então não reenquadra.
+// (O evento nodesInitialized não basta: blocos com os mesmos IDs do projeto anterior já
+// estão medidos e o evento não se repete.)
+const FIT_MAX_FRAMES = 30;
 
-// DETECÇÃO DE TOUCH
-const isTouchDevice = ref(false);
-
-// Setup dos composables
-const blocksRef = toRef(props, 'blocks');
-const connectionsRef = toRef(props, 'connections');
-
-const transform = useCanvasTransform({
-  canvasRef,
-  initialZoom: props.zoom
-});
-
-const geometry = useConnectionGeometry({
-  canvasRef,
-  panOffset: transform.panOffset,
-  zoom: transform.zoom
-});
-
-const connectionMgr = useConnectionManager();
-
-const waypointEditor = useWaypointEditor({
-  canvasRef,
-  panOffset: transform.panOffset,
-  zoom: transform.zoom,
-  connections: connectionsRef,
-  onSelectConnection: connectionMgr.selectConnection
-});
-
-const interactions = useCanvasInteractions({
-  canvasRef,
-  panOffset: transform.panOffset,
-  zoom: transform.zoom,
-  blocks: blocksRef
-});
-
-// Estilo do canvas com transformações
-const canvasStyle = computed(() => ({
-  transform: `translate(${transform.panOffset.value.x}px, ${transform.panOffset.value.y}px) scale(${transform.zoom.value / 100})`,
-  transformOrigin: '0 0',
-  '--pan-x': `${transform.panOffset.value.x}px`,
-  '--pan-y': `${transform.panOffset.value.y}px`,
-  '--zoom': `${transform.zoom.value / 100}`
-}));
-
-// Mouse down no canvas
-function handleCanvasMouseDown(event: MouseEvent) {
-  // Cancela conexão em andamento
-  if (connectionMgr.connectingFrom.value) {
-    connectionMgr.cancelConnection();
+function fitWhenMeasured(frame = 0) {
+  const nodes = getNodes.value;
+  const measured = nodes.length > 0 && nodes.every(n => n.dimensions.width > 0 && n.dimensions.height > 0);
+  if (measured || frame >= FIT_MAX_FRAMES) {
+    fitOnOpen();
     return;
   }
-
-  const isClickOnBackground = event.target === canvasRef.value;
-
-  // Desseleciona ao clicar no canvas vazio
-  if (isClickOnBackground) {
-    emit('update:selectedBlockId', null);
-    connectionMgr.deselectConnection();
-  }
-
-  // Pan: botão do meio (qualquer lugar) OU botão esquerdo (apenas no fundo do canvas)
-  if (event.button === 1 || (event.button === 0 && isClickOnBackground)) {
-    event.preventDefault();
-    transform.startPan(event.clientX, event.clientY);
-    return;
-  }
+  requestAnimationFrame(() => fitWhenMeasured(frame + 1));
 }
 
-// Mouse move no canvas
-function handleCanvasMouseMove(event: MouseEvent) {
-  interactions.updateMousePosition(event.clientX, event.clientY);
+watch(() => projectStore.project.uuid, () => nextTick(() => fitWhenMeasured()));
 
-  // Atualiza conexão temporária
-  if (connectionMgr.connectingFrom.value) {
-    connectionMgr.updateTempConnection(
-      interactions.mousePosition.value.x,
-      interactions.mousePosition.value.y,
-      geometry.getHandlePosition
-    );
-  }
-
-  // Pan do canvas
-  if (transform.isPanning.value) {
-    transform.updatePan(event.clientX, event.clientY);
-  }
-
-  // Arrastar bloco
-  if (interactions.isDraggingBlock()) {
-    interactions.updateBlockDrag(event.clientX, event.clientY);
-  }
-
-  // Arrastar waypoint/segmento
-  if (waypointEditor.isDragging()) {
-    waypointEditor.updateDrag(event.clientX, event.clientY);
-  }
+// Fluxo grande: em vez de abrir minúsculo, abre no começo da conversa com zoom legível.
+// Fluxo pequeno: 100%, encostado à esquerda e no alto.
+// O botão "Ajustar à tela" continua mostrando tudo quando a criança pede.
+function fitOnOpen() {
+  const view = wrapper.value?.getBoundingClientRect();
+  const rects = Object.fromEntries(getNodes.value.map(n => [n.id, { ...n.computedPosition, ...n.dimensions }]));
+  const all = Object.values(rects);
+  // Fluxo pequeno (ex.: projeto novo): à esquerda e no alto, com espaço à direita para crescer
+  const small = view && all.length ? smallFlowViewport(boundsOf(all), view) : null;
+  if (small) return setViewport(small);
+  const subset = view ? nodesToFrameOnOpen(projectStore.project, rects, view) : null;
+  if (subset) fitView({ nodes: subset, padding: FIT_VIEW_OPTIONS.padding, minZoom: OPEN_MIN_ZOOM, maxZoom: OPEN_SUBSET_MAX_ZOOM });
+  else fitView(FIT_VIEW_OPTIONS);
 }
 
-// Mouse up no canvas
-function handleCanvasMouseUp() {
-  transform.endPan();
-  interactions.endBlockDrag();
-  waypointEditor.endDrag();
+// Painel de variáveis destacou blocos: enquadra só eles para a criança achar onde estão
+watch(highlightedNodeIds, ids => {
+  if (ids.length) fitView({ nodes: ids, padding: 0.3, maxZoom: 1, duration: 300 });
+});
+
+// Teste em andamento: se o bloco que está falando estiver fora da área visível (ex.: atrás do
+// painel Testar), o canvas desliza até ele, sem mudar o zoom. Bloco já visível não move nada.
+const REVEAL_MARGIN = 24;
+watch(testActiveNodeId, id => { if (id) nextTick(() => revealNode(id)); });
+function revealNode(id: string) {
+  const view = wrapper.value?.getBoundingClientRect();
+  const el = wrapper.value?.querySelector(`.vue-flow__node[data-id="${CSS.escape(id)}"]`);
+  if (!view || !el) return;
+  const r = el.getBoundingClientRect();
+  const inside = r.left >= view.left + REVEAL_MARGIN && r.right <= view.right - REVEAL_MARGIN
+    && r.top >= view.top + REVEAL_MARGIN && r.bottom <= view.bottom - REVEAL_MARGIN;
+  if (inside) return;
+  const { x, y, zoom } = viewport.value;
+  const dx = view.left + view.width / 2 - (r.left + r.width / 2);
+  const dy = view.top + view.height / 2 - (r.top + r.height / 2);
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  setViewport({ x: x + dx, y: y + dy, zoom }, { duration: reduceMotion ? 0 : 400 });
 }
 
-// --- HANDLERS DE TOUCH ---
-function handleCanvasTouchStart(event: TouchEvent) {
-  isTouchDevice.value = true;
+// --- ZOOM COM A RODA E A PINÇA ---
+// A roda dá zoom mantendo o ponto sob o cursor, também em cima dos blocos (mover o canvas é
+// arrastando o fundo). A pinça do trackpad chega como roda + ctrlKey e cai no mesmo caminho.
+// Exceção: o texto em edição no bloco (.nowheel) rola o próprio conteúdo.
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 4;
 
-  if (event.touches.length === 2) {
-    event.preventDefault();
-    transform.startPinch(event.touches);
-  } else if (event.touches.length === 1) {
-    if (connectionMgr.connectingFrom.value && event.target === canvasRef.value) {
-      connectionMgr.cancelConnection();
-      return;
-    }
-
-    if (event.target === canvasRef.value) {
-      event.preventDefault();
-      emit('update:selectedBlockId', null);
-      connectionMgr.deselectConnection();
-      transform.startPan(event.touches[0].clientX, event.touches[0].clientY);
-    }
-  }
-}
-
-function handleCanvasTouchMove(event: TouchEvent) {
-  if (event.touches.length === 2) {
-    event.preventDefault();
-    transform.updatePinch(event.touches);
-  } else if (event.touches.length === 1) {
-    const touch = event.touches[0];
-    interactions.updateMousePosition(touch.clientX, touch.clientY);
-
-    if (connectionMgr.connectingFrom.value) {
-      event.preventDefault();
-      connectionMgr.updateTempConnection(
-        interactions.mousePosition.value.x,
-        interactions.mousePosition.value.y,
-        geometry.getHandlePosition
-      );
-    }
-
-    if (transform.isPanning.value) {
-      event.preventDefault();
-      transform.updatePan(touch.clientX, touch.clientY);
-    }
-
-    if (interactions.isDraggingBlock()) {
-      event.preventDefault();
-      interactions.updateBlockDrag(touch.clientX, touch.clientY);
-    }
-    
-    if (waypointEditor.isDragging()) {
-      event.preventDefault();
-      waypointEditor.updateDrag(touch.clientX, touch.clientY);
-    }
-  }
-}
-
-function handleCanvasTouchEnd(event: TouchEvent) {
-  if (event.touches.length < 2) {
-    transform.endPinch();
-  }
-  if (event.touches.length === 0) {
-    transform.endPan();
-    interactions.endBlockDrag();
-    waypointEditor.endDrag(); // Termina arraste do waypoint no touch
-  } else if (event.touches.length === 1 && !interactions.isDraggingBlock() && !waypointEditor.isDragging()) {
-    transform.startPan(event.touches[0].clientX, event.touches[0].clientY);
-  }
-}
-
-// Context menu no canvas
-function handleCanvasContextMenu(event: MouseEvent) {
+function onWheel(event: WheelEvent) {
+  if (!event.ctrlKey && !event.metaKey && (event.target as HTMLElement | null)?.closest('.nowheel')) return;
   event.preventDefault();
-
-  const rect = canvasRef.value?.getBoundingClientRect();
+  event.stopPropagation();
+  const rect = wrapper.value?.getBoundingClientRect();
   if (!rect) return;
-
-  const zoom = transform.zoom.value / 100;
-  const position = {
-    x: (event.clientX - rect.left - transform.panOffset.value.x) / zoom,
-    y: (event.clientY - rect.top - transform.panOffset.value.y) / zoom,
-    screenX: event.clientX,
-    screenY: event.clientY
-  };
-
-  emit('context-menu', position);
+  // Pinça do trackpad manda passos pequenos e frequentes; a roda do mouse, passos de ~100px.
+  // Cada passo da roda vale ~15% (perto dos botões); a pinça fica suave e proporcional.
+  const delta = event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
+  const step = -delta * (Math.abs(delta) < 50 ? 0.01 : 0.002);
+  const { x, y, zoom } = viewport.value;
+  const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * 2 ** step));
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+  setViewport({ x: px - ((px - x) / zoom) * nextZoom, y: py - ((py - y) / zoom) * nextZoom, zoom: nextZoom });
 }
+onMounted(() => {
+  nextTick(() => fitWhenMeasured());
+  wrapper.value?.addEventListener('wheel', onWheel, { capture: true, passive: false });
+  wrapper.value?.addEventListener('pointerdown', onTouchPointerDown, true);
+  window.addEventListener('pointermove', onTouchPointerMove, true);
+  for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, cancelLongPress, true);
+  window.addEventListener('click', onCaptureClick, true);
+});
+onBeforeUnmount(() => {
+  wrapper.value?.removeEventListener('wheel', onWheel, { capture: true });
+  wrapper.value?.removeEventListener('pointerdown', onTouchPointerDown, true);
+  window.removeEventListener('pointermove', onTouchPointerMove, true);
+  for (const type of ['pointerup', 'pointercancel']) window.removeEventListener(type, cancelLongPress, true);
+  window.removeEventListener('click', onCaptureClick, true);
+  cancelLongPress();
+});
 
-// Handlers de blocos
-function handleBlockDragStart(blockId: string, event: MouseEvent | TouchEvent) {
-  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-  interactions.startBlockDrag(blockId, clientX, clientY);
-}
+// --- INTERCEPTADOR DE TECLADO ---
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') { hidePlus(); clearHighlight(); }
+  const target = e.target as HTMLElement;
+  const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+  if (isTyping) return; // Atalhos não atrapalham quem está digitando (Ctrl+C/V do texto continuam normais)
 
-function handleBlockSelect(blockId: string) {
-  if (!connectionMgr.connectingFrom.value) {
-    emit('update:selectedBlockId', blockId);
-    emit('focus-block-editor');
+  // Esc desmarca o bloco ou a conexão (substitui a antiga seta "voltar" do painel)
+  if (e.key === 'Escape') {
+    projectStore.clearSelection();
+    closeMenu();
+    return;
   }
-}
 
-function handleBlockDelete(blockId: string) {
-  store.deleteBlock(blockId);
-}
+  // Copiar, colar e duplicar blocos
+  if (e.ctrlKey || e.metaKey) {
+    const key = e.key.toLowerCase();
+    const selected = projectStore.selectedNodeId;
+    if (key === 'c' && selected) copySelected(selected);
+    else if (key === 'v' && hasCopiedNode.value) pasteAt(pointerPosition());
+    else if (key === 'd' && selected) projectStore.duplicateNode(selected);
+    else return;
+    e.preventDefault(); // Ctrl+D do navegador é "adicionar favorito"
+    return;
+  }
 
-function handleBlockContextMenu(blockId: string, event: MouseEvent) {
-  const canvasRect = canvasRef.value?.getBoundingClientRect();
-  if (!canvasRect) return;
-
-  const position = {
-    x: event.clientX - canvasRect.left,
-    y: event.clientY - canvasRect.top,
-    screenX: event.clientX,
-    screenY: event.clientY
-  };
-
-  emit('block-context-menu', blockId, position);
-}
-
-// Handlers de conexões
-function handleConnectStart(blockId: string, outputId?: string) {
-  connectionMgr.startConnection(blockId, outputId);
-}
-
-function handleInputClick(blockId: string) {
-  connectionMgr.finishConnection(blockId);
-}
-
-function handleConnectionClick(connectionId: string) {
-  connectionMgr.selectConnection(connectionId);
-}
-
-// Handlers de waypoints
-function handleSegmentMouseDown(connectionId: string, segmentIndex: number, event: MouseEvent | TouchEvent) {
-  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-  waypointEditor.startDragSegment(connectionId, segmentIndex, clientX, clientY);
-}
-
-function handleWaypointMouseDown(connectionId: string, waypointIndex: number) {
-  waypointEditor.startDragWaypoint(connectionId, waypointIndex);
-}
-
-// Toolbar handlers
-function handleCreateBlock(type: BlockType) {
-  const pos = transform.getCanvasCenterWorldPosition();
-  emit('create-block', { type, position: pos });
-}
-
-function handleZoomIn() {
-  transform.zoomIn();
-  emit('update:zoom', transform.zoom.value);
-}
-
-function handleZoomOut() {
-  transform.zoomOut();
-  emit('update:zoom', transform.zoom.value);
-}
-
-// Keyboard handler
-function handleKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Delete' || event.key === 'Backspace') {
-    if (connectionMgr.selectedConnectionId.value) {
-      event.preventDefault();
-      connectionMgr.deleteSelectedConnection();
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    if (projectStore.selectedNodeId) {
+      projectStore.deleteNode(projectStore.selectedNodeId);
+    } else if (projectStore.selectedEdgeId) {
+      projectStore.disconnect(projectStore.selectedEdgeId);
     }
   }
 }
 
-// Força re-render quando blocos ou conexões mudam
-function forceUpdate() {
-  nextTick(() => {
-    renderKey.value++;
-  });
-}
-
-// Watch para mudanças que requerem re-render
-watch(() => [props.blocks, props.connections, transform.zoom.value, transform.panOffset.value], forceUpdate, { deep: true });
-
-// Watch para sincronizar zoom externo
-watch(() => props.zoom, (newZoom) => {
-  if (newZoom !== transform.zoom.value) {
-    transform.setZoom(newZoom);
-  }
-});
-
-// Lifecycle
 onMounted(() => {
-  // Tenta checar logo na montagem se o CSS aponta ser um dispotivo móvel (dedo)
-  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-    isTouchDevice.value = true;
-  }
-
-  forceUpdate();
-  window.addEventListener('keydown', handleKeyDown);
-
-  const canvas = canvasRef.value;
-  if (canvas) {
-    canvas.addEventListener('wheel', transform.handleWheel, { passive: false });
-  }
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('pointerdown', onWindowPointerDown, true);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-
-  const canvas = canvasRef.value;
-  if (canvas) {
-    canvas.removeEventListener('wheel', transform.handleWheel as any);
-  }
+  window.removeEventListener('keydown', onKeyDown);
+  window.removeEventListener('pointerdown', onWindowPointerDown, true);
+  hidePlus();
 });
+
+// --- MAPEAMENTO DO GRAFO ---
+// O Vue Flow recebe só geometria e IDs; cada nó lê seu conteúdo direto do store.
+const flowNodes = computed(() => {
+  return Object.values(projectStore.project.nodes).map(n => ({
+    id: n.id,
+    type: 'custom',
+    position: n.position
+  }));
+});
+
+// Voltas (laços) ganham faixas próprias; com um bloco selecionado, as conexões dele
+// se destacam e são desenhadas por último (por cima das outras)
+const flowEdges = computed(() => {
+  const edges = Object.values(projectStore.project.edges);
+  const positions = Object.fromEntries(Object.values(projectStore.project.nodes).map(n => [n.id, n.position]));
+  const lanes = assignBackEdgeLanes(edges, positions);
+  const selectedNode = projectStore.selectedNodeId;
+
+  const emphasisOf = (e: ChatEdge): EdgeEmphasis => {
+    if (!selectedNode) return 'normal';
+    return e.sourceNode === selectedNode || e.targetNode === selectedNode ? 'highlight' : 'dim';
+  };
+
+  return edges
+    .map(e => {
+      const data: FlowEdgeData = { color: e.color, lane: lanes[e.id] ?? 0, emphasis: emphasisOf(e) };
+      return {
+        id: e.id,
+        type: 'custom',
+        source: e.sourceNode,
+        sourceHandle: e.sourceHandle,
+        target: e.targetNode,
+        targetHandle: 'in', // Todo nó tem uma única entrada
+        data,
+        markerEnd: { type: MarkerType.ArrowClosed, color: e.color || '#9ca3af' }
+      };
+    })
+    .sort((a, b) => Number(a.data.emphasis === 'highlight') - Number(b.data.emphasis === 'highlight'));
+});
+
+// Bloqueia visualmente (durante o arraste) o que o domínio recusaria
+function isValidConnection(connection: Connection) {
+  const target = projectStore.project.nodes[connection.target];
+  return connection.source !== connection.target && !!target && target.type !== 'start';
+}
+
+// --- CONTROLE DE MENUS ---
+const menu = ref<{ show: boolean; x: number; y: number; flowPosition: XYPosition; source: ConnectionSource | null }>({
+  show: false, x: 0, y: 0, flowPosition: { x: 0, y: 0 }, source: null
+});
+const edgeMenu = ref({ show: false, x: 0, y: 0, edgeId: '' });
+
+function onPaneContextMenu(event: MouseEvent) {
+  event.preventDefault();
+  if (justLongPressed()) return;
+  menu.value = {
+    show: true,
+    x: event.clientX,
+    y: event.clientY,
+    flowPosition: screenToFlowCoordinate({ x: event.clientX, y: event.clientY }),
+    source: null
+  };
+}
+
+// --- COPIAR, COLAR E DUPLICAR ---
+const nodeMenu = ref({ show: false, x: 0, y: 0, nodeId: '' });
+const wrapper = ref<HTMLElement | null>(null);
+let lastPointer: { x: number; y: number } | null = null;
+
+function trackPointer(event: PointerEvent | null) {
+  lastPointer = event ? { x: event.clientX, y: event.clientY } : null;
+}
+
+function copySelected(nodeId: string) {
+  const node = projectStore.project.nodes[nodeId];
+  if (node && copyNode(node)) toast.info(t('chatbot.editor.block_copied'));
+}
+
+/** Onde colar com Ctrl+V: sob o mouse, ou no meio do canvas se o mouse não passou por ele. */
+function pointerPosition(): XYPosition {
+  if (lastPointer) return screenToFlowCoordinate(lastPointer);
+  const rect = wrapper.value?.getBoundingClientRect();
+  return screenToFlowCoordinate(rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : { x: 0, y: 0 });
+}
+
+function pasteAt(position: XYPosition) {
+  const copied = readCopiedNode();
+  if (copied) projectStore.pasteNode(copied, position);
+}
+
+function onNodeContextMenu(event: NodeMouseEvent) {
+  const mouse = event.event as MouseEvent;
+  mouse.preventDefault();
+  if (justLongPressed()) return; // O Android também dispara o contextmenu ao segurar o dedo
+  openNodeMenu(event.node.id, mouse.clientX, mouse.clientY);
+}
+
+function openNodeMenu(nodeId: string, x: number, y: number) {
+  closeMenu();
+  if (projectStore.project.nodes[nodeId]?.type === 'start') return;
+  projectStore.selectNode(nodeId);
+  nodeMenu.value = { show: true, x, y, nodeId };
+}
+
+function openPaneMenu(x: number, y: number) {
+  closeMenu();
+  menu.value = { show: true, x, y, flowPosition: screenToFlowCoordinate({ x, y }), source: null };
+}
+
+// --- TOQUE LONGO (tablet) ---
+// Dedo parado por meio segundo abre o mesmo menu do clique direito (o Safari do iPad não
+// dispara o contextmenu). Se o dedo se mexer antes, o gesto continua sendo arrastar.
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_TOLERANCE = 10; // px que o dedo pode tremer sem cancelar
+let longPress: { timer: ReturnType<typeof setTimeout>; x: number; y: number } | null = null;
+let longPressFiredAt = 0;
+let suppressNextClick = false;
+
+function justLongPressed() {
+  return Date.now() - longPressFiredAt < 1000;
+}
+
+function cancelLongPress() {
+  if (longPress) clearTimeout(longPress.timer);
+  longPress = null;
+}
+
+function onTouchPointerDown(event: PointerEvent) {
+  cancelLongPress();
+  suppressNextClick = false; // Toque novo: o clique dele vale normalmente
+  if (event.pointerType !== 'touch' || !event.isPrimary) return;
+  const target = event.target as HTMLElement;
+  // Campos de texto, editor e bolinhas de conexão mantêm o comportamento próprio
+  if (target.closest('input, textarea, select, [contenteditable="true"], .vue-flow__handle, .context-menu, .canvas-toolbar, .zoom-controls')) return;
+
+  const { clientX: x, clientY: y } = event;
+  longPress = {
+    x, y,
+    timer: setTimeout(() => {
+      longPress = null;
+      longPressFiredAt = Date.now();
+      suppressNextClick = true;
+      const nodeId = target.closest<HTMLElement>('.vue-flow__node')?.dataset.id;
+      if (nodeId) openNodeMenu(nodeId, x, y);
+      else if (target.closest('.vue-flow__pane')) openPaneMenu(x, y);
+    }, LONG_PRESS_MS)
+  };
+}
+
+function onTouchPointerMove(event: PointerEvent) {
+  if (longPress && Math.hypot(event.clientX - longPress.x, event.clientY - longPress.y) > LONG_PRESS_TOLERANCE) cancelLongPress();
+}
+
+// O toque que abriu o menu não pode, ao soltar, virar um clique que o fecha ou seleciona algo.
+// Só esse primeiro clique é bloqueado: o toque seguinte (numa opção do menu) funciona.
+function onCaptureClick(event: MouseEvent) {
+  if (!suppressNextClick) return;
+  suppressNextClick = false;
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onNodeMenu(action: 'test' | 'duplicate' | 'copy' | 'delete') {
+  const id = nodeMenu.value.nodeId;
+  nodeMenu.value.show = false;
+  if (action === 'test') requestTestFrom(id);
+  else if (action === 'duplicate') projectStore.duplicateNode(id);
+  else if (action === 'copy') copySelected(id);
+  else projectStore.deleteNode(id);
+}
+
+function handlePaste() {
+  pasteAt(menu.value.flowPosition);
+  menu.value.show = false;
+}
+
+// Botão "Adicionar bloco": abre o menu abaixo do botão; o bloco nasce no centro da área
+// visível, deslocado a cada vez para não empilhar exatamente no mesmo lugar
+const TOOLBAR_STAGGER = 30;
+let toolbarAdds = 0;
+
+function openAddFromToolbar(anchor: DOMRect) {
+  closeMenu();
+  const rect = wrapper.value?.getBoundingClientRect();
+  const offset = (toolbarAdds++ % 5) * TOOLBAR_STAGGER;
+  const center = rect
+    ? { x: rect.left + rect.width / 2 - NODE_WIDTH / 2 + offset, y: rect.top + rect.height / 3 + offset }
+    : { x: 0, y: 0 };
+  menu.value = { show: true, x: anchor.left, y: anchor.bottom + 8, flowPosition: screenToFlowCoordinate(center), source: null };
+}
+
+function handleAddNode(type: NodeType) {
+  const { flowPosition, source } = menu.value;
+  if (source) {
+    // A entrada do bloco novo fica onde a linha terminou
+    const position = { x: flowPosition.x, y: flowPosition.y - NEW_NODE_INPUT_OFFSET };
+    projectStore.addConnectedNode(type, position, source.nodeId, source.handleId);
+  } else {
+    projectStore.addNode(type, flowPosition);
+  }
+  menu.value.show = false;
+}
+
+function closeMenu() {
+  menu.value.show = false;
+  edgeMenu.value.show = false;
+  nodeMenu.value.show = false;
+}
+
+// --- EVENTOS DO VUE FLOW ---
+function onNodeDragStart(event: NodeDragEvent) {
+  projectStore.selectNode(event.node.id);
+}
+
+// Um arraste (mesmo com vários nós selecionados) = uma única mutação
+function onNodeDragStop(event: NodeDragEvent) {
+  projectStore.moveNodes(event.nodes.map(node => ({ id: node.id, position: node.position })));
+}
+
+// Reconectar uma saída já ligada substitui a conexão anterior (regra do domínio)
+function onConnect(connection: Connection) {
+  connectedDuringDrag = true;
+  if (!connection.sourceHandle) return;
+  projectStore.connect(connection.source, connection.sourceHandle, connection.target);
+}
+
+// --- CONEXÃO NO BLOCO INTEIRO E "+" NO VAZIO ---
+// Com uma conexão pendente (clique ou arraste), qualquer parte de um bloco é alvo: liga na
+// entrada dele. No vazio, aparece um "+" discreto que cria um bloco já ligado; ignorá-lo não custa nada.
+interface ConnectionSource { nodeId: string; handleId: string }
+
+const NEW_NODE_INPUT_OFFSET = 45; // Altura aproximada da entrada a partir do topo do bloco
+
+const pendingSource = computed<ConnectionSource | null>(() => {
+  const handle = connectionClickStartHandle.value ?? connectionStartHandle.value;
+  return handle?.type === 'source' && handle.id ? { nodeId: handle.nodeId, handleId: handle.id } : null;
+});
+
+function canReceive(targetId: string, source: ConnectionSource) {
+  const target = projectStore.project.nodes[targetId];
+  return !!target && target.type !== 'start' && targetId !== source.nodeId;
+}
+
+function onNodeMouseEnter(event: NodeMouseEvent) {
+  const source = pendingSource.value;
+  connectTargetNodeId.value = source && canReceive(event.node.id, source) ? event.node.id : null;
+}
+
+function onNodeMouseLeave(event: NodeMouseEvent) {
+  if (connectTargetNodeId.value === event.node.id) connectTargetNodeId.value = null;
+}
+
+watch(pendingSource, source => { if (!source) connectTargetNodeId.value = null; });
+
+// Arraste: a origem é guardada no início, porque o Vue Flow a limpa antes do fim
+let dragSource: ConnectionSource | null = null;
+let connectedDuringDrag = false;
+
+function onConnectStart(params: OnConnectStartParams) {
+  connectedDuringDrag = false;
+  dragSource = params.handleType === 'source' && params.nodeId && params.handleId
+    ? { nodeId: params.nodeId, handleId: params.handleId }
+    : null;
+}
+
+function onConnectEnd(event?: MouseEvent | TouchEvent) {
+  const source = dragSource;
+  dragSource = null;
+  connectTargetNodeId.value = null;
+  if (connectedDuringDrag || !source || !event) return; // Já ligou numa bolinha de entrada
+
+  const point = 'changedTouches' in event ? event.changedTouches[0] : event;
+  if (!point) return;
+  const element = document.elementFromPoint(point.clientX, point.clientY);
+  const nodeId = element?.closest<HTMLElement>('.vue-flow__node')?.dataset.id;
+  if (nodeId) {
+    if (canReceive(nodeId, source)) projectStore.connect(source.nodeId, source.handleId, nodeId);
+    return;
+  }
+  if (element?.closest('.vue-flow__pane')) showPlus(point.clientX, point.clientY, source);
+}
+
+function onNodeClick(event: NodeMouseEvent) {
+  if ((event.event.target as HTMLElement).closest('.vue-flow__handle')) return;
+  closeMenu();
+
+  // Modo clique: o clique no bloco completa a conexão pendente
+  const source = connectionClickStartHandle.value ? pendingSource.value : null;
+  if (source) {
+    connectionClickStartHandle.value = null;
+    if (canReceive(event.node.id, source)) {
+      projectStore.connect(source.nodeId, source.handleId, event.node.id);
+      return;
+    }
+  }
+  projectStore.selectNode(event.node.id);
+}
+
+// "+" no vazio: sem prazo (criança decide no seu ritmo); some no próximo clique fora, com Esc
+// ou ao mover o canvas (fica fixo na tela e deixaria de marcar o ponto certo)
+const plus = ref<{ x: number; y: number; source: ConnectionSource } | null>(null);
+
+function showPlus(x: number, y: number, source: ConnectionSource) {
+  plus.value = { x, y, source };
+}
+
+function hidePlus() {
+  plus.value = null;
+}
+
+function openConnectedMenu() {
+  if (!plus.value) return;
+  const { x, y, source } = plus.value;
+  hidePlus();
+  menu.value = { show: true, x, y, flowPosition: screenToFlowCoordinate({ x, y }), source };
+}
+
+function onWindowPointerDown(e: PointerEvent) {
+  if (plus.value && !(e.target as HTMLElement).closest('.connect-plus')) hidePlus();
+}
+
+function onEdgeClick(event: any) {
+  closeMenu();
+  projectStore.selectEdge(event.edge.id);
+  edgeMenu.value = {
+    show: true,
+    x: event.event.clientX,
+    y: event.event.clientY,
+    edgeId: event.edge.id
+  };
+}
+
+function onPaneClick(event: MouseEvent) {
+  closeMenu();
+  clearHighlight();
+  projectStore.clearSelection();
+  // Modo clique: o clique no fundo cancela a conexão, mas oferece o "+" naquele ponto
+  const source = connectionClickStartHandle.value ? pendingSource.value : null;
+  connectionClickStartHandle.value = null;
+  if (source) showPlus(event.clientX, event.clientY, source);
+}
 </script>
 
 <template>
-  <div
-    ref="canvasRef"
-    class="canvas"
-    :class="{ panning: transform.isPanning.value }"
-    @mousedown="handleCanvasMouseDown"
-    @mousemove="handleCanvasMouseMove"
-    @mouseup="handleCanvasMouseUp"
-    @mouseleave="handleCanvasMouseUp"
-    @contextmenu="handleCanvasContextMenu"
-    @touchstart="handleCanvasTouchStart"
-    @touchmove="handleCanvasTouchMove"
-    @touchend="handleCanvasTouchEnd"
-    @touchcancel="handleCanvasTouchEnd"
-  >
-    <!-- Toolbar com menu e controles de zoom -->
-    <CanvasToolbar
-      @create-block="handleCreateBlock"
-      @zoom-in="handleZoomIn"
-      @zoom-out="handleZoomOut"
+  <div ref="wrapper" class="canvas-wrapper" @pointermove="trackPointer" @pointerleave="trackPointer(null)">
+    <VueFlow
+      :nodes="flowNodes"
+      :edges="flowEdges"
+      :default-viewport="{ zoom: 1 }"
+      :min-zoom="MIN_ZOOM"
+      :max-zoom="MAX_ZOOM"
+      :delete-key-code="null"
+      :connect-on-click="true"
+      :is-valid-connection="isValidConnection"
+      @node-drag-start="onNodeDragStart"
+      @node-drag-stop="onNodeDragStop"
+      @connect="onConnect"
+      @move-start="hidePlus"
+      @connect-start="onConnectStart"
+      @connect-end="onConnectEnd"
+      @node-mouse-enter="onNodeMouseEnter"
+      @node-mouse-leave="onNodeMouseLeave"
+      @node-click="onNodeClick"
+      @edge-click="onEdgeClick"
+      @pane-click="onPaneClick"
+      @pane-context-menu="onPaneContextMenu"
+      @node-context-menu="onNodeContextMenu"
+    >
+      <Background pattern-color="#aaa" :gap="16" />
+      <!-- Minimapa: começa escondido; o botão do mapa fica junto ao zoom -->
+      <CanvasMinimap v-if="showMinimap" />
+      
+      <template #node-custom="props">
+        <CustomNode :id="props.id" />
+      </template>
+
+      <template #edge-custom="props">
+        <CustomEdge v-bind="props" :selected="props.id === projectStore.selectedEdgeId" />
+      </template>
+
+      <!-- Modo drag: só renderiza se NÃO estiver no modo click -->
+      <template #connection-line="props">
+        <GhostPath
+          v-if="!connectionClickStartHandle"
+          :source-x="props.sourceX" :source-y="props.sourceY"
+          :target-x="props.targetX" :target-y="props.targetY"
+          :source-node="props.sourceNode" :target-node="props.targetNode"
+        />
+      </template>
+
+      <!-- Modo click (ViewportPortal garante que renderiza sempre atualizado com pan/zoom) -->
+      <ClickConnectionLine />
+    </VueFlow>
+
+    <ContextMenu 
+      v-if="menu.show"
+      :x="menu.x"
+      :y="menu.y"
+      :can-paste="hasCopiedNode && !menu.source"
+      @select="handleAddNode"
+      @paste="handlePaste"
+      @close="closeMenu"
     />
 
-    <!-- Camada de conexões SVG -->
-    <ConnectionsLayer
-      :connections="connections"
-      :selectedConnectionId="connectionMgr.selectedConnectionId.value"
-      :tempConnectionPath="connectionMgr.tempConnectionPath.value"
-      :renderKey="renderKey"
-      :canvasStyle="canvasStyle"
-      :getConnectionPathById="geometry.getConnectionPathById"
-      :getConnectionPoints="geometry.getConnectionPoints"
-      :getConnectionMidpoints="geometry.getConnectionMidpoints"
-      @connection-click="handleConnectionClick"
-      @segment-mousedown="handleSegmentMouseDown"
-      @waypoint-mousedown="handleWaypointMouseDown"
+    <CanvasToolbar @add="openAddFromToolbar" />
+    <ZoomControls />
+
+    <!-- "+" onde a conexão terminou no vazio: cria um bloco já ligado -->
+    <button
+      v-if="plus"
+      type="button"
+      class="connect-plus"
+      :style="{ top: `${plus.y}px`, left: `${plus.x}px` }"
+      :title="t('chatbot.editor.add_connected_block')"
+      :aria-label="t('chatbot.editor.add_connected_block')"
+      @click="openConnectedMenu"
+    >
+      <Plus :size="18" :stroke-width="3" />
+    </button>
+
+    <NodeContextMenu
+      v-if="nodeMenu.show"
+      :x="nodeMenu.x"
+      :y="nodeMenu.y"
+      @test="onNodeMenu('test')"
+      @duplicate="onNodeMenu('duplicate')"
+      @copy="onNodeMenu('copy')"
+      @delete="onNodeMenu('delete')"
+      @close="nodeMenu.show = false"
     />
 
-    <!-- Container dos blocos -->
-    <div class="blocks-container" :style="canvasStyle">
-      <BlockNode
-        v-for="block in blocks"
-        :key="block.id"
-        :block="block"
-        :is-selected="block.id === selectedBlockId"
-        :scale="transform.zoom.value / 100"
-        @select="handleBlockSelect(block.id)"
-        @input-click="handleInputClick(block.id)"
-        @drag-start="(e) => handleBlockDragStart(block.id, e)"
-        @connect-start="(outputId) => handleConnectStart(block.id, outputId)"
-        @delete="handleBlockDelete(block.id)"
-        @context-menu="(e) => handleBlockContextMenu(block.id, e)"
-      />
-    </div>
-
-    <!-- Dica quando está conectando -->
-    <div v-if="connectionMgr.connectingFrom.value" class="connection-hint">
-      <div class="hint-title">
-        <Link :size="16" />
-        <strong>{{ t('chatbot.editor.connecting') }}</strong>
-      </div>
-      <p>{{ t('chatbot.editor.connect_hint') }}</p>
-    </div>
-
-    <!-- Container de Ação da Conexão Selecionada (Dica ou Botão Touch) -->
-    <div v-if="connectionMgr.selectedConnectionId.value" class="delete-hint-wrapper">
-      <button 
-        v-if="isTouchDevice" 
-        class="touch-delete-btn" 
-        @click.stop="connectionMgr.deleteSelectedConnection()"
-      >
-        <Trash2 :size="18" />
-        {{ t('chatbot.editor.delete_connection') }}
-      </button>
-      <div v-else class="delete-hint" v-html="t('chatbot.editor.delete_connection_hint')"></div>
-    </div>
-
+    <EdgeContextMenu
+      v-if="edgeMenu.show"
+      :x="edgeMenu.x"
+      :y="edgeMenu.y"
+      :edge-id="edgeMenu.edgeId"
+      @close="closeMenu"
+    />
   </div>
 </template>
 
 <style scoped>
-.canvas {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  background-color: #ffffff;
-  cursor: default;
-  touch-action: none; 
+.canvas-wrapper { width: 100%; height: 100%; position: relative; }
+/* Segurar o dedo no fundo não seleciona texto nem abre o menu nativo do iPad */
+:deep(.vue-flow__pane) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.connect-plus {
+  position: fixed; z-index: 1001; transform: translate(-50%, -50%);
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid white;
+  background: #3b82f6; color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  animation: plus-in 0.15s ease-out;
 }
-
-.canvas::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    linear-gradient(90deg, #f9fafb 1px, transparent 1px),
-    linear-gradient(#f9fafb 1px, transparent 1px);
-  background-size: 20px 20px;
-  transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--zoom, 1));
-  transform-origin: 0 0;
-  pointer-events: none;
+.connect-plus:hover { background: #2563eb; transform: translate(-50%, -50%) scale(1.1); }
+@keyframes plus-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } }
+@media (prefers-reduced-motion: reduce) {
+  .connect-plus { animation: none; }
 }
-
-.canvas.panning {
-  cursor: grabbing !important;
-}
-
-.blocks-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.blocks-container > * {
-  pointer-events: auto;
-}
-
-.connection-hint {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #10b981;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-  z-index: 1000;
-  text-align: center;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-  }
-  50% {
-    box-shadow: 0 4px 30px rgba(16, 185, 129, 0.6);
-  }
-}
-
-.delete-hint-wrapper {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  animation: slideUp 0.3s ease-out;
-  display: flex;
-  justify-content: center;
-}
-
-
-.delete-hint {
-  background: #ef4444;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-  text-align: center;
-}
-
-.delete-hint kbd {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.touch-delete-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: transform 0.1s, background 0.2s;
-}
-
-.touch-delete-btn:active {
-  transform: scale(0.95);
-  background: #dc2626;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
+:deep(.vue-flow__panel.vue-flow__attribution) { display: none; }
 </style>
