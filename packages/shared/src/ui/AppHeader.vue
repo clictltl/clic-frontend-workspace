@@ -2,15 +2,24 @@
   <header class="toolbar clic-ui">
     <!-- ESQUERDA (Desktop e Mobile) -->
     <div class="toolbar-left">
-      <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
-      <h1 v-else class="toolbar-title">{{ title }}</h1>
-      
-      <div class="made-by-container hide-mobile">
-        <span class="made-by-text">{{ $t('header.made_by') }}</span>
-        <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
-          <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
-        </a>
+      <!-- Cartão da marca: logo do app + "feito pelo CLIC" num bloco só (no celular, só o logo) -->
+      <div class="brand-card">
+        <img v-if="appLogo" :src="appLogo" :alt="title" class="app-logo" />
+        <h1 v-else class="toolbar-title">{{ title }}</h1>
+
+        <div class="made-by-container hide-mobile">
+          <span class="made-by-text">{{ $t('header.made_by') }}</span>
+          <a :href="logoUrl" class="toolbar-logo-link" target="_blank" rel="noopener noreferrer">
+            <img :src="logoClic" alt="CLIC" class="toolbar-logo-small" />
+          </a>
+        </div>
       </div>
+
+      <!--
+        Destino do Arquivo no desktop/tablet: logo depois da marca, num lugar fixo.
+        Guia, Instalar, conta e o nome do projeto mudam de tamanho; à direita, não empurram o Arquivo.
+      -->
+      <div ref="fileMenuDesktop" class="file-menu-desktop hide-mobile"></div>
     </div>
 
     <!-- AÇÕES GLOBAIS (Desktop e Mobile) -->
@@ -41,12 +50,9 @@
           <X :size="24" />
         </button>
 
-        <!-- 1. File Menu (Slot): o trabalho vem primeiro -->
-        <div class="drawer-slot" style="--mobile-order: 3">
-          <slot name="file-menu"></slot>
-        </div>
-
-        <span class="toolbar-sep" style="--mobile-order: 4" aria-hidden="true"></span>
+        <!-- Destino do Arquivo no celular: dentro do menu lateral, depois da conta -->
+        <div ref="fileMenuMobile" class="drawer-slot show-mobile" style="--mobile-order: 3"></div>
+        <span class="toolbar-sep show-mobile" style="--mobile-order: 4" aria-hidden="true"></span>
 
         <!-- 2. Ajuda: Guia e Instalar com texto; abaixo de 1200px, só o ícone (com dica) -->
         <a v-if="guideUrl" :href="guideUrl" target="_blank" class="guide-btn drawer-item" style="--mobile-order: 5" rel="noopener noreferrer" :title="t('header.guide')" :aria-label="t('header.guide')">
@@ -89,6 +95,14 @@
     </div>
   </header>
 
+  <!--
+    Um só FileMenu, levado para o destino certo conforme a largura da tela.
+    O Teleport move o componente sem recriá-lo: o estado e os modais abertos continuam.
+  -->
+  <Teleport v-if="fileMenuTarget" :to="fileMenuTarget">
+    <slot name="file-menu"></slot>
+  </Teleport>
+
   <!-- Modal de Info/Contato: variante de leitura do BaseModal (texto longo, sem rodapé, com X) -->
   <BaseModal v-if="isInfoModalOpen" :title="t('header.about_clic')" :icon="Info" tone="gray" size="reading" @close="isInfoModalOpen = false">
     <div class="about-body">
@@ -115,7 +129,7 @@
 <script setup lang="ts">
 // Fonte das peças compartilhadas (.clic-ui). Importado aqui, e não no index.ts, porque o build descarta imports do index (sideEffects).
 import '../styles/ui.css';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import logoClic from '../assets/logo-clic.svg';
 import { Info, BookOpen, X, Lock, Wrench, Mail, Globe, Menu, Home, Download } from '@lucide/vue';
 import { useAuth } from '../auth/auth';
@@ -158,6 +172,21 @@ const versionLine = computed(() => {
   return t('header.version', { app: props.title, version: app.version, date, commit: app.commit });
 });
 const isMobileMenuOpen = ref(false);
+
+// Destino do FileMenu: no header (desktop/tablet) ou no menu lateral (celular). Mesmo limite do CSS (768px).
+const fileMenuDesktop = ref<HTMLElement | null>(null);
+const fileMenuMobile = ref<HTMLElement | null>(null);
+const isMobile = ref(false);
+const fileMenuTarget = computed(() => (isMobile.value ? fileMenuMobile.value : fileMenuDesktop.value));
+let mobileQuery: MediaQueryList | null = null;
+const onMobileChange = (e: MediaQueryListEvent | MediaQueryList) => { isMobile.value = e.matches; };
+
+onMounted(() => {
+  mobileQuery = window.matchMedia('(max-width: 768px)');
+  onMobileChange(mobileQuery);
+  mobileQuery.addEventListener('change', onMobileChange);
+});
+onBeforeUnmount(() => mobileQuery?.removeEventListener('change', onMobileChange));
 </script>
 
 <style scoped>
@@ -178,13 +207,31 @@ const isMobileMenuOpen = ref(false);
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  min-width: 0;
+}
+
+/*
+ * Cartão da marca: agrupa logo + assinatura sem parecer clicável.
+ * Fundo #EFEFEF (o cinza do site), diferente do cinza do hover dos botões (#f3f4f6); sem sombra nem hover.
+ */
+.brand-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 14px 5px 12px;
+  border-radius: 12px;
+  background: #EFEFEF;
+  flex-shrink: 0;
 }
 
 .app-logo {
-  height: 42px; /* Mantém o tamanho de destaque para o App */
+  height: 36px; /* Destaque do app, dentro do cartão */
   width: auto;
 }
+
+/* Destino do Arquivo no desktop/tablet */
+.file-menu-desktop { display: flex; align-items: center; min-width: 0; }
 
 /* Margem mínima: a base do texto fica na base das letras do logo do CLIC (as bolinhas ficam abaixo) */
 .made-by-text {
@@ -238,6 +285,7 @@ const isMobileMenuOpen = ref(false);
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0; /* A direita não encolhe; o nome do projeto, à esquerda, é que corta com reticências */
 }
 
 .home-btn {
@@ -319,14 +367,11 @@ const isMobileMenuOpen = ref(false);
 
 .show-mobile { display: none !important; }
 
-/* Assinatura "feito pelo CLIC" (desktop), separada do logo do app por uma linha fina */
+/* Assinatura "feito pelo CLIC" (desktop), dentro do cartão: o cartão já agrupa, sem linha */
 .made-by-container {
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  height: 32px;
-  padding-left: 20px;
-  border-left: 1px solid #d1d5db;
 }
 
 /* Tablet: Guia e Instalar só com o ícone (a dica e o aria-label dizem o nome); nada quebra linha */
@@ -343,6 +388,9 @@ const isMobileMenuOpen = ref(false);
     padding: 6px 16px;
     gap: 12px;
   }
+
+  /* Cartão só no desktop/tablet: no celular fica só o logo, como antes */
+  .brand-card { background: transparent; padding: 0; }
 
   /* Força a redução drástica das logos no mobile */
   .app-logo {

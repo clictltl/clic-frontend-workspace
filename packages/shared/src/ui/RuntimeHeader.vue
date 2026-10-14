@@ -2,7 +2,9 @@
   <header class="toolbar clic-ui">
     <!-- ESQUERDA (Desktop e Mobile) -->
     <div class="toolbar-left">
-      
+      <!-- Cartão da marca, igual ao do AppHeader (no celular, só o logo) -->
+      <div class="brand-card">
+
       <!-- Bloco 1: App ("Criado com" + Logo App com Link) -->
       <div class="app-brand-container">
         <span class="prefix-text hide-mobile">{{ $t('runtime.created_with') }}</span>
@@ -20,6 +22,7 @@
         </a>
       </div>
 
+      </div>
     </div>
 
     <!-- DIREITA -->
@@ -93,7 +96,16 @@ const appBaseUrl = computed(() => {
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+}
+
+/* Cartão da marca: mesmo do AppHeader (fundo #EFEFEF, sem sombra nem hover) */
+.brand-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 14px 5px 12px;
+  border-radius: 12px;
+  background: #EFEFEF;
 }
 
 .app-brand-container {
@@ -115,13 +127,10 @@ const appBaseUrl = computed(() => {
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  height: 32px;
-  padding-left: 20px;
-  border-left: 1px solid #d1d5db;
 }
 
 .app-logo {
-  height: 42px;
+  height: 36px;
   width: auto;
 }
 
@@ -189,6 +198,8 @@ const appBaseUrl = computed(() => {
     padding: 6px 16px;
     gap: 12px;
   }
+
+  .brand-card { background: transparent; padding: 0; }
 
   .app-logo {
     height: 28px !important;

@@ -23,7 +23,8 @@
 
     <!-- Dropdown Menu -->
     <transition name="fade-slide">
-      <div v-if="open" class="dropdown-menu" :class="{ 'align-right': !isWordPress }">
+      <!-- O Arquivo fica à esquerda do header: o menu abre sempre para a direita -->
+      <div v-if="open" class="dropdown-menu">
         
         <!-- Grupo: Novo -->
         <div class="menu-group">
@@ -179,11 +180,6 @@ const pendingAction = ref<Function | null>(null);
 
 // Referência ao container principal para detectar cliques fora
 const fileMenuContainer = ref<HTMLElement | null>(null);
-
-// Detecta WordPress
-const isWordPress =
-  typeof window !== 'undefined' &&
-  !!window.CLIC_AUTH && !!window.CLIC_CORE;
 
 // Detecta usuário logado
 const showWordPressItems = computed(() => {
@@ -508,7 +504,6 @@ async function saveToComputer() {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   padding: 6px; z-index: 9999;
 }
-.dropdown-menu.align-right { left: auto; right: 0; transform-origin: top right; }
 
 .menu-group { display: flex; flex-direction: column; }
 .menu-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; padding: 8px 10px 4px; letter-spacing: 0.05em; }
