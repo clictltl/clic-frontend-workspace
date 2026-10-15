@@ -82,6 +82,33 @@ describe('useChatSession', () => {
     expect(session.fromNodeId.value).toBeNull();
   });
 
+  it('opens and closes a linked chatbot without moving the conversation, logging both', () => {
+    const ctx = setup();
+    const links = ctx.add('chatbot_links');
+    links.data.choices[0]!.token = 'abc123';
+    connect(ctx.project, ctx.message.id, HANDLE_OUT, links.id);
+
+    const { session, events } = sessionFor(ctx.project);
+    session.start();
+    vi.advanceTimersByTime(TYPING_MS * 2);
+    const choiceId = links.data.choices[0]!.id;
+
+    session.openLink(HANDLE_OUT); // "Continuar" não é link: ignorado
+    expect(session.openedLink.value).toBeNull();
+    session.openLink(choiceId);
+    expect(session.openedLink.value?.token).toBe('abc123');
+    expect(events[events.length - 1]).toEqual(['preview_link_open', { choiceId }]);
+
+    session.closeLink();
+    expect(session.openedLink.value).toBeNull();
+    expect(events[events.length - 1]).toEqual(['preview_link_back', {}]);
+    expect(session.choices.value.map(c => c.id)).toEqual([choiceId, HANDLE_OUT]); // o menu continua
+
+    session.openLink(choiceId);
+    session.start(); // recomeçar fecha o chatbot aberto
+    expect(session.openedLink.value).toBeNull();
+  });
+
   it('only accepts answers after the question is shown and logs them', () => {
     const ctx = setup();
     const question = ctx.add('open_question');

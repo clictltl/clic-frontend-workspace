@@ -9,6 +9,7 @@ import { useChatSession } from '../../../shared/chat/useChatSession';
 import ChatInterface from '../../../shared/chat/ChatInterface.vue';
 import ChatTitleBar from '../../../shared/chat/ChatTitleBar.vue';
 import TestVariables from './TestVariables.vue';
+import LinkedChatbotPreview from './LinkedChatbotPreview.vue';
 import { testActiveNodeId, testFromRequest } from '../../utils/testRun';
 
 const emit = defineEmits<{ close: [] }>();
@@ -63,8 +64,12 @@ onBeforeUnmount(() => { testActiveNodeId.value = null; });
     <!-- Valores das variáveis (só no editor), no ritmo das mensagens -->
     <TestVariables :values="session.values.value" />
     <!-- Prévia do chat como o aluno vê: acompanha a aba Aparência ao vivo -->
-    <ChatTitleBar :title="projectStore.project.title" :appearance="projectStore.project.appearance" />
-    <ChatInterface :session="session" :appearance="projectStore.project.appearance" />
+    <div class="test-chat">
+      <ChatTitleBar :title="projectStore.project.title" :appearance="projectStore.project.appearance" />
+      <ChatInterface :session="session" :appearance="projectStore.project.appearance" />
+      <!-- "Abrir outro chatbot": no Testar é só uma tela simulada (o chatbot de verdade abre no publicado) -->
+      <LinkedChatbotPreview v-if="session.openedLink.value" :choice="session.openedLink.value" :appearance="projectStore.project.appearance" @back="session.closeLink()" />
+    </div>
   </aside>
 </template>
 
@@ -73,6 +78,7 @@ onBeforeUnmount(() => { testActiveNodeId.value = null; });
   width: 360px; flex: 0 0 360px; display: flex; flex-direction: column;
   background: #f9fafb; border-left: 1px solid #e5e7eb; min-height: 0;
 }
+.test-chat { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .test-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 12px; background: white; border-bottom: 1px solid #e5e7eb;

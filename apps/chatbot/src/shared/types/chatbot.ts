@@ -81,6 +81,23 @@ export interface Choice {
   media: ChoiceMedia | null;
 }
 
+/**
+ * Opção do bloco "Abrir outro chatbot": abre o chatbot publicado `token` por cima do atual.
+ * Guarda só o token (não a URL): o endereço é montado no site atual, então mudar de domínio não quebra.
+ * Vazio enquanto o autor não colou um link.
+ * `target`: título e emoji do destino na última conferência (ao colar o link ou no botão de atualizar),
+ * só para o autor reconhecer o link no editor; pode estar desatualizado. null = não conferido/encontrado.
+ */
+export interface LinkChoice extends Choice {
+  token: string;
+  target: LinkTarget | null;
+}
+
+export interface LinkTarget {
+  title: string;
+  emoji: string | null;
+}
+
 /** Limites da espera após uma mensagem (segundos). */
 export const MESSAGE_DELAY_MAX = 10;
 
@@ -104,6 +121,8 @@ export interface NodeDataMap {
   message: { content: RichText; media: NodeMedia | null; delay: number }; // delay: segundos antes do próximo nó
   open_question: { content: RichText; media: NodeMedia | null; variableId: string | null };
   choice_question: { content: RichText; media: NodeMedia | null; choices: Choice[] };
+  /** Menu de chatbots publicados; a única saída (`out`) é a opção fixa "Continuar". */
+  chatbot_links: { content: RichText; media: NodeMedia | null; choices: LinkChoice[] };
   condition: { rules: Rule[] };
   set_variable: { variableId: string | null; value: AssignmentValue };
   math: { variableId: string | null; operator: MathOperator; operand: Value };

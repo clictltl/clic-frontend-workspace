@@ -51,6 +51,15 @@ export function createNode<T extends NodeType>(type: T, position: Position, deps
             choices: [createChoice(deps, 1)]
           }
         };
+      case 'chatbot_links':
+        return {
+          id, type, position,
+          data: {
+            content: createRichText(t('chatbot.blocks.default_content.chatbotLinks')),
+            media: null,
+            choices: [{ ...createChoice(deps, 1), token: '', target: null }]
+          }
+        };
       case 'condition':
         return { id, type, position, data: { rules: [createRule(deps)] } };
       case 'set_variable':
@@ -90,8 +99,14 @@ export function createProject(deps: DomainDeps, now: string): ChatbotProject {
 export function fillNodeDefaults(node: ChatNode) {
   if ('content' in node.data) node.data.media ??= null;
   if (node.type === 'message' && typeof node.data.delay !== 'number') node.data.delay = 0;
-  if (node.type === 'choice_question') {
+  if (node.type === 'choice_question' || node.type === 'chatbot_links') {
     for (const choice of node.data.choices) choice.media ??= null;
+  }
+  if (node.type === 'chatbot_links') {
+    for (const choice of node.data.choices) {
+      if (typeof choice.token !== 'string') choice.token = '';
+      choice.target ??= null;
+    }
   }
 }
 

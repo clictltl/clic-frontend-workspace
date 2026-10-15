@@ -21,6 +21,12 @@ export type ChatMessage =
       values: ChatValues;        // Valores com a resposta já guardada
     };
 
+/**
+ * Opção mostrada no chat. No "Abrir outro chatbot", as opções levam o `token` do destino
+ * (a interface abre o chatbot; a conversa não anda) e a opção fixa `out` é o "Continuar".
+ */
+export type ChatChoice = Choice & { token?: string };
+
 export type ChatStatus = 'waiting_text' | 'waiting_choice' | 'ended';
 
 /** Erros que interrompem a conversa (traduzidos em `chatbot.runtime.errors.*`). */
@@ -30,7 +36,7 @@ export interface ChatState {
   status: ChatStatus;
   currentNodeId: string | null; // Nó que está "falando" (destaque no canvas)
   messages: ChatMessage[];
-  choices: Choice[];            // Opções disponíveis quando status = 'waiting_choice'
+  choices: ChatChoice[];        // Opções disponíveis quando status = 'waiting_choice'
   values: ChatValues;
   rng: number;                  // Estado do gerador do sorteio (ver random.ts)
   error: ChatError | null;

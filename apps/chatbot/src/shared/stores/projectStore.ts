@@ -6,6 +6,7 @@ import type {
   ChatNode,
   ChatNodeOf,
   ChoiceMedia,
+  LinkTarget,
   MathOperator,
   Media,
   NodeMedia,
@@ -65,6 +66,7 @@ export const useProjectStore = defineStore('chatbot-project', {
       renameChoice: 'chatbot.history.renameChoice',
       setChoiceMedia: 'chatbot.history.setChoiceMedia',
       removeChoice: 'chatbot.history.removeChoice',
+      setChoiceLink: 'chatbot.history.setChoiceLink',
       addRule: 'chatbot.history.addRule',
       removeRule: 'chatbot.history.removeRule',
       setRuleMatch: 'chatbot.history.setRuleMatch',
@@ -250,9 +252,9 @@ export const useProjectStore = defineStore('chatbot-project', {
       graph.setEdgeColor(this.project, id, color);
     },
 
-    // --- MÚLTIPLA ESCOLHA ---
+    // --- OPÇÕES (MÚLTIPLA ESCOLHA E "ABRIR OUTRO CHATBOT") ---
     addChoice(nodeId: string) {
-      const node = graph.getNodeOfType(this.project, nodeId, 'choice_question');
+      const node = graph.getChoiceNode(this.project, nodeId);
       if (!node) return;
       graph.addChoice(this.project, nodeId, createChoice(deps, node.data.choices.length + 1));
     },
@@ -268,6 +270,11 @@ export const useProjectStore = defineStore('chatbot-project', {
 
     removeChoice(nodeId: string, choiceId: string) {
       return graph.removeChoice(this.project, nodeId, choiceId);
+    },
+
+    /** "Abrir outro chatbot": `token` já extraído do link colado (vazio = sem destino) e o destino conferido. */
+    setChoiceLink(nodeId: string, choiceId: string, token: string, target: LinkTarget | null = null) {
+      return graph.setChoiceLink(this.project, nodeId, choiceId, token, target);
     },
 
     // --- CONDIÇÃO ---

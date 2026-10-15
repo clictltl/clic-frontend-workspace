@@ -1,6 +1,6 @@
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import type { ChatbotProject } from '../types/chatbot';
-import type { ChatState, ChatValues } from '../engine/types';
+import type { ChatChoice, ChatState, ChatValues } from '../engine/types';
 import { selectChoice, startChat, submitText } from '../engine/engine';
 import { createSeed } from '../engine/random';
 
@@ -10,7 +10,10 @@ export const TYPING_MS = 700;
 export interface ChatSessionOptions {
   getProject: () => ChatbotProject;
   /** Eventos do teste no editor (telemetria). O runtime público não informa. */
-  onEvent?: (name: 'preview_start' | 'preview_text' | 'preview_choice' | 'preview_stop', payload?: Record<string, unknown>) => void;
+  onEvent?: (
+    name: 'preview_start' | 'preview_text' | 'preview_choice' | 'preview_stop' | 'preview_link_open' | 'preview_link_back',
+    payload?: Record<string, unknown>
+  ) => void;
   /** Semente dos sorteios de cada conversa (os testes injetam uma fixa). */
   createSeed?: () => number;
 }
@@ -23,6 +26,8 @@ export function useChatSession(options: ChatSessionOptions) {
   const state = shallowRef<ChatState | null>(null);
   const visibleCount = ref(0);
   const isTyping = ref(false);
+  /** Opção de "Abrir outro chatbot" aberta agora (ver openLink). */
+  const openedLink = ref<ChatChoice | null>(null);
 
   // Cópia do projeto no início: editar durante o teste não muda a conversa em andamento
   let project: ChatbotProject | null = null;
@@ -96,6 +101,7 @@ export function useChatSession(options: ChatSessionOptions) {
     if (state.value) options.onEvent?.('preview_stop');
     runToken++;
     clearTimer();
+    openedLink.value = null; // Recomeçar fecha o chatbot aberto por cima
     project = JSON.parse(JSON.stringify(options.getProject())) as ChatbotProject;
     // A semente vai no log: com ela, o replay reproduz os mesmos sorteios.
     // `fromNodeId` só aparece quando o teste não começa no Início (logs antigos não têm).
@@ -121,11 +127,29 @@ export function useChatSession(options: ChatSessionOptions) {
     reveal();
   }
 
+  /**
+   * "Abrir outro chatbot": a opção abre o destino por cima (runtime) ou uma tela simulada (Testar).
+   * A conversa principal não anda: o menu continua lá ao voltar.
+   */
+  function openLink(choiceId: string) {
+    const choice = choices.value.find(c => c.id === choiceId);
+    if (choice?.token === undefined) return; // Só opções de link (o "Continuar" e a múltipla escolha usam choose)
+    options.onEvent?.('preview_link_open', { choiceId });
+    openedLink.value = choice;
+  }
+
+  function closeLink() {
+    if (!openedLink.value) return;
+    options.onEvent?.('preview_link_back', {});
+    openedLink.value = null;
+  }
+
   function stop() {
     if (state.value) options.onEvent?.('preview_stop');
     runToken++;
     clearTimer();
     state.value = null;
+    openedLink.value = null;
     project = null;
     visibleCount.value = 0;
     isTyping.value = false;
@@ -145,7 +169,10 @@ export function useChatSession(options: ChatSessionOptions) {
     activeNodeId,
     values,
     fromNodeId,
+    openedLink,
     start,
+    openLink,
+    closeLink,
     submit,
     choose,
     stop

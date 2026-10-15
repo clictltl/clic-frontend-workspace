@@ -7,6 +7,7 @@ import {
   type ChatNode,
   type ChatNodeOf,
   type Choice,
+  type LinkTarget,
   type ChoiceMedia,
   type Condition,
   type Media,
@@ -145,24 +146,32 @@ export function setEdgeColor(project: ChatbotProject, id: string, color: string)
   return true;
 }
 
-// --- OPÇÕES (MÚLTIPLA ESCOLHA) ---
+// --- OPÇÕES (MÚLTIPLA ESCOLHA E "ABRIR OUTRO CHATBOT") ---
 
+/** Bloco com opções: a múltipla escolha ou o menu de chatbots. */
+export function getChoiceNode(project: ChatbotProject, nodeId: string): ChatNodeOf<'choice_question' | 'chatbot_links'> | null {
+  const node = project.nodes[nodeId];
+  return node && (node.type === 'choice_question' || node.type === 'chatbot_links') ? node : null;
+}
+
+/** No menu de chatbots, a opção sempre ganha `token` (vazio até o autor colar um link). */
 export function addChoice(project: ChatbotProject, nodeId: string, choice: Choice): boolean {
-  const node = getNodeOfType(project, nodeId, 'choice_question');
+  const node = getChoiceNode(project, nodeId);
   if (!node) return false;
-  node.data.choices.push(choice);
+  if (node.type === 'chatbot_links') node.data.choices.push({ token: '', target: null, ...choice });
+  else node.data.choices.push(choice);
   return true;
 }
 
 export function renameChoice(project: ChatbotProject, nodeId: string, choiceId: string, label: string): boolean {
-  const choice = getNodeOfType(project, nodeId, 'choice_question')?.data.choices.find(c => c.id === choiceId);
+  const choice = getChoiceNode(project, nodeId)?.data.choices.find(c => c.id === choiceId);
   if (!choice) return false;
   choice.label = label;
   return true;
 }
 
 export function setChoiceMedia(project: ChatbotProject, nodeId: string, choiceId: string, media: ChoiceMedia | null): boolean {
-  const choice = getNodeOfType(project, nodeId, 'choice_question')?.data.choices.find(c => c.id === choiceId);
+  const choice = getChoiceNode(project, nodeId)?.data.choices.find(c => c.id === choiceId);
   if (!choice) return false;
   if (media?.kind === 'image' && !isValidSource(media.source)) return false;
   choice.media = media;
@@ -171,7 +180,7 @@ export function setChoiceMedia(project: ChatbotProject, nodeId: string, choiceId
 
 /** Remove a opção e a conexão da saída dela. A última opção não pode ser removida. */
 export function removeChoice(project: ChatbotProject, nodeId: string, choiceId: string): boolean {
-  const node = getNodeOfType(project, nodeId, 'choice_question');
+  const node = getChoiceNode(project, nodeId);
   if (!node || node.data.choices.length <= 1) return false;
 
   const index = node.data.choices.findIndex(c => c.id === choiceId);
@@ -179,6 +188,18 @@ export function removeChoice(project: ChatbotProject, nodeId: string, choiceId: 
 
   node.data.choices.splice(index, 1);
   delete project.edges[edgeId(nodeId, choiceId)];
+  return true;
+}
+
+/**
+ * Chatbot publicado que a opção abre (token já extraído do link; vazio = sem destino), com o título
+ * e o emoji conferidos agora (null se não deu para conferir ou não foi encontrado).
+ */
+export function setChoiceLink(project: ChatbotProject, nodeId: string, choiceId: string, token: string, target: LinkTarget | null): boolean {
+  const choice = getNodeOfType(project, nodeId, 'chatbot_links')?.data.choices.find(c => c.id === choiceId);
+  if (!choice) return false;
+  choice.token = token;
+  choice.target = token ? target : null;
   return true;
 }
 

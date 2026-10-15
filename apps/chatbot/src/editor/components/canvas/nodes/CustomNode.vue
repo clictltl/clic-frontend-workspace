@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Handle, Position, useVueFlow } from '@vue-flow/core';
 import { useI18n } from 'vue-i18n';
-import { CopyPlus, Dices, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
+import { CopyPlus, Dices, MessagesSquare, Save, SaveOff, Timer, Trash2 } from '@lucide/vue';
 import { NODE_CONFIG } from '../../../utils/nodeConfig';
 import { useProjectStore } from '../../../../shared/stores/projectStore';
 import { HANDLE_ELSE, HANDLE_OUT } from '../../../../shared/types/chatbot';
@@ -148,6 +148,27 @@ function randomText(options: string[]) {
         </div>
       </div>
 
+      <!-- ABRIR OUTRO CHATBOT: opções sem saída própria (abrem o chatbot por cima) + "Continuar" -->
+      <div v-else-if="node.type === 'chatbot_links'" class="choices-container">
+        <div v-for="choice in node.data.choices" :key="choice.id" class="choice-wrapper">
+          <div class="choice-bubble link-bubble">
+            <ChoiceMediaView v-if="choice.media" :media="choice.media" :size="20" />
+            <DraftInput
+              class="choice-bubble-input"
+              :model-value="choice.label"
+              :placeholder="choice.media ? '' : t('chatbot.properties.new_choice')"
+              @commit="label => projectStore.renameChoice(id, choice.id, label)"
+            />
+            <MessagesSquare v-if="choice.token" :size="14" class="link-icon" :aria-label="t('chatbot.properties.chatbot_link')" />
+            <span v-else class="no-link">{{ t('chatbot.editor.no_link') }}</span>
+          </div>
+        </div>
+        <div class="rule-box continue-box">
+          <span class="rule-label">{{ t('chatbot.runtime.chat.continue') }}</span>
+          <Handle type="source" :id="HANDLE_OUT" :position="Position.Right" class="node-handle out-handle inner-handle" :style="{ backgroundColor: config.color }" />
+        </div>
+      </div>
+
       <!-- CONDIÇÃO -->
       <div v-else-if="node.type === 'condition'" class="rules-list">
         <div v-for="(rule, rIndex) in node.data.rules" :key="rule.id" class="rule-box">
@@ -227,7 +248,7 @@ function randomText(options: string[]) {
 
     <!-- SAÍDA PADRÃO -->
     <Handle
-      v-if="!['end', 'choice_question', 'condition'].includes(node.type)"
+      v-if="!['end', 'choice_question', 'chatbot_links', 'condition'].includes(node.type)"
       type="source"
       :id="HANDLE_OUT"
       :position="Position.Right"
@@ -342,6 +363,10 @@ function randomText(options: string[]) {
   display: flex; align-items: center; min-height: 20px;
 }
 .else-box { background: #fef2f2; border-color: #fca5a5; }
+/* "Continuar" do menu de chatbots: saída fixa, no padrão do "Senão" */
+.continue-box { margin-top: 2px; border-style: dashed; }
+.link-icon { flex: 0 0 auto; color: #be185d; }
+.no-link { flex: 0 0 auto; font-size: 11px; font-style: italic; color: #6b7280; }
 .rule-label { font-size: 14px; font-weight: 500; color: #374151; width: 100%; text-align: left; line-height: 1.6; }
 .rule-label .operator { color: #6b7280; margin: 0 4px; } /* O template não preserva espaços entre elementos */
 .rule-number {

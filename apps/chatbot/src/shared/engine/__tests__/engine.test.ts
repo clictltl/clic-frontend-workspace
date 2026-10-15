@@ -379,3 +379,43 @@ describe('end', () => {
     expect(state).toMatchObject({ status: 'ended', currentNodeId: end.id, error: null });
   });
 });
+
+describe('"open another chatbot" block', () => {
+  function linksFlow() {
+    const ctx = flow();
+    const links = ctx.add('chatbot_links');
+    links.data.choices[0]!.token = 'abc123';
+    ctx.setText(links, doc(text('Qual chatbot?')));
+    ctx.link(ctx.message, links);
+    return { ...ctx, links };
+  }
+
+  it('shows the menu with the link options plus "Continue" (out)', () => {
+    const { project, links } = linksFlow();
+    const state = startChat(project);
+    expect(state.status).toBe('waiting_choice');
+    expect(fromEnd(botTexts(state))).toBe('Qual chatbot?');
+    expect(state.choices.map(c => [c.id, c.token])).toEqual([[links.data.choices[0]!.id, 'abc123'], [HANDLE_OUT, undefined]]);
+  });
+
+  it('a link option does not move the conversation (the interface opens the chatbot)', () => {
+    const { project, links } = linksFlow();
+    const state = startChat(project);
+    expect(selectChoice(project, state, links.data.choices[0]!.id)).toBe(state);
+  });
+
+  it('"Continue" follows the output without a student bubble, or ends if not connected', () => {
+    const { project, add, link, setText, links } = linksFlow();
+    let state = startChat(project);
+    const ended = selectChoice(project, state, HANDLE_OUT);
+    expect(ended).toMatchObject({ status: 'ended', error: null });
+    expect(ended.messages.filter(m => m.from === 'user')).toHaveLength(0);
+
+    const after = add('message');
+    setText(after, doc(text('Depois')));
+    link(links, after);
+    state = startChat(project);
+    state = selectChoice(project, state, HANDLE_OUT);
+    expect(fromEnd(botTexts(state))).toBe('Depois');
+  });
+});

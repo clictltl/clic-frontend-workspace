@@ -1,5 +1,5 @@
 import {
-  Play, MessageSquare, CircleHelp, ListChecks, Split, Box, Calculator, CircleCheck
+  Play, MessageSquare, CircleHelp, ListChecks, Split, Box, Calculator, CircleCheck, MessagesSquare
 } from '@lucide/vue';
 import type { NodeType } from '../../shared/types/chatbot';
 
@@ -21,6 +21,7 @@ export const NODE_CONFIG: Record<NodeType, NodeVisualConfig> = {
   message: { titleKey: 'chatbot.blocks.message', color: '#3b82f6', ink: '#1d4ed8', icon: MessageSquare },
   open_question: { titleKey: 'chatbot.blocks.openQuestion', color: '#fb923c', ink: '#c2410c', icon: CircleHelp },
   choice_question: { titleKey: 'chatbot.blocks.choiceQuestion', color: '#facc15', ink: '#a16207', icon: ListChecks },
+  chatbot_links: { titleKey: 'chatbot.blocks.chatbotLinks', color: '#f472b6', ink: '#be185d', icon: MessagesSquare },
   condition: { titleKey: 'chatbot.blocks.condition', color: '#c084fc', ink: '#7e22ce', icon: Split },
   set_variable: { titleKey: 'chatbot.blocks.setVariable', color: '#06b6d4', ink: '#0e7490', icon: Box },
   math: { titleKey: 'chatbot.blocks.math', color: '#38bdf8', ink: '#0369a1', icon: Calculator },
@@ -31,3 +32,6 @@ export const NODE_CONFIG: Record<NodeType, NodeVisualConfig> = {
 export const CREATABLE_NODES: NodeType[] = [
   'message', 'open_question', 'choice_question', 'condition', 'set_variable', 'end'
 ];
+
+/** Blocos "especiais", mais usados por professores: no fim do menu, depois de um separador. */
+export const SPECIAL_NODES: NodeType[] = ['chatbot_links'];

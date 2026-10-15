@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AlertTriangle, Bot, Play, RefreshCw, Send } from '@lucide/vue';
+import { AlertTriangle, ArrowRight, Bot, MessagesSquare, Play, RefreshCw, Send } from '@lucide/vue';
+import { HANDLE_OUT } from '../types/chatbot';
 import type { ChatSession } from './useChatSession';
 import type { Appearance } from '../types/chatbot';
 import { appearanceStyle } from '../domain/appearance';
@@ -147,12 +148,23 @@ function start() {
           </div>
         </div>
 
-        <!-- Opções da múltipla escolha -->
+        <!-- Opções: múltipla escolha, ou o menu de "Abrir outro chatbot" (links + "Continuar") -->
         <div v-if="session.choices.value.length > 0" ref="choicesRef" class="choices-container">
-          <button v-for="choice in session.choices.value" :key="choice.id" class="choice-button" @click="session.choose(choice.id)">
-            <ChoiceMediaView v-if="choice.media" :media="choice.media" :size="28" />
-            <span v-if="choice.label">{{ choice.label }}</span>
-          </button>
+          <template v-for="choice in session.choices.value" :key="choice.id">
+            <button v-if="choice.id === HANDLE_OUT" class="choice-button choice-continue" @click="session.choose(choice.id)">
+              <span>{{ t('chatbot.runtime.chat.continue') }}</span>
+              <ArrowRight :size="18" class="choice-trailing" aria-hidden="true" />
+            </button>
+            <button v-else-if="choice.token !== undefined" class="choice-button" @click="session.openLink(choice.id)">
+              <ChoiceMediaView v-if="choice.media" :media="choice.media" :size="28" />
+              <span v-if="choice.label">{{ choice.label }}</span>
+              <MessagesSquare :size="18" class="choice-trailing" aria-hidden="true" />
+            </button>
+            <button v-else class="choice-button" @click="session.choose(choice.id)">
+              <ChoiceMediaView v-if="choice.media" :media="choice.media" :size="28" />
+              <span v-if="choice.label">{{ choice.label }}</span>
+            </button>
+          </template>
         </div>
 
         <p v-if="session.isEnded.value && !session.error.value" class="sr-only">{{ t('chatbot.runtime.chat.ended') }}</p>
@@ -248,6 +260,9 @@ function start() {
   font-family: inherit; font-size: var(--chat-font-size); font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;
 }
 .choice-button:hover { background: color-mix(in srgb, var(--chat-accent) 12%, var(--chat-surface)); transform: translateX(4px); }
+.choice-trailing { margin-left: auto; flex: 0 0 auto; opacity: 0.8; }
+/* "Continuar": opção fixa do menu de chatbots, mais discreta que os links */
+.choice-continue { border-style: dashed; }
 
 .input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--chat-border); background: var(--chat-surface); }
 .input-area input {

@@ -237,6 +237,7 @@ export default {
       output_handle: 'Ponto de saída',
       write_text: 'Escreva o texto aqui',
       no_content: 'Sem conteúdo',
+      no_link: 'sem link',
       no_image: 'Nenhuma imagem definida',
       connect_label: "Conectar '{label}'",
       connect_condition: 'Conectar condição',
@@ -307,6 +308,8 @@ export default {
         variables: 'Variáveis',
         empty_value: 'vazio',
         toggle_variables: 'Mostrar ou esconder as variáveis',
+        linked_preview: 'O chatbot ligado abriria aqui. Ele só abre no chatbot publicado.',
+        open_linked_tab: 'Abrir o chatbot publicado em outra aba',
         from_block: 'Testando a partir de: {block}',
         from_start: 'Testar do início'
       }
@@ -316,6 +319,7 @@ export default {
       message: 'Mensagem',
       openQuestion: 'Pergunta aberta',
       choiceQuestion: 'Múltipla escolha',
+      chatbotLinks: 'Abrir outro chatbot',
       condition: 'Condicional',
       setVariable: 'Definir variável',
       math: 'Operação matemática',
@@ -325,6 +329,7 @@ export default {
         message: 'Olá! Bem-vindo ao Novelo.',
         openQuestion: 'Qual é o seu nome?',
         choiceQuestion: 'Escolha uma opção:',
+        chatbotLinks: 'Qual chatbot você quer visitar?',
         condition: 'Verificando condição...',
         setVariable: 'Definindo variável...',
         math: 'Operação matemática',
@@ -418,6 +423,13 @@ export default {
       section_new_value: 'Novo valor',
       section_target: 'Qual variável mudar',
       section_choices: 'Botões de resposta',
+      section_chatbot_links: 'Chatbots para visitar',
+      chatbot_link: 'Link do chatbot publicado',
+      chatbot_link_placeholder: 'Cole aqui o link de um chatbot publicado',
+      chatbot_link_invalid: 'Cole o link de um chatbot publicado',
+      chatbot_link_not_found: 'Chatbot não encontrado (talvez tenha sido despublicado)',
+      chatbot_link_check: 'Conferir de novo',
+      chatbot_link_continue_hint: '"Continuar" segue pela saída do bloco',
       section_answer: 'Onde guardar a resposta',
       delay_hint: 'A conversa espera esse tempo antes de mostrar o próximo balão.',
       section_delay: 'Esperar antes da próxima',
@@ -532,6 +544,8 @@ export default {
         btn_start: 'Iniciar'
       },
       chat: {
+        continue: 'Continuar',
+        back: 'Voltar',
         conversation: 'Conversa',
         ended: 'Fim da conversa',
         placeholder: 'Digite sua resposta...',
@@ -545,6 +559,9 @@ export default {
         stop: 'Parar',
         expand: 'Expandir tela cheia',
         collapse: 'Sair da tela cheia'
+      },
+      linked: {
+        unavailable: 'Este chatbot não está disponível.'
       },
       status: {
         loading: 'Carregando chatbot...',
@@ -592,6 +609,7 @@ export default {
       addChoice: 'Criação de opção',
       renameChoice: 'Edição de opção',
       removeChoice: 'Exclusão de opção',
+      setChoiceLink: 'Link da opção',
       addRule: 'Criação de regra',
       removeRule: 'Exclusão de regra',
       setRuleMatch: 'Alteração de regra',

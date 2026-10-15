@@ -17,6 +17,7 @@ export type FlowIssue =
   | { code: 'UNCONNECTED_OUTPUT'; severity: 'warning'; nodeId: string; handle: string }
   | { code: 'UNREACHABLE_NODE'; severity: 'warning'; nodeId: string }
   | { code: 'EMPTY_CHOICE'; severity: 'warning'; nodeId: string; choiceId: string }
+  | { code: 'NO_LINK'; severity: 'warning'; nodeId: string; choiceId: string }
   | { code: 'VARIABLE_NOT_SELECTED'; severity: 'error'; nodeId: string; conditionId?: string }
   | { code: 'MISSING_VARIABLE'; severity: 'error'; nodeId: string; variableId: string }
   | { code: 'VARIABLE_NOT_NUMBER'; severity: 'error'; nodeId: string; variableId: string }
@@ -71,12 +72,15 @@ export function validateFlow(project: ChatbotProject): FlowIssue[] {
     }
   }
 
-  // 4. Opções sem texto e sem mídia (botão vazio no chat)
+  // 4. Opções sem texto e sem mídia (botão vazio no chat); no menu de chatbots, opção sem link
   for (const node of nodeList) {
-    if (node.type !== 'choice_question') continue;
+    if (node.type !== 'choice_question' && node.type !== 'chatbot_links') continue;
     for (const choice of node.data.choices) {
       if (!choice.label.trim() && !choice.media) {
         issues.push({ code: 'EMPTY_CHOICE', severity: 'warning', nodeId: node.id, choiceId: choice.id });
+      }
+      if (node.type === 'chatbot_links' && !(choice as { token: string }).token) {
+        issues.push({ code: 'NO_LINK', severity: 'warning', nodeId: node.id, choiceId: choice.id });
       }
     }
   }

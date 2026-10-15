@@ -39,7 +39,7 @@ const nodeConfig = computed(() => (activeNode.value ? NODE_CONFIG[activeNode.val
       <NodeMediaSettings v-if="'media' in activeNode.data" :node-id="activeNode.id" />
 
       <OpenQuestionSettings v-if="activeNode.type === 'open_question'" :node-id="activeNode.id" />
-      <ChoiceSettings v-else-if="activeNode.type === 'choice_question'" :node-id="activeNode.id" />
+      <ChoiceSettings v-else-if="activeNode.type === 'choice_question' || activeNode.type === 'chatbot_links'" :node-id="activeNode.id" />
       <ConditionSettings v-else-if="activeNode.type === 'condition'" :node-id="activeNode.id" />
       <SetVariableSettings v-else-if="activeNode.type === 'set_variable'" :node-id="activeNode.id" />
       <MathSettings v-else-if="activeNode.type === 'math'" :node-id="activeNode.id" />

@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useMenuPosition } from '../../utils/popover';
 import { useI18n } from 'vue-i18n';
 import { ClipboardPaste } from '@lucide/vue';
-import { NODE_CONFIG, CREATABLE_NODES } from '../../utils/nodeConfig';
+import { NODE_CONFIG, CREATABLE_NODES, SPECIAL_NODES } from '../../utils/nodeConfig';
 import type { NodeType } from '../../../shared/types/chatbot';
 
 const props = defineProps<{
@@ -64,6 +64,16 @@ onUnmounted(() => {
       <div class="menu-header">{{ t('chatbot.editor.add_node') }}</div>
       <button 
         v-for="type in CREATABLE_NODES" 
+        :key="type"
+        class="menu-item"
+        @click="emit('select', type)"
+      >
+        <component :is="NODE_CONFIG[type].icon" :size="16" :color="NODE_CONFIG[type].ink" />
+        <span>{{ t(NODE_CONFIG[type].titleKey) }}</span>
+      </button>
+      <div class="menu-divider"></div>
+      <button
+        v-for="type in SPECIAL_NODES"
         :key="type"
         class="menu-item"
         @click="emit('select', type)"

@@ -43,6 +43,7 @@ export function cloneNode(source: ChatNode, target: ChatbotProject, position: Po
       node.data.variableId = keepVariable(node.data.variableId);
       break;
     case 'choice_question':
+    case 'chatbot_links':
       for (const choice of node.data.choices) {
         choice.id = deps.newId();
         choice.media = keepChoiceMedia(choice.media);

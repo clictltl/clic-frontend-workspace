@@ -50,7 +50,7 @@ export function getNodeAssetIds(node: ChatNode): string[] {
   const add = (id: string | null) => { if (id) ids.add(id); };
 
   if ('media' in node.data) add(nodeMediaAssetId(node.data.media));
-  if (node.type === 'choice_question') {
+  if (node.type === 'choice_question' || node.type === 'chatbot_links') {
     for (const choice of node.data.choices) add(choiceMediaAssetId(choice.media));
   }
   return [...ids];

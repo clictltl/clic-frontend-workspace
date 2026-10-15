@@ -58,6 +58,13 @@ export function selectChoice(project: ChatbotProject, state: ChatState, choiceId
   const choice = state.choices.find(c => c.id === choiceId);
   if (state.status !== 'waiting_choice' || !choice || !state.currentNodeId) return state;
 
+  // "Abrir outro chatbot": o link é aberto pela interface e a conversa continua no menu;
+  // "Continuar" (`out`) segue pela saída do bloco, sem balão do aluno
+  if (project.nodes[state.currentNodeId]?.type === 'chatbot_links') {
+    if (choice.id !== HANDLE_OUT) return state;
+    return run(project, fork(state), target(project, state.currentNodeId, HANDLE_OUT));
+  }
+
   const next = fork(state);
   pushMessage(next, { from: 'user', text: choice.label, media: choice.media });
   return run(project, next, target(project, state.currentNodeId, choice.id));
@@ -110,6 +117,14 @@ function run(project: ChatbotProject, state: ChatState, firstNodeId: string | nu
       case 'choice_question':
         pushBotMessage(project, state, node.id, node.data.content, node.data.media, 0);
         return { ...state, status: 'waiting_choice', choices: node.data.choices.map(c => ({ ...c })) };
+
+      case 'chatbot_links':
+        pushBotMessage(project, state, node.id, node.data.content, node.data.media, 0);
+        return {
+          ...state,
+          status: 'waiting_choice',
+          choices: [...node.data.choices.map(c => ({ ...c })), { id: HANDLE_OUT, label: '', media: null }]
+        };
 
       case 'condition': {
         const rule = node.data.rules.find(r => matchesRule(project, state.values, r));

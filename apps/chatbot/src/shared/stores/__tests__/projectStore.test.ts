@@ -95,6 +95,25 @@ describe('projectStore: one gesture, one undo step, one log event', () => {
   });
 });
 
+describe('projectStore: "open another chatbot" block', () => {
+  it('setting the link of an option is one gesture: one undo step, one log event', () => {
+    const store = freshStore();
+    const id = store.addNode('chatbot_links', { x: 900, y: 150 });
+    addMutation.mockClear();
+    const node = store.project.nodes[id]!;
+    const choiceId = (node.data as { choices: { id: string }[] }).choices[0]!.id;
+
+    store.setChoiceLink(id, choiceId, 'abc123', { title: 'Dona Coruja', emoji: null });
+    store.addChoice(id);
+    expect(loggedActions()).toEqual(['setChoiceLink', 'addChoice']);
+    expect((store.project.nodes[id]!.data as { choices: { token: string }[] }).choices.map(c => c.token)).toEqual(['abc123', '']);
+
+    store.undo();
+    store.undo();
+    expect((store.project.nodes[id]!.data as { choices: { token: string }[] }).choices.map(c => c.token)).toEqual(['']);
+  });
+});
+
 describe('projectStore: sessions (Frame Zero) and saving', () => {
   it('a new project starts a telemetry session and clears the history', () => {
     const store = freshStore();

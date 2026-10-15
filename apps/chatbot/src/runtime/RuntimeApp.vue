@@ -4,13 +4,13 @@ import { useI18n } from 'vue-i18n';
 import { AlertTriangle, Bot, Loader2 } from '@lucide/vue';
 import { RuntimeHeader } from '@clic/shared';
 import type { ChatbotProject } from '../shared/types/chatbot';
-import { parseProject } from '../shared/domain/project';
-import { appDomainDeps } from '../shared/appDeps';
 import appLogo from '../assets/logo_novelo.webp'; // Imagem 2x da altura exibida: o SVG original tinha 85 KB
 import { provideMediaResolver } from '../shared/media/resolver';
 import { useChatSession } from '../shared/chat/useChatSession';
 import ChatInterface from '../shared/chat/ChatInterface.vue';
 import ChatTitleBar from '../shared/chat/ChatTitleBar.vue';
+import { fetchPublishedProject, publishedMediaUrl } from '../shared/chat/publishedProject';
+import LinkedChatbot from './LinkedChatbot.vue';
 
 const { t } = useI18n();
 
@@ -19,11 +19,7 @@ const isUnavailable = ref(false);
 const project = shallowRef<ChatbotProject | null>(null);
 
 // No runtime só existem arquivos já publicados: a URL pública fica em `project.assets`
-provideMediaResolver(source => {
-  if (source.kind === 'url') return source.url;
-  const asset = project.value?.assets[source.assetId];
-  return asset?.source === 'remote' ? asset.url : undefined;
-});
+provideMediaResolver(source => publishedMediaUrl(project.value, source));
 
 // Sem telemetria: o runtime público não tem sessão de aluno logado
 const session = useChatSession({ getProject: () => project.value! });
@@ -48,16 +44,8 @@ async function loadProject() {
     const token = extractTokenFromPath();
     if (!token) throw new Error('INVALID_TOKEN');
 
-    const restRoot = window.CLIC_CORE?.rest_root ?? '/wp-json/clic/v1/chatbot/';
-    const res = await fetch(restRoot + 'publish/' + token);
-    if (!res.ok) throw new Error('INVALID_TOKEN');
-    const json = await res.json();
-
-    // Projetos do v1 (ou inválidos) são recusados: o chatbot fica indisponível
-    const now = new Date().toISOString();
-    const result = parseProject(json?.project?.data, appDomainDeps, now);
-    if (!result.ok) throw new Error(result.error);
-    project.value = result.project;
+    // Projetos do v1 são convertidos; inválidos deixam o chatbot indisponível
+    project.value = await fetchPublishedProject(token);
   } catch (err) {
     console.warn('[Chatbot] Projeto indisponível', err);
     isUnavailable.value = true;
@@ -95,6 +83,9 @@ onMounted(loadProject);
 
           <ChatInterface v-else-if="project" :session="session" :appearance="project.appearance" />
         </main>
+
+        <!-- "Abrir outro chatbot": o chatbot escolhido abre por cima; Voltar retorna a este, no mesmo ponto -->
+        <LinkedChatbot v-if="session.openedLink.value?.token" :token="session.openedLink.value.token" @back="session.closeLink()" />
       </div>
     </div>
   </div>
@@ -103,7 +94,7 @@ onMounted(loadProject);
 <style scoped>
 .runtime-root { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 .runtime-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; overflow-y: auto; }
-.runtime-widget { width: 100%; max-width: 480px; height: 100%; max-height: 820px; /* Acompanha a altura da tela */ display: flex; flex-direction: column; background: #f9fafb; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12); }
+.runtime-widget { position: relative; width: 100%; max-width: 480px; height: 100%; max-height: 820px; /* Acompanha a altura da tela */ display: flex; flex-direction: column; background: #f9fafb; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12); }
 .runtime-header { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #e5e7eb; }
 .widget-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #4b5563; font-size: 14px; }
 .runtime-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
