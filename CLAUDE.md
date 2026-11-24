@@ -64,10 +64,27 @@ empacotados no plugin correspondente; nunca edite um `dist` diretamente.
   `npm version patch|minor|major -w apps/<app>` (correção / recurso novo / mudança de formato ou troca grande).
   O build grava a versão, o commit (com `+` se havia alterações não commitadas) e a data no modal de Info,
   no `dist/version.json` e no `project_loaded` da telemetria (`packages/shared/build/appBuildInfo.ts`).
-  Publique builds feitos de um commit limpo.
-  A versão sobe num commit próprio, depois dos commits das mudanças: `chore(<app>): release x.y.z`.
-  Ordem: commits das mudanças → `npm version …` → commit de release → build → publicação.
+  Publique builds feitos de um commit limpo (passo a passo em "Publicação").
 - **Versão do projeto** (`meta.version` no JSON): só muda quando o formato do JSON muda, junto com uma migração.
+
+## Publicação
+Um app por vez. `<app>` é o nome da pasta em `apps/` (`chatbot`, `graph-builder`, `emoji-coder`).
+1. **Mudanças:** commits normais, já revisados.
+2. **Versão:** `npm version patch|minor|major -w apps/<app>`, comparando com a tag da última versão
+   publicada (`git log <app>-vX.Y.Z..HEAD -- apps/<app> packages/shared`). Mudanças no `@clic/shared`
+   contam para todos os apps que as usam.
+3. **Release:** commit próprio `chore(<app>): release x.y.z` e tag anotada
+   `git tag -a <app>-vx.y.z -m "<app> x.y.z"`. A tag precisa ser anotada para o Sync do VS Code
+   enviá-la (`git.followTagsWhenSync`).
+4. **Build:** `npm run build -w apps/<app>` com o repositório limpo. O `dist/version.json` não pode
+   ter `+` no commit.
+5. **Teste local:** copiar o `dist` para o plugin `clic-<app>` do WordPress local e conferir o app.
+6. **Produção:** apagar a pasta `dist` inteira do plugin e enviar a nova. Conferir
+   `https://clic.tltlab.org/wp-content/plugins/clic-<app>/dist/version.json`.
+7. **Plugin:** no repositório do plugin, `git add -A dist` (o `-A` registra os arquivos removidos) e
+   `git commit -m "build: <App> x.y.z (workspace <commit>, tag <app>-vx.y.z)"`.
+8. **Push:** dos dois repositórios, com o Sync do VS Code. Pelo terminal, `git push --follow-tags`.
+   No workspace, conferir com `git ls-remote --tags origin` se a tag nova chegou.
 
 ## Git
 - Commits no padrão Conventional Commits (`feat(app): ...`, `fix(shared): ...`), em inglês.
