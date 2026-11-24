@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { VitePWA } from 'vite-plugin-pwa'
 import { appBuildInfo } from '../../packages/shared/build/appBuildInfo.ts'
+import { blocklyMedia } from '../../packages/shared/build/blocklyMedia.ts'
 
 export default defineConfig(({ mode }) => {
   const isGithub = mode === 'github'
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       buildInfo.plugin,
+      blocklyMedia({ offline: isOffline }),
       ...(isOffline ? [viteSingleFile()] : [
         VitePWA({
           registerType: 'autoUpdate',
@@ -51,6 +53,8 @@ export default defineConfig(({ mode }) => {
             inlineWorkboxRuntime: true,
             // Diz ao PWA para ignorar o arquivo físico index.html, pois o HTML verdadeiro é gerado pelo PHP do WordPress!
             globIgnores: ['**/index.html'],
+            // Padrão do plugin + mídia do Blockly (lixeira, zoom, sons), para funcionar sem rede
+            globPatterns: ['**/*.{js,css,html}', 'assets/blockly-media/*'],
             runtimeCaching: [
               {
                 // Em vez de adivinhar a URL, intercepta QUALQUER pedido de página HTML!

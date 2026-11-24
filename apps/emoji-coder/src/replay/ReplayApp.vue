@@ -156,6 +156,7 @@ import { useReplayEngine } from './composables/useReplayEngine';
 import * as Blockly from 'blockly/core';
 import 'blockly/blocks';
 import { getLibrary, compileWorkspaceToAST } from '@/libraries';
+import { blocklyMediaOptions } from '@clic/shared/src/blockly/media';
 import { getTutorialChallenges } from '@/tutorials'; // <-- Adicionado
 import { useProjectStore } from '@/shared/stores/projectStore'; // <-- Adicionado
 import { registerFieldColour } from '@blockly/field-colour'; 
@@ -434,6 +435,7 @@ engine.onFrameZero((initialState) => {
   workspace = Blockly.inject(blocklyDiv.value, {
     readOnly: true,
     scrollbars: true,
+    ...blocklyMediaOptions,
     zoom: { controls: true, wheel: false } 
   });
 

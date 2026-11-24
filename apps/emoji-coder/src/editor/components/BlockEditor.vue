@@ -14,6 +14,7 @@ import { registerFieldColour } from '@blockly/field-colour';
 
 import { useProjectStore } from '@/shared/stores/projectStore';
 import { getLibrary, compileWorkspaceToAST } from '@/libraries';
+import { blocklyMediaOptions } from '@clic/shared/src/blockly/media';
 import { telemetryService } from '@clic/shared';
 
 const { t, locale, fallbackLocale } = useI18n(); 
@@ -167,6 +168,7 @@ onMounted(async () => {
     scrollbars: true,
     trashcan: true,
     theme: Blockly.Themes.Zelos,
+    ...blocklyMediaOptions,
     zoom: {
       controls: true,
       wheel: false,

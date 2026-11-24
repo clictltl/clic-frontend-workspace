@@ -65,6 +65,8 @@ empacotados no plugin correspondente; nunca edite um `dist` diretamente.
   O build grava a versão, o commit (com `+` se havia alterações não commitadas) e a data no modal de Info,
   no `dist/version.json` e no `project_loaded` da telemetria (`packages/shared/build/appBuildInfo.ts`).
   Publique builds feitos de um commit limpo.
+  A versão sobe num commit próprio, depois dos commits das mudanças: `chore(<app>): release x.y.z`.
+  Ordem: commits das mudanças → `npm version …` → commit de release → build → publicação.
 - **Versão do projeto** (`meta.version` no JSON): só muda quando o formato do JSON muda, junto com uma migração.
 
 ## Git
