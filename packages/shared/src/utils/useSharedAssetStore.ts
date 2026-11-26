@@ -22,6 +22,25 @@ export interface AddAssetOptions {
   compressImages?: boolean;    // Se true, tenta comprimir imagens grandes
 }
 
+// Extensões diferentes que nomeiam o mesmo formato: não renomeia à toa.
+const EQUIVALENT_EXTENSIONS: Record<string, string[]> = {
+  jpg: ['jpg', 'jpeg'],
+};
+
+/**
+ * Troca a extensão do nome pela do formato real detectado nos bytes
+ * (ex.: 'foto.jfif' → 'foto.jpg'). O servidor confere a extensão no upload,
+ * e variantes como .jfif, .pjpeg e .pjp não estão na lista padrão do WordPress.
+ */
+export function canonicalFileName(name: string, detectedExt: string): string {
+  const match = /\.([^./]+)$/.exec(name);
+  const currentExt = match?.[1]?.toLowerCase();
+  const accepted = EQUIVALENT_EXTENSIONS[detectedExt] ?? [detectedExt];
+  if (currentExt && accepted.includes(currentExt)) return name;
+  const base = match ? name.slice(0, match.index) : name;
+  return `${base || 'image'}.${detectedExt}`;
+}
+
 // Helper para calcular o SHA-256
 async function computeFileHash(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
@@ -40,17 +59,19 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
   }
 
   // --- VALIDAÇÃO PREPARADA PARA O FUTURO (TEXTOS, VÍDEOS, ÁUDIOS) ---
-  async function validateFileSecurity(file: File, allowedMimes?: string[]): Promise<string> {
+  async function validateFileSecurity(file: File, allowedMimes?: string[]): Promise<{ mime: string; ext?: string }> {
     // Arquivos de texto (.md, .txt, .csv, json) não possuem Magic Numbers binários.
     // Confiamos no MIME reportado pelo navegador, pois texto não é executável por si só.
     const isTextBased = file.type.startsWith('text/') || file.type === 'application/json';
     
     let detectedMime = file.type;
+    let detectedExt: string | undefined;
 
     if (!isTextBased) {
       const typeInfo = await fileTypeFromBlob(file);
       if (typeInfo) {
         detectedMime = typeInfo.mime;
+        detectedExt = typeInfo.ext;
       } else if (file.size > 0) {
         throw new Error(i18n.global.t('messages.invalid_file_format'));
       }
@@ -62,7 +83,7 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
       }
     }
 
-    return detectedMime;
+    return { mime: detectedMime, ext: detectedExt };
   }
 
   /**
@@ -78,17 +99,25 @@ export function useSharedAssetStore(config: UseAssetStoreOptions) {
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
     // 1. Segurança e Tipo Real
-    const realMime = await validateFileSecurity(file, allowedMimeTypes);
+    const { mime: realMime, ext: realExt } = await validateFileSecurity(file, allowedMimeTypes);
     let finalFile = file;
 
+    // Nome e tipo seguem o conteúdo real, não o que o nome ou o navegador informam
+    if (realExt) {
+      const name = canonicalFileName(file.name, realExt);
+      if (name !== file.name || file.type !== realMime) {
+        finalFile = new File([file], name, { type: realMime, lastModified: file.lastModified });
+      }
+    }
+
     // 2. Tamanho e Compressão (Apenas para imagens)
-    if (file.size > maxSizeBytes) {
+    if (finalFile.size > maxSizeBytes) {
       const isImage = realMime.startsWith('image/');
       const isCompressible = isImage && realMime !== 'image/gif' && realMime !== 'image/svg+xml';
 
       if (isCompressible && compressImages) {
         try {
-          const compressedBlob = await imageCompression(file, {
+          const compressedBlob = await imageCompression(finalFile, {
             maxSizeMB: maxSizeMB,
             maxWidthOrHeight: 1920,
             useWebWorker: true,
